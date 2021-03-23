@@ -7,11 +7,11 @@ from CustomerData import *
 class Simulator:
 
     def simulation_step_1(self):
-        day = Day(1)
         group1 = Group(1)
         group2 = Group(2)
         group3 = Group(3)
         group4 = Group(4)
+        day = Day(1, group1, group2, group3, group4)
 
         p0_frac = 0.7
         p1_frac = 0.2

@@ -15,8 +15,13 @@ class Day:                                      #NB we do not care about peole w
         self.number_of_customers = 0            # Number of customers per day
         self.number_of_c1 = 0                   # Number of customers per day of class 1
         self.number_of_c2 = 0
-        self.number_of_c2 = 0
         self.number_of_c3 = 0
+        self.number_of_c4 = 0
+
+        self.number_of_item2_c1 = 0                #Number of customers of class 1 purchasin 2 in general
+        self.number_of_item2_c2 = 0
+        self.number_of_item2_c3 = 0
+        self.number_of_item2_c4 = 0
 
         self.purchase_item1_P0_c1 = 0              # Number of customer of class 1 purchasing only 1 with P0
         self.purchase_item1_P0_c2 = 0
@@ -64,6 +69,15 @@ class Day:                                      #NB we do not care about peole w
     def add_customer_data(self, customer_data):
         self.customers_data_list.append(customer_data)          # Adding the CustomerData object to the list
         self.number_of_customers += 1                           # Incrementing the number of customers for the day
+        if customer_data.is_second_purchase:
+            if customer_data.get_group() == 1:
+                self.number_of_item2_c1 += self.number_of_item2_c1
+            if customer_data.get_group() == 2:
+                self.number_of_item2_c2 += self.number_of_item2_c2
+            if customer_data.get_group() == 3:
+                self.number_of_item2_c3 += self.number_of_item2_c3
+            if customer_data.get_group() == 4:
+                self.number_of_item2_c4 += self.number_of_item2_c4
         if customer_data.is_first_purchase:
             if customer_data.get_group() == 1:
                 self.number_of_c1 += self.number_of_c1
@@ -172,27 +186,30 @@ class Day:                                      #NB we do not care about peole w
         self.group3.set_conversion_rate_item1((self.purchase_item1_P0_c3+ self.purchase_item1_P1_c3 + self.purchase_item1_P2_c3 + self.purchase_item1_P3_c3 + self.purchase_item2_given1_P0_c3 + self.purchase_item2_given1_P1_c3 + self.purchase_item2_given1_P2_c3 + self.purchase_item2_given1_P3_c3)/self.number_of_c3)
         self.group4.set_conversion_rate_item1((self.purchase_item1_P0_c4+ self.purchase_item1_P1_c4 + self.purchase_item1_P2_c4 + self.purchase_item1_P3_c4 + self.purchase_item2_given1_P0_c4 + self.purchase_item2_given1_P1_c4 + self.purchase_item2_given1_P2_c4 + self.purchase_item2_given1_P3_c4)/self.number_of_c4)
 
-        #self.group1.set_conversion_rate_item2(/self.number_of_c1)                 #purchase2 (1st group) / total_purchase (1st group)
-        #self.group2.set_conversion_rate_item2(/self.number_of_c2)
-        #self.group2.set_conversion_rate_item2(/self.number_of_c3)
-        #self.group2.set_conversion_rate_item2(/self.number_of_c3)
+        self.group1.set_conversion_rate_item2(self.number_of_item2_c1/self.number_of_c1)                 #purchase2 (1st group) / total_purchase (1st group)
+        self.group2.set_conversion_rate_item2(self.number_of_item2_c2/self.number_of_c2)
+        self.group2.set_conversion_rate_item2(self.number_of_item2_c3/self.number_of_c3)
+        self.group2.set_conversion_rate_item2(self.number_of_item2_c4/self.number_of_c3)
 
-        self.group1.set_conversion_rate_item2_given_item1_P0()  #purchase2 and purchase1 (1st group) / purchase1 (1st group)
-        self.group1.set_conversion_rate_item2_given_item1_P0()
-        self.group1.set_conversion_rate_item2_given_item1_P0()
-        self.group1.set_conversion_rate_item2_given_item1_P0()
+        self.group1.set_conversion_rate_item2_given_item1_P0(self.purchase_item2_given1_P0_c1 / (self.purchase_item1_P0_c1 + self.purchase_item2_given1_P0_c1))  #purchase2 and purchase1 (1st group) / purchase1 (1st group)
+        self.group2.set_conversion_rate_item2_given_item1_P0(self.purchase_item2_given1_P0_c2 / (self.purchase_item1_P0_c2 + self.purchase_item2_given1_P0_c2))
+        self.group3.set_conversion_rate_item2_given_item1_P0(self.purchase_item2_given1_P0_c3 / (self.purchase_item1_P0_c3 + self.purchase_item2_given1_P0_c3))
+        self.group4.set_conversion_rate_item2_given_item1_P0(self.purchase_item2_given1_P0_c4 / (self.purchase_item1_P0_c4 + self.purchase_item2_given1_P0_c4))
 
-        self.group1.set_conversion_rate_item2_given_item1_P1()  # purchase2 and purchase1 (1st group) / purchase1 (1st group)
-        self.group1.set_conversion_rate_item2_given_item1_P1()
-        self.group1.set_conversion_rate_item2_given_item1_P1()
-        self.group1.set_conversion_rate_item2_given_item1_P1()
+        self.group1.set_conversion_rate_item2_given_item1_P1(self.purchase_item2_given1_P1_c1 / (self.purchase_item1_P1_c1 + self.purchase_item2_given1_P1_c1))  # purchase2 and purchase1 (1st group) / purchase1 (1st group)
+        self.group2.set_conversion_rate_item2_given_item1_P1(self.purchase_item2_given1_P1_c2 / (self.purchase_item1_P1_c2 + self.purchase_item2_given1_P1_c2))
+        self.group3.set_conversion_rate_item2_given_item1_P1(self.purchase_item2_given1_P1_c3 / (self.purchase_item1_P1_c3 + self.purchase_item2_given1_P1_c3))
+        self.group4.set_conversion_rate_item2_given_item1_P1(self.purchase_item2_given1_P1_c4 / (self.purchase_item1_P1_c4 + self.purchase_item2_given1_P1_c4))
 
-        self.group1.set_conversion_rate_item2_given_item1_P2()  # purchase2 and purchase1 (1st group) / purchase1 (1st group)
-        self.group1.set_conversion_rate_item2_given_item1_P2()
-        self.group1.set_conversion_rate_item2_given_item1_P2()
-        self.group1.set_conversion_rate_item2_given_item1_P2()
+        self.group1.set_conversion_rate_item2_given_item1_P2(self.purchase_item2_given1_P2_c1 / (self.purchase_item1_P2_c1 + self.purchase_item2_given1_P2_c1))  # purchase2 and purchase1 (1st group) / purchase1 (1st group)
+        self.group2.set_conversion_rate_item2_given_item1_P2(self.purchase_item2_given1_P2_c2 / (self.purchase_item1_P2_c2 + self.purchase_item2_given1_P2_c2))
+        self.group3.set_conversion_rate_item2_given_item1_P2(self.purchase_item2_given1_P2_c3 / (self.purchase_item1_P2_c3 + self.purchase_item2_given1_P2_c3))
+        self.group4.set_conversion_rate_item2_given_item1_P2(self.purchase_item2_given1_P2_c4 / (self.purchase_item1_P2_c4 + self.purchase_item2_given1_P2_c4))
 
-        self.group1.set_conversion_rate_item2_given_item1_P3()  # purchase2 and purchase1 (1st group) / purchase1 (1st group)
-        self.group1.set_conversion_rate_item2_given_item1_P3()
-        self.group1.set_conversion_rate_item2_given_item1_P4()
-        self.group1.set_conversion_rate_item2_given_item1_P5()
+        self.group1.set_conversion_rate_item2_given_item1_P3(self.purchase_item2_given1_P3_c1 / (self.purchase_item1_P3_c1 + self.purchase_item2_given1_P3_c1))  # purchase2 and purchase1 (1st group) / purchase1 (1st group)
+        self.group2.set_conversion_rate_item2_given_item1_P3(self.purchase_item2_given1_P3_c2 / (self.purchase_item1_P3_c2 + self.purchase_item2_given1_P3_c2))
+        self.group3.set_conversion_rate_item2_given_item1_P3(self.purchase_item2_given1_P3_c3 / (self.purchase_item1_P3_c3 + self.purchase_item2_given1_P3_c3))
+        self.group4.set_conversion_rate_item2_given_item1_P3(self.purchase_item2_given1_P3_c4 / (self.purchase_item1_P3_c4 + self.purchase_item2_given1_P3_c4))
+
+
+#Pc1(I2| I1 and P0) = P(I2, I1, P0) / P(I1 and P0)

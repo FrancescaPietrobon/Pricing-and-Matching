@@ -1,16 +1,8 @@
-# This is a sample Python script.
+from Simulator import *
+from hungarian_algorithm import *
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+simulator = Simulator()
+simulator.simulation_step_1()
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+#Cretae input matrix M with number of customers rows, number of coupons columns, and using conversion rates as weight
+#hungarian_algorithm(M)  #must be adjusted with the constraints

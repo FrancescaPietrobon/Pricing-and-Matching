@@ -71,106 +71,106 @@ class Day:                                      #NB we do not care about peole w
         self.number_of_customers += 1                           # Incrementing the number of customers for the day
         if customer_data.is_second_purchase:
             if customer_data.get_group() == 1:
-                self.number_of_item2_c1 += self.number_of_item2_c1
+                self.number_of_item2_c1 += 1
             if customer_data.get_group() == 2:
-                self.number_of_item2_c2 += self.number_of_item2_c2
+                self.number_of_item2_c2 += 1
             if customer_data.get_group() == 3:
-                self.number_of_item2_c3 += self.number_of_item2_c3
+                self.number_of_item2_c3 += 1
             if customer_data.get_group() == 4:
-                self.number_of_item2_c4 += self.number_of_item2_c4
+                self.number_of_item2_c4 += 1
         if customer_data.is_first_purchase:
             if customer_data.get_group() == 1:
-                self.number_of_c1 += self.number_of_c1
+                self.number_of_c1 += 1
                 if customer_data.is_first_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P0_c1 += self.purchase_item2_given1_P0_c1
+                        self.purchase_item2_given1_P0_c1 += 1
                     else:
-                        self.purchase_item1_P0_c1 += self.purchase_item1_P0_c1
+                        self.purchase_item1_P0_c1 += 1
                 elif customer_data.is_second_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P1_c1 += self.purchase_item2_given1_P1_c1
+                        self.purchase_item2_given1_P1_c1 += 1
                     else:
-                        self.purchase_item1_P1_c1 += self.purchase_item1_P1_c1
+                        self.purchase_item1_P1_c1 += 1
                 elif customer_data.is_third_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P2_c1 += self.purchase_item2_given1_P2_c1
+                        self.purchase_item2_given1_P2_c1 += 1
                     else:
-                        self.purchase_item1_P2_c1 += self.purchase_item1_P2_c1
+                        self.purchase_item1_P2_c1 += 1
                 elif customer_data.is_fourth_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P3_c1 += self.purchase_item2_given1_P3_c1
+                        self.purchase_item2_given1_P3_c1 += 1
                     else:
-                        self.purchase_item1_P3_c1 += self.purchase_item1_P3_c1
+                        self.purchase_item1_P3_c1 += 1
 
 
             elif customer_data.get_group == 2:
-                self.number_of_c2 += self.number_of_c2
+                self.number_of_c2 += 1
                 if customer_data.is_first_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P0_c2 += self.purchase_item2_given1_P0_c2
+                        self.purchase_item2_given1_P0_c2 += 1
                     else:
-                        self.purchase_item1_P0_c2 += self.purchase_item1_P0_c2
+                        self.purchase_item1_P0_c2 += 1
                 elif customer_data.is_second_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P1_c2 += self.purchase_item2_given1_P1_c2
+                        self.purchase_item2_given1_P1_c2 += 1
                     else:
-                        self.purchase_item1_P1_c2 += self.purchase_item1_P1_c2
+                        self.purchase_item1_P1_c2 += 1
                 elif customer_data.is_third_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P2_c2 += self.purchase_item2_given1_P2_c2
+                        self.purchase_item2_given1_P2_c2 += 1
                     else:
-                        self.purchase_item1_P2_c2 += self.purchase_item1_P2_c2
+                        self.purchase_item1_P2_c2 += 1
                 elif customer_data.is_fourth_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P3_c2 += self.purchase_item2_given1_P3_c2
+                        self.purchase_item2_given1_P3_c2 += 1
                     else:
-                        self.purchase_item1_P3_c2 += self.purchase_item1_P3_c2
+                        self.purchase_item1_P3_c2 += 1
 
             elif customer_data.get_group() == 3:
-                self.number_of_c3 += self.number_of_c3
+                self.number_of_c3 += 1
                 if customer_data.is_first_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P0_c3 += self.purchase_item2_given1_P0_c3
+                        self.purchase_item2_given1_P0_c3 += 1
                     else:
-                        self.purchase_item1_P0_c3 += self.purchase_item1_P0_c3
+                        self.purchase_item1_P0_c3 += 1
                 elif customer_data.is_second_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P1_c3 += self.purchase_item2_given1_P1_c3
+                        self.purchase_item2_given1_P1_c3 += 1
                     else:
-                        self.purchase_item1_P1_c3 += self.purchase_item1_P1_c3
+                        self.purchase_item1_P1_c3 += 1
                 elif customer_data.is_third_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P2_c3 += self.purchase_item2_given1_P2_c3
+                        self.purchase_item2_given1_P2_c3 += 1
                     else:
-                        self.purchase_item1_P2_c3 += self.purchase_item1_P2_c3
+                        self.purchase_item1_P2_c3 += 1
                 elif customer_data.is_fourth_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P3_c3 += self.purchase_item2_given1_P3_c3
+                        self.purchase_item2_given1_P3_c3 += 1
                     else:
-                        self.purchase_item1_P3_c3 += self.purchase_item1_P3_c3
+                        self.purchase_item1_P3_c3 += 1
 
             elif customer_data.get_group() == 4:
-                self.number_of_c4 += self.number_of_c4
+                self.number_of_c4 += 1
                 if customer_data.is_first_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P0_c4 += self.purchase_item2_given1_P0_c4
+                        self.purchase_item2_given1_P0_c4 += 1
                     else:
-                        self.purchase_item1_P0_c4 += self.purchase_item1_P0_c4
+                        self.purchase_item1_P0_c4 += 1
                 elif customer_data.is_second_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P1_c4 += self.purchase_item2_given1_P1_c4
+                        self.purchase_item2_given1_P1_c4 += 1
                     else:
-                        self.purchase_item1_P1_c4 += self.purchase_item1_P1_c4
+                        self.purchase_item1_P1_c4 += 1
                 elif customer_data.is_third_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P2_c4 += self.purchase_item2_given1_P2_c4
+                        self.purchase_item2_given1_P2_c4 += 1
                     else:
-                        self.purchase_item1_P2_c4 += self.purchase_item1_P2_c4
+                        self.purchase_item1_P2_c4 += 1
                 elif customer_data.is_fourth_promo:
                     if customer_data.is_second_purchase:
-                        self.purchase_item2_given1_P3_c4 += self.purchase_item2_given1_P3_c4
+                        self.purchase_item2_given1_P3_c4 += 1
                     else:
-                        self.purchase_item1_P3_c4 += self.purchase_item1_P3_c4
+                        self.purchase_item1_P3_c4 += 1
 
 
     def get_number_of_customers(self):

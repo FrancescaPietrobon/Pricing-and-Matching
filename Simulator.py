@@ -30,40 +30,40 @@ class Simulator:
         p3_num = int((c1_daily + c2_daily + c3_daily + c4_daily) * p3_frac)
 
         # Probability that a customer of a class buys the first item alone = Binomial
-        c1_i1 = np.random.binomial(76, 0.632) / 76              # Class 1: N = 76, p = 0.632
-        c2_i1 = np.random.binomial(133, 0.114) / 133            # Class 2: N = 133, p = 0.114
-        c3_i1 = np.random.binomial(107, 0.333) / 107            # Class 3: N = 107, p = 0.333
-        c4_i1 = np.random.binomial(93, 0.713) / 93              # Class 4: N = 93, p = 0.713
+        c1_i1 = np.random.binomial(c1_daily, 0.632) / c1_daily              # Class 1: N = 76, p = 0.632
+        c2_i1 = np.random.binomial(c2_daily, 0.114) / c2_daily            # Class 2: N = 133, p = 0.114
+        c3_i1 = np.random.binomial(c3_daily, 0.333) / c3_daily            # Class 3: N = 107, p = 0.333
+        c4_i1 = np.random.binomial(c4_daily, 0.713) / c4_daily              # Class 4: N = 93, p = 0.713
 
         # Probability that a customer of a class buys the second item alone = Binomial
-        c1_i2 = np.random.binomial(76, 0.276) / 76              # Class 1: N = 76, p = 0.276
-        c2_i2 = np.random.binomial(133, 0.421) / 133            # Class 2: N = 133, p = 0.421
-        c3_i2 = np.random.binomial(107, 0.358) / 107            # Class 3: N = 107, p = 0.358
-        c4_i2 = np.random.binomial(93, 0.452) / 93              # Class 4: N = 93, p = 0.452
+        c1_i2 = np.random.binomial(c1_daily, 0.276) / c1_daily              # Class 1: N = 76, p = 0.276
+        c2_i2 = np.random.binomial(c2_daily, 0.421) / c2_daily            # Class 2: N = 133, p = 0.421
+        c3_i2 = np.random.binomial(c3_daily, 0.358) / c3_daily            # Class 3: N = 107, p = 0.358
+        c4_i2 = np.random.binomial(c4_daily, 0.452) / c4_daily              # Class 4: N = 93, p = 0.452
 
         # Probability that a customer of a class buys the second item given the first + P0 = Binomial
-        c1_i21_p0 = np.random.binomial(76, 0.512) / 76           # Class 1: N = 76, p = 0.512
-        c2_i21_p0 = np.random.binomial(133, 0.830) / 133         # Class 2: N = 133, p = 0.830
-        c3_i21_p0 = np.random.binomial(107, 0.122) / 107         # Class 3: N = 107, p = 0.122
-        c4_i21_p0 = np.random.binomial(93, 0.010) / 93           # Class 4: N = 93, p = 0.010
+        c1_i21_p0 = np.random.binomial(c1_daily, 0.512) / c1_daily           # Class 1: N = 76, p = 0.512
+        c2_i21_p0 = np.random.binomial(c2_daily, 0.830) / c2_daily         # Class 2: N = 133, p = 0.830
+        c3_i21_p0 = np.random.binomial(c3_daily, 0.122) / c3_daily         # Class 3: N = 107, p = 0.122
+        c4_i21_p0 = np.random.binomial(c4_daily, 0.010) / c4_daily           # Class 4: N = 93, p = 0.010
 
         # Probability that a customer of a class buys the second item given the first + P1 = Binomial
-        c1_i21_p1 = np.random.binomial(76, 0.845) / 76           # Class 1: N = 76, p = 0.845
-        c2_i21_p1 = np.random.binomial(133, 0.831) / 133         # Class 2: N = 133, p = 0.831
-        c3_i21_p1 = np.random.binomial(107, 0.145) / 107         # Class 3: N = 107, p = 0.145
-        c4_i21_p1 = np.random.binomial(93, 0.201) / 93           # Class 4: N = 93, p = 0.201
+        c1_i21_p1 = np.random.binomial(c1_daily, 0.845) / c1_daily           # Class 1: N = 76, p = 0.845
+        c2_i21_p1 = np.random.binomial(c2_daily, 0.831) / c2_daily         # Class 2: N = 133, p = 0.831
+        c3_i21_p1 = np.random.binomial(c3_daily, 0.145) / c3_daily         # Class 3: N = 107, p = 0.145
+        c4_i21_p1 = np.random.binomial(c4_daily, 0.201) / c4_daily           # Class 4: N = 93, p = 0.201
 
         # Probability that a customer of a class buys the second item given the first + P2 = Binomial
-        c1_i21_p2 = np.random.binomial(76, 0.872) / 76           # Class 1: N = 76, p = 0.872
-        c2_i21_p2 = np.random.binomial(133, 0.872) / 133         # Class 2: N = 133, p = 0.872
-        c3_i21_p2 = np.random.binomial(107, 0.367) / 107         # Class 3: N = 107, p = 0.367
-        c4_i21_p2 = np.random.binomial(93, 0.364) / 93           # Class 4: N = 93, p = 0.364
+        c1_i21_p2 = np.random.binomial(c1_daily, 0.872) / c1_daily           # Class 1: N = 76, p = 0.872
+        c2_i21_p2 = np.random.binomial(c2_daily, 0.872) / c2_daily         # Class 2: N = 133, p = 0.872
+        c3_i21_p2 = np.random.binomial(c3_daily, 0.367) / c3_daily         # Class 3: N = 107, p = 0.367
+        c4_i21_p2 = np.random.binomial(c4_daily, 0.364) / c4_daily           # Class 4: N = 93, p = 0.364
 
         # Probability that a customer of a class buys the second item given the first + P3 = Binomial
-        c1_i21_p3 = np.random.binomial(76, 0.910) / 76           # Class 1: N = 76, p = 0.910
-        c2_i21_p3 = np.random.binomial(133, 0.700) / 133         # Class 2: N = 133, p = 0.700
-        c3_i21_p3 = np.random.binomial(107, 0.662) / 107         # Class 3: N = 107, p = 0.662
-        c4_i21_p3 = np.random.binomial(93, 0.546) / 93           # Class 4: N = 93, p = 0.546
+        c1_i21_p3 = np.random.binomial(c1_daily, 0.910) / c1_daily           # Class 1: N = 76, p = 0.910
+        c2_i21_p3 = np.random.binomial(c2_daily, 0.700) / c2_daily         # Class 2: N = 133, p = 0.700
+        c3_i21_p3 = np.random.binomial(c3_daily, 0.662) / c3_daily         # Class 3: N = 107, p = 0.662
+        c4_i21_p3 = np.random.binomial(c4_daily, 0.546) / c4_daily           # Class 4: N = 93, p = 0.546
 
 
         # For each class of customers, we create the different CustomerData objects according to the previous probability distributions
@@ -76,16 +76,16 @@ class Simulator:
                 give_promo = np.random.binomial()                               # With a 50% chance it gets P0 and with a 50% chance it gets P1, P2 or P3 according to the previous result
                 if give_promo == 0 and p0_num > 0:                              # It gets P0
                     customer_data.set_true_first_promo()
-                    p0_num -= p0_num
+                    p0_num -= 1
                 elif promo == 1 and p1_num > 0:                                 # It gets P1
                     customer_data.set_true_second_promo()
-                    p1_num -= p1_num
+                    p1_num -= 1
                 elif promo == 2 and p2_num > 0:                                # It gets P2
                     customer_data.set_true_third_promo()
-                    p2_num -= p2_num
+                    p2_num -= 1
                 elif promo == 3 and p3_num > 0:                                # It gets P3
                     customer_data.set_true_fourth_promo()
-                    p3_num -= p3_num
+                    p3_num -= 1
                 customer_data.set_true_first_purchase()
                 day.add_customer_data(customer_data)
             elif np.random.binomial(1, c1_i2) == 1:
@@ -96,25 +96,25 @@ class Simulator:
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_first_promo()
                 day.add_customer_data(customer_data)
-                p0_num -= p0_num
+                p0_num -= 1
             elif np.random.binomial(1, c1_i21_p1) == 1 and p1_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_second_promo()
                 day.add_customer_data(customer_data)
-                p1_num -= p1_num
+                p1_num -= 1
             elif np.random.binomial(1, c1_i21_p2) == 1 and p2_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_third_promo()
                 day.add_customer_data(customer_data)
-                p2_num -= p2_num
+                p2_num -= 1
             elif np.random.binomial(1, c1_i21_p3) == 1 and p3_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_fourth_promo()
                 day.add_customer_data(customer_data)
-                p3_num -= p3_num
+                p3_num -= 1
 
         for customer in range(c2_daily):
             customer_data = CustomerData(customer+1, group2.get_number())
@@ -123,16 +123,16 @@ class Simulator:
                 give_promo = np.random.binomial()  # With a 50% chance it gets P0 and with a 50% chance it gets P1, P2 or P3 according to the previous result
                 if give_promo == 0 and p0_num > 0:  # It gets P0
                     customer_data.set_true_first_promo()
-                    p0_num -= p0_num
+                    p0_num -= 1
                 elif promo == 1 and p1_num > 0:  # It gets P1
                     customer_data.set_true_second_promo()
-                    p1_num -= p1_num
+                    p1_num -= 1
                 elif promo == 2 and p2_num > 0:  # It gets P2
                     customer_data.set_true_third_promo()
-                    p2_num -= p2_num
+                    p2_num -= 1
                 elif promo == 3 and p3_num > 0:  # It gets P3
                     customer_data.set_true_fourth_promo()
-                    p3_num -= p3_num
+                    p3_num -= 1
                 customer_data.set_true_first_purchase()
                 day.add_customer_data(customer_data)
             elif np.random.binomial(1, c2_i2) == 1:
@@ -143,25 +143,25 @@ class Simulator:
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_first_promo()
                 day.add_customer_data(customer_data)
-                p0_num -= p0_num
+                p0_num -= 1
             elif np.random.binomial(1, c2_i21_p1) == 1 and p1_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_second_promo()
                 day.add_customer_data(customer_data)
-                p1_num -= p1_num
+                p1_num -= 1
             elif np.random.binomial(1, c2_i21_p2) == 1 and p2_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_third_promo()
                 day.add_customer_data(customer_data)
-                p2_num -= p2_num
+                p2_num -= 1
             elif np.random.binomial(1, c2_i21_p3) == 1 and p3_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_fourth_promo()
                 day.add_customer_data(customer_data)
-                p3_num -= p3_num
+                p3_num -= 1
 
         for customer in range(c3_daily):
             customer_data = CustomerData(customer+1, group3.get_number())
@@ -170,16 +170,16 @@ class Simulator:
                 give_promo = np.random.binomial()  # With a 50% chance it gets P0 and with a 50% chance it gets P1, P2 or P3 according to the previous result
                 if give_promo == 0 and p0_num > 0:  # It gets P0
                     customer_data.set_true_first_promo()
-                    p0_num -= p0_num
+                    p0_num -= 1
                 elif promo == 1 and p1_num > 0:  # It gets P1
                     customer_data.set_true_second_promo()
-                    p1_num -= p1_num
+                    p1_num -= 1
                 elif promo == 2 and p2_num > 0:  # It gets P2
                     customer_data.set_true_third_promo()
-                    p2_num -= p2_num
+                    p2_num -= 1
                 elif promo == 3 and p3_num > 0:  # It gets P3
                     customer_data.set_true_fourth_promo()
-                    p3_num -= p3_num
+                    p3_num -= 1
                 customer_data.set_true_first_purchase()
                 day.add_customer_data(customer_data)
             elif np.random.binomial(1, c3_i2) == 1:
@@ -190,25 +190,25 @@ class Simulator:
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_first_promo()
                 day.add_customer_data(customer_data)
-                p0_num -= p0_num
+                p0_num -= 1
             elif np.random.binomial(1, c3_i21_p1) == 1 and p1_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_second_promo()
                 day.add_customer_data(customer_data)
-                p1_num -= p1_num
+                p1_num -= 1
             elif np.random.binomial(1, c3_i21_p2) == 1 and p2_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_third_promo()
                 day.add_customer_data(customer_data)
-                p2_num -= p2_num
+                p2_num -= 1
             elif np.random.binomial(1, c3_i21_p3) == 1 and p3_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_fourth_promo()
                 day.add_customer_data(customer_data)
-                p3_num -= p3_num
+                p3_num -= 1
 
         for customer in range(c4_daily):
             customer_data = CustomerData(customer+1, group4.get_number())
@@ -217,16 +217,16 @@ class Simulator:
                 give_promo = np.random.binomial()  # With a 50% chance it gets P0 and with a 50% chance it gets P1, P2 or P3 according to the previous result
                 if give_promo == 0 and p0_num > 0:  # It gets P0
                     customer_data.set_true_first_promo()
-                    p0_num -= p0_num
+                    p0_num -= 1
                 elif promo == 1 and p1_num > 0:  # It gets P1
                     customer_data.set_true_second_promo()
-                    p1_num -= p1_num
+                    p1_num -= 1
                 elif promo == 2 and p2_num > 0:  # It gets P2
                     customer_data.set_true_third_promo()
-                    p2_num -= p2_num
+                    p2_num -= 1
                 elif promo == 3 and p3_num > 0:  # It gets P3
                     customer_data.set_true_fourth_promo()
-                    p3_num -= p3_num
+                    p3_num -= 1
                 customer_data.set_true_first_purchase()
                 day.add_customer_data(customer_data)
             elif np.random.binomial(1, c4_i2) == 1:
@@ -237,22 +237,22 @@ class Simulator:
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_first_promo()
                 day.add_customer_data(customer_data)
-                p0_num -= p0_num
+                p0_num -= 1
             elif np.random.binomial(1, c4_i21_p1) == 1 and p1_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_second_promo()
                 day.add_customer_data(customer_data)
-                p1_num -= p1_num
+                p1_num -= 1
             elif np.random.binomial(1, c4_i21_p2) == 1 and p2_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_third_promo()
                 day.add_customer_data(customer_data)
-                p2_num -= p2_num
+                p2_num -= 1
             elif np.random.binomial(1, c4_i21_p3) == 1 and p3_num > 0:
                 customer_data.set_true_first_purchase()
                 customer_data.set_true_second_purchase()
                 customer_data.set_true_fourth_promo()
                 day.add_customer_data(customer_data)
-                p3_num -= p3_num
+                p3_num -= 1

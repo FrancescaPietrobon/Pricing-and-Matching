@@ -176,6 +176,18 @@ class Day:                                      #NB we do not care about peole w
     def get_number_of_customers(self):
         return self.number_of_customers
 
+    def get_number_of_customers_c1(self):
+        return self.get_number_of_customers_c1()
+
+    def get_number_of_customers_c2(self):
+        return self.get_number_of_customers_c2()
+
+    def get_number_of_customers_c3(self):
+        return self.get_number_of_customers_c3()
+
+    def get_number_of_customers_c4(self):
+        return self.get_number_of_customers_c4()
+
     def get_customers_data_list(self):
         return self.customers_data_list
 

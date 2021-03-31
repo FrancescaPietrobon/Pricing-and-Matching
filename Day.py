@@ -18,7 +18,7 @@ class Day:                                      #NB we do not care about peole w
         self.number_of_c3 = 0
         self.number_of_c4 = 0
 
-        self.number_of_item2_c1 = 0                #Number of customers of class 1 purchasin 2 in general
+        self.number_of_item2_c1 = 0                # Number of customers of class 1 purchasing 2 in general
         self.number_of_item2_c2 = 0
         self.number_of_item2_c3 = 0
         self.number_of_item2_c4 = 0
@@ -103,7 +103,7 @@ class Day:                                      #NB we do not care about peole w
                         self.purchase_item1_P3_c1 += 1
 
 
-            elif customer_data.get_group == 2:
+            elif customer_data.get_group() == 2:
                 self.number_of_c2 += 1
                 if customer_data.is_first_promo:
                     if customer_data.is_second_purchase:
@@ -177,16 +177,16 @@ class Day:                                      #NB we do not care about peole w
         return self.number_of_customers
 
     def get_number_of_customers_c1(self):
-        return self.get_number_of_customers_c1()
+        return self.number_of_c1
 
     def get_number_of_customers_c2(self):
-        return self.get_number_of_customers_c2()
+        return self.number_of_c2
 
     def get_number_of_customers_c3(self):
-        return self.get_number_of_customers_c3()
+        return self.number_of_c3
 
     def get_number_of_customers_c4(self):
-        return self.get_number_of_customers_c4()
+        return self.number_of_c4
 
     def get_customers_data_list(self):
         return self.customers_data_list

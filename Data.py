@@ -4,7 +4,7 @@ import pandas as pd
 class Data:
     def __init__(self):
         # Importing the csv containing the form results
-        data = pd.read_csv('DIAForm.csv')
+        data = pd.read_csv('DIA_Form.csv')
         data.columns = ['Date', 'Age', 'Sex', 'AW', 'WS0', 'WS10', 'WS20', 'WS50']
 
         # Total number of people who submitted the form

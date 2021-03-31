@@ -3,6 +3,8 @@ from Day import *
 from Group import *
 from CustomerData import *
 from Data import *
+from Item import *
+import random
 
 
 class Simulator:
@@ -11,6 +13,8 @@ class Simulator:
         self.group2 = Group(2)
         self.group3 = Group(3)
         self.group4 = Group(4)
+        self.item1 = Item("Apple Watch", 300, 88)
+        self.item2 = Item("Personalized wristband", 50, 16)
         self.day = Day(1, self.group1, self.group2, self.group3, self.group4)
         self.p0_num = 0
         self.p1_num = 0
@@ -125,53 +129,65 @@ class Simulator:
             buy21_p3 = np.random.binomial(1, c4_i21_p3)
             self.customer_purchase(customer_data, buy1, buy2, buy21_p0, buy21_p1, buy21_p2, buy21_p3)
 
+        self.day.set_conversion_rate()
+
     def customer_purchase(self, customer_data, buy1, buy2, buy21_p0, buy21_p1, buy21_p2, buy21_p3):
-        if buy1 == 1:
-            # We extract uniformly between promos P1, P2 and P3
-            promo = np.random.randint(1, 4)
-            # And we draw from a Binomial to decide if the customer gets P0 or the previous extracted promo
-            give_promo = np.random.binomial()
-            if give_promo == 0 and self.p0_num > 0:             # It gets P0
+        dict = {'buy1': buy1, 'buy2': buy2, 'buy21_p0': buy21_p0, 'buy21_p1': buy21_p1, 'buy21_p2': buy21_p2, 'buy21_p3': buy21_p3}
+        new_dict = {x: y for x, y in dict.items() if y == 1}
+
+        if len(new_dict) > 0:
+            keys = list(new_dict.keys())
+            random.shuffle(keys)
+            key = keys[0]
+            dict = {'buy1': 0, 'buy2': 0, 'buy21_p0': 0, 'buy21_p1': 0, 'buy21_p2': 0, 'buy21_p3': 0, key: 1}
+
+        if dict['buy1'] == 1:
+            dict_2 = {'p0': buy21_p0, 'p1': buy21_p1, 'p2': buy21_p2, 'p3': buy21_p3}
+            keys_2 = list(dict_2.keys())
+            random.shuffle(keys_2)
+            key_2 = keys_2[0]
+
+            if key_2 == 'p0' and self.p0_num > 0:             # It gets P0
                 customer_data.set_true_first_promo()
                 self.p0_num -= 1
-            elif promo == 1 and self.p1_num > 0:                # It gets P1
+            elif key_2 == 'p1' and self.p1_num > 0:                # It gets P1
                 customer_data.set_true_second_promo()
                 self.p1_num -= 1
-            elif promo == 2 and self.p2_num > 0:                # It gets P2
+            elif key_2 == 'p2' and self.p2_num > 0:                # It gets P2
                 customer_data.set_true_third_promo()
                 self.p2_num -= 1
-            elif promo == 3 and self.p3_num > 0:                # It gets P3
+            elif key_2 == 'p3' and self.p3_num > 0:                # It gets P3
                 customer_data.set_true_fourth_promo()
                 self.p3_num -= 1
             customer_data.set_true_first_purchase()
             self.day.add_customer_data(customer_data)
         # Else, if the customer buys item 2 alone
-        elif buy2 == 1:
+        elif dict['buy2'] == 1:
             customer_data.set_true_second_purchase()
             self.day.add_customer_data(customer_data)
         # Else, if the customer buys item 2 after buying item 1 and having P0
-        elif buy21_p0 == 1 and self.p0_num > 0:
+        elif dict['buy21_p0'] == 1 and self.p0_num > 0:
             customer_data.set_true_first_purchase()
             customer_data.set_true_second_purchase()
             customer_data.set_true_first_promo()
             self.day.add_customer_data(customer_data)
             self.p0_num -= 1
         # Else, if the customer buys item 2 after buying item 1 and having P1
-        elif buy21_p1 and self.p1_num > 0:
+        elif dict['buy21_p1'] == 1 and self.p1_num > 0:
             customer_data.set_true_first_purchase()
             customer_data.set_true_second_purchase()
             customer_data.set_true_second_promo()
             self.day.add_customer_data(customer_data)
             self.p1_num -= 1
         # Else, if the customer buys item 2 after buying item 1 and having P2
-        elif buy21_p2 and self.p2_num > 0:
+        elif dict['buy21_p2'] == 1 and self.p2_num > 0:
             customer_data.set_true_first_purchase()
             customer_data.set_true_second_purchase()
             customer_data.set_true_third_promo()
             self.day.add_customer_data(customer_data)
             self.p2_num -= 1
         # Else, if the customer buys item 2 after buying item 1 and having P3
-        elif buy21_p3 and self.p3_num > 0:
+        elif dict['buy21_p3'] == 1 and self.p3_num > 0:
             customer_data.set_true_first_purchase()
             customer_data.set_true_second_purchase()
             customer_data.set_true_fourth_promo()
@@ -180,3 +196,21 @@ class Simulator:
 
     def get_day_step1(self):
         return self.day
+
+    def get_item1(self):
+        return self.item1
+
+    def get_item2(self):
+        return self.item2
+
+    def get_p0_num(self):
+        return self.p0_num
+
+    def get_p1_num(self):
+        return self.p1_num
+
+    def get_p2_num(self):
+        return self.p2_num
+
+    def get_p3_num(self):
+        return self.p3_num

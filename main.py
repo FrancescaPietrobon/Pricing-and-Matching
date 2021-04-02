@@ -56,6 +56,4 @@ fun, result = LP(price, p1, p2, p3,
                  max_p0, max_p1, max_p2, max_p3,
                  max_n1, max_n2, max_n3, max_n4)
 
-print(fun)
-print("\n")
-print(result)
+print(fun, "\n", result)

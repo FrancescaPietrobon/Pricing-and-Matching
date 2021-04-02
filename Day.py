@@ -189,18 +189,15 @@ class Day:                                      #NB we do not care about peole w
         return self.customers_data_list
 
     def set_conversion_rate(self):
-
-        # TODO check if denominator is equal to zero: if so, the conversion rate is put to zero
-
         # purchase1 per class / total_purchase per class
         if self.number_of_c1 > 0:
-            self.group1.set_conversion_rate_item1((self.purchase_item1_P0_c1+ self.purchase_item1_P1_c1 + self.purchase_item1_P2_c1 + self.purchase_item1_P3_c1 + self.purchase_item2_given1_P0_c1 + self.purchase_item2_given1_P1_c1 + self.purchase_item2_given1_P2_c1 + self.purchase_item2_given1_P3_c1)/self.number_of_c1)
+            self.group1.set_conversion_rate_item1((self.purchase_item1_P0_c1 + self.purchase_item1_P1_c1 + self.purchase_item1_P2_c1 + self.purchase_item1_P3_c1 + self.purchase_item2_given1_P0_c1 + self.purchase_item2_given1_P1_c1 + self.purchase_item2_given1_P2_c1 + self.purchase_item2_given1_P3_c1)/self.number_of_c1)
         if self.number_of_c2 > 0:
-            self.group2.set_conversion_rate_item1((self.purchase_item1_P0_c2+ self.purchase_item1_P1_c2 + self.purchase_item1_P2_c2 + self.purchase_item1_P3_c2 + self.purchase_item2_given1_P0_c2 + self.purchase_item2_given1_P1_c2 + self.purchase_item2_given1_P2_c2 + self.purchase_item2_given1_P3_c2)/self.number_of_c2)
+            self.group2.set_conversion_rate_item1((self.purchase_item1_P0_c2 + self.purchase_item1_P1_c2 + self.purchase_item1_P2_c2 + self.purchase_item1_P3_c2 + self.purchase_item2_given1_P0_c2 + self.purchase_item2_given1_P1_c2 + self.purchase_item2_given1_P2_c2 + self.purchase_item2_given1_P3_c2)/self.number_of_c2)
         if self.number_of_c3 > 0:
-            self.group3.set_conversion_rate_item1((self.purchase_item1_P0_c3+ self.purchase_item1_P1_c3 + self.purchase_item1_P2_c3 + self.purchase_item1_P3_c3 + self.purchase_item2_given1_P0_c3 + self.purchase_item2_given1_P1_c3 + self.purchase_item2_given1_P2_c3 + self.purchase_item2_given1_P3_c3)/self.number_of_c3)
+            self.group3.set_conversion_rate_item1((self.purchase_item1_P0_c3 + self.purchase_item1_P1_c3 + self.purchase_item1_P2_c3 + self.purchase_item1_P3_c3 + self.purchase_item2_given1_P0_c3 + self.purchase_item2_given1_P1_c3 + self.purchase_item2_given1_P2_c3 + self.purchase_item2_given1_P3_c3)/self.number_of_c3)
         if self.number_of_c4 > 0:
-            self.group4.set_conversion_rate_item1((self.purchase_item1_P0_c4+ self.purchase_item1_P1_c4 + self.purchase_item1_P2_c4 + self.purchase_item1_P3_c4 + self.purchase_item2_given1_P0_c4 + self.purchase_item2_given1_P1_c4 + self.purchase_item2_given1_P2_c4 + self.purchase_item2_given1_P3_c4)/self.number_of_c4)
+            self.group4.set_conversion_rate_item1((self.purchase_item1_P0_c4 + self.purchase_item1_P1_c4 + self.purchase_item1_P2_c4 + self.purchase_item1_P3_c4 + self.purchase_item2_given1_P0_c4 + self.purchase_item2_given1_P1_c4 + self.purchase_item2_given1_P2_c4 + self.purchase_item2_given1_P3_c4)/self.number_of_c4)
 
         # purchase2 per class / total_purchase per class
         if self.number_of_c1 > 0:

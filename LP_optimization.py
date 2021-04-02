@@ -14,17 +14,21 @@ def LP(price, p1, p2, p3,
          price*pr_c1_p2*(1-p2), price*pr_c2_p2*(1-p2), price*pr_c3_p2*(1-p2), price*pr_c4_p2*(1-p2),
          price*pr_c1_p3*(1-p3), price*pr_c2_p3*(1-p3), price*pr_c3_p3*(1-p3), price*pr_c4_p3*(1-p3)]
 
-    A = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-         [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-         [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-         [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-         [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-         ]
+    A_inequality = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+                    ]
 
-    b = [max_p0, max_p1, max_p2, max_p3, max_n1, max_n2, max_n3, max_n4]
+    A_equality = [[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                  [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+                  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                  [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+                  ]
+
+    b_inequality = [max_p0, max_p1, max_p2, max_p3]
+
+    b_equality = [max_n1, max_n2, max_n3, max_n4]
 
     x0_bounds = (0, None)
     x1_bounds = (0, None)
@@ -43,8 +47,10 @@ def LP(price, p1, p2, p3,
     x14_bounds = (0, None)
     x15_bounds = (0, None)
 
-    res = linprog(c=c, A_ub=A, b_ub=b, bounds=[x0_bounds, x1_bounds, x2_bounds, x3_bounds,
-                                               x4_bounds, x5_bounds, x6_bounds, x7_bounds,
-                                               x8_bounds, x9_bounds, x10_bounds,x11_bounds,
-                                               x12_bounds, x13_bounds, x14_bounds, x15_bounds])
+    res = linprog(c=c, A_ub=A_inequality, b_ub=b_inequality, A_eq=A_equality, b_eq=b_equality,
+                  bounds=[x0_bounds, x1_bounds, x2_bounds, x3_bounds,
+                          x4_bounds, x5_bounds, x6_bounds, x7_bounds,
+                          x8_bounds, x9_bounds, x10_bounds, x11_bounds,
+                          x12_bounds, x13_bounds, x14_bounds, x15_bounds])
+
     return res

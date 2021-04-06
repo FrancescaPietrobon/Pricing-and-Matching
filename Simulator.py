@@ -96,17 +96,21 @@ class Simulator:
             c3_i21_p3 = np.random.binomial(c3_daily, data.get_i21_p3_param(3)) / c3_daily
             c4_i21_p3 = np.random.binomial(c4_daily, data.get_i21_p3_param(4)) / c4_daily
 
-            # For each class of customers, we create a CustomerData object.
+            # For each customer, we extract at random its group and we create the CustomerData object accordingly.
             # Then, we draw from a Binomial for each kind of purchase possible, using the numbers computed above.
             # We call the function customer_purchase passing the extracted numbers, so that the attributes of the
-            # CustomerData object are set accordingly.
-            # Every time we give a promo to the customer, we decrease the number of coupons available for that promo code
+            # CustomerData object are set accordingly. Also, every time we give a promo to the customer, we decrease
+            # the number of promo codes available for that specific promo code.
+            # The "done" variable is set to True only if the customer is actually created (and its attributes set)
+            # after the initial random extraction to select the group. Indeed, it could happen that the extracted
+            # number corresponds to a group for which the variable c*_daily is not positive anymore (which means
+            # that there cannot be any more customers of that group for the day). If this happens, the variable "done"
+            # would remain False and a new extraction for that customer happens (so we don't "lose" customers since we
+            # remain in the same iteration of the "for customer" loop).
 
             total_number_of_customers = c1_daily + c2_daily + c3_daily + c4_daily
             for customer in range(total_number_of_customers):
                 done = False
-                # Useful because if the number of customer of the extracted class is zero, then we would not create a new
-                # customer and therefore we will lose a customer from the external for loop
                 while not done:
                     group = np.random.randint(1, 5)
                     if group == 1 and c1_daily > 0:
@@ -154,21 +158,20 @@ class Simulator:
                         c4_daily -= 1
                         done = True
 
+            # After the CustomerData objects for the day are created, we compute all the conversion rates for the day
             day.set_conversion_rate()
 
-            # We add the daily conversion rate in the matrix in Day (useful to compute the average later)
+            # We add the daily conversion rates to the matrix in Day (useful to compute the average later)
             avg_conversion_rates += day.get_conversion_rates_item_21()
-
-            # We add the daily number of customers in the matrix in Day (useful to compute the average later)
+            # We add the daily number of customers to the matrix in Day (useful to compute the average later)
             avg_num_customers += day.get_customers_purchases()
 
-        # After having initialized the data for each day, we compute the average conversion rate
+        # After having initialized the data for all the days, we compute the average conversion rate
         avg_conversion_rates = avg_conversion_rates / self.num_days
-
         # And the average number of customers
         avg_num_customers = avg_num_customers / self.num_days
 
-        # Calling the linear optimization algorithm
+        # Finally, we call the linear optimization algorithm
         return LP(self.item2.get_price(), self.discount_p1, self.discount_p2, self.discount_p3,
                   avg_conversion_rates[0][0], avg_conversion_rates[0][1], avg_conversion_rates[0][2], avg_conversion_rates[0][3],
                   avg_conversion_rates[1][0], avg_conversion_rates[1][1], avg_conversion_rates[1][2], avg_conversion_rates[1][3],
@@ -241,17 +244,21 @@ class Simulator:
             c3_i21_p3 = np.random.binomial(c3_daily, data.get_i21_p3_param(3)) / c3_daily
             c4_i21_p3 = np.random.binomial(c4_daily, data.get_i21_p3_param(4)) / c4_daily
 
-            # For each class of customers, we create a CustomerData object.
+            # For each customer, we extract at random its group and we create the CustomerData object accordingly.
             # Then, we draw from a Binomial for each kind of purchase possible, using the numbers computed above.
             # We call the function customer_purchase passing the extracted numbers, so that the attributes of the
-            # CustomerData object are set accordingly.
-            # Every time we give a promo to the customer, we decrease the number of coupons available for that promo code
+            # CustomerData object are set accordingly. Also, every time we give a promo to the customer, we decrease
+            # the number of promo codes available for that specific promo code.
+            # The "done" variable is set to True only if the customer is actually created (and its attributes set)
+            # after the initial random extraction to select the group. Indeed, it could happen that the extracted
+            # number corresponds to a group for which the variable c*_daily is not positive anymore (which means
+            # that there cannot be any more customers of that group for the day). If this happens, the variable "done"
+            # would remain False and a new extraction for that customer happens (so we don't "lose" customers since we
+            # remain in the same iteration of the "for customer" loop).
 
             total_number_of_customers = c1_daily + c2_daily + c3_daily + c4_daily
             for customer in range(total_number_of_customers):
                 done = False
-                # Useful because if the number of customer of the extracted class is zero, then we would not create a new
-                # customer and therefore we will lose a customer from the external for loop
                 while not done:
                     group = np.random.randint(1, 5)
                     if group == 1 and c1_daily > 0:
@@ -299,19 +306,20 @@ class Simulator:
                         c4_daily -= 1
                         done = True
 
+            # After the CustomerData objects for the day are created, we compute all the conversion rates for the day
             day.set_conversion_rate()
 
-            # We add the daily conversion rate in the matrix in Day (useful to compute the average later)
+            # We compute the average of the conversion rates up to this day
+            # Notice that "sum_conversion_rates" is defined before the loop "for day in self.days"
             sum_conversion_rates += day.get_conversion_rates_item_21()
-            # We compute the average conversion rate
             avg_conversion_rates = sum_conversion_rates / day.get_id() - 1
 
-            # We add the daily number of customers in the matrix in Day (useful to compute the average later)
+            # We compute the average of the number of customers up to this day
+            # Notice that "sum_num_customers" is defined before the loop "for day in self.days"
             sum_num_customers += day.get_customers_purchases()
-            # We compute the average number of customers
             avg_num_customers = sum_num_customers / day.get_id()-1
 
-            # Calling the linear optimization algorithm
+            # We call the linear optimization algorithm at the end of the day. It uses the data up to this day
             update = LP(self.item2.get_price(), self.discount_p1, self.discount_p2, self.discount_p3,
                         avg_conversion_rates[0][0], avg_conversion_rates[0][1], avg_conversion_rates[0][2], avg_conversion_rates[0][3],
                         avg_conversion_rates[1][0], avg_conversion_rates[1][1], avg_conversion_rates[1][2], avg_conversion_rates[1][3],
@@ -340,49 +348,49 @@ class Simulator:
             key_2 = keys_2[0]
 
             if key_2 == 'p0' and self.p0_temp > 0:             # It gets P0
-                customer_data.set_true_first_promo()
+                customer_data.give_p0()
                 self.p0_temp -= 1
             elif key_2 == 'p1' and self.p1_temp > 0:                # It gets P1
-                customer_data.set_true_second_promo()
+                customer_data.give_p1()
                 self.p1_temp -= 1
             elif key_2 == 'p2' and self.p2_temp > 0:                # It gets P2
-                customer_data.set_true_third_promo()
+                customer_data.give_p2()
                 self.p2_temp -= 1
             elif key_2 == 'p3' and self.p3_temp > 0:                # It gets P3
-                customer_data.set_true_fourth_promo()
+                customer_data.give_p3()
                 self.p3_temp -= 1
-            customer_data.set_true_first_purchase()
+            customer_data.buy_item1()
             day.add_customer_data(customer_data)
         # Else, if the customer buys item 2 alone
         elif dict['buy2'] == 1:
-            customer_data.set_true_second_purchase()
+            customer_data.buy_item2()
             day.add_customer_data(customer_data)
         # Else, if the customer buys item 2 after buying item 1 and having P0
         elif dict['buy21_p0'] == 1 and self.p0_temp > 0:
-            customer_data.set_true_first_purchase()
-            customer_data.set_true_second_purchase()
-            customer_data.set_true_first_promo()
+            customer_data.buy_item1()
+            customer_data.buy_item2()
+            customer_data.give_p0()
             day.add_customer_data(customer_data)
             self.p0_temp -= 1
         # Else, if the customer buys item 2 after buying item 1 and having P1
         elif dict['buy21_p1'] == 1 and self.p1_temp > 0:
-            customer_data.set_true_first_purchase()
-            customer_data.set_true_second_purchase()
-            customer_data.set_true_second_promo()
+            customer_data.buy_item1()
+            customer_data.buy_item2()
+            customer_data.give_p1()
             day.add_customer_data(customer_data)
             self.p1_temp -= 1
         # Else, if the customer buys item 2 after buying item 1 and having P2
         elif dict['buy21_p2'] == 1 and self.p2_temp > 0:
-            customer_data.set_true_first_purchase()
-            customer_data.set_true_second_purchase()
-            customer_data.set_true_third_promo()
+            customer_data.buy_item1()
+            customer_data.buy_item2()
+            customer_data.give_p2()
             day.add_customer_data(customer_data)
             self.p2_temp -= 1
         # Else, if the customer buys item 2 after buying item 1 and having P3
         elif dict['buy21_p3'] == 1 and self.p3_temp > 0:
-            customer_data.set_true_first_purchase()
-            customer_data.set_true_second_purchase()
-            customer_data.set_true_fourth_promo()
+            customer_data.buy_item1()
+            customer_data.buy_item2()
+            customer_data.give_p3()
             day.add_customer_data(customer_data)
             self.p3_temp -= 1
 

@@ -160,10 +160,7 @@ class Simulator:
             avg_conversion_rates += day.get_conversion_rates_item_21()
 
             # We add the daily number of customers in the matrix in Day (useful to compute the average later)
-            avg_num_customers[0] += day.get_number_of_customers_c1()
-            avg_num_customers[1] += day.get_number_of_customers_c2()
-            avg_num_customers[2] += day.get_number_of_customers_c3()
-            avg_num_customers[3] += day.get_number_of_customers_c4()
+            avg_num_customers += day.get_number_of_customers()
 
         # After having initialized the data for each day, we compute the average conversion rate
         avg_conversion_rates = avg_conversion_rates / self.num_days
@@ -310,10 +307,7 @@ class Simulator:
             avg_conversion_rates = sum_conversion_rates / day.get_id() - 1
 
             # We add the daily number of customers in the matrix in Day (useful to compute the average later)
-            sum_num_customers[0] += day.get_number_of_customers_c1()
-            sum_num_customers[1] += day.get_number_of_customers_c2()
-            sum_num_customers[2] += day.get_number_of_customers_c3()
-            sum_num_customers[3] += day.get_number_of_customers_c4()
+            sum_num_customers += day.get_number_of_customers()
             # We compute the average number of customers
             avg_num_customers = sum_num_customers / day.get_id()-1
 

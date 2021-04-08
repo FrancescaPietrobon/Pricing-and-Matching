@@ -1,5 +1,3 @@
-import numpy as np
-from scipy import stats
 from sklearn.preprocessing import normalize
 from Day import *
 from Group import *
@@ -8,6 +6,7 @@ from Data import *
 from Item import *
 from LP_optimization import *
 
+import numpy as np
 np.random.seed(1234)
 
 
@@ -36,14 +35,16 @@ class Simulator:
         self.discount_p2 = 0.2
         self.discount_p3 = 0.5
 
-    def simulation_step_1(self, p0_frac, p1_frac, p2_frac, p3_frac):            # 0.7, 0.2, 0.07, 0.03
+    def simulation_step_1(self, p0_frac, p1_frac, p2_frac, p3_frac):
         # Creating the Data object to get the actual numbers from the Google Module
         data = Data()
 
+        # Useful structures to compute the conversion rates and customers number averages at the end
         avg_conversion_rates = np.zeros((4, 4))
         avg_num_customers = np.zeros(4)
 
-        # For every day
+        # For every day, we generate all the customer data according to probability distributions
+        # Then, we update the conversion rates for that day
         for day in self.days:
 
             # Number of customers per class = Gaussian TODO: are sigmas correct?
@@ -62,7 +63,7 @@ class Simulator:
             self.p2_temp = self.p2_num
             self.p3_temp = self.p3_num
 
-            # Probability that a customer of a class buys the first item (in general - NOT ONLY ITEM 1) = Binomial
+            # Probability that a customer of a class buys the first item (in general - NOT "ONLY" ITEM 1) = Binomial
             c1_i1 = np.random.binomial(c1_daily, data.get_i1_param(1)) / c1_daily
             c2_i1 = np.random.binomial(c2_daily, data.get_i1_param(2)) / c2_daily
             c3_i1 = np.random.binomial(c3_daily, data.get_i1_param(3)) / c3_daily
@@ -98,146 +99,39 @@ class Simulator:
             c3_i21_p3 = np.random.binomial(c3_daily, data.get_i21_p3_param(3)) / c3_daily
             c4_i21_p3 = np.random.binomial(c4_daily, data.get_i21_p3_param(4)) / c4_daily
 
-            # For each customer, we extract at random its group and we create the CustomerData object accordingly.
-            # Then, we draw from a Binomial for each kind of purchase possible, using the numbers computed above.
-            # We call the function customer_purchase passing the extracted numbers, so that the attributes of the
-            # CustomerData object are set accordingly. Also, every time we give a promo to the customer, we decrease
-            # the number of promo codes available for that specific promo code.
-            # The "done" variable is set to True only if the customer is actually created (and its attributes set)
-            # after the initial random extraction to select the group. Indeed, it could happen that the extracted
-            # number corresponds to a group for which the variable c*_daily is not positive anymore (which means
-            # that there cannot be any more customers of that group for the day). If this happens, the variable "done"
-            # would remain False and a new extraction for that customer happens (so we don't "lose" customers since we
-            # remain in the same iteration of the "for customer" loop).
+            # For each customer, we extract its group using the function np.random.choice().
+            # This allows us to extract groups keeping the same proportions as the daily number of customers per group.
+            # Then, we create the CustomerData object accordingly, and we draw from a Bernoulli for each kind of
+            # possible purchase (buy item 1 in general, buy only item 2, buy item 2 after buying item 1 with promos).
+            # Finally, we call the customer_purchase_step1 function passing the extracted numbers, so that the
+            # attributes of the CustomerData object are set accordingly. Also, every time we give a promo to the
+            # customer, we decrease the number of promo codes available for that specific promo code.
 
             total_number_of_customers = c1_daily + c2_daily + c3_daily + c4_daily
             for customer in range(total_number_of_customers):
-                group = np.random.choice(np.arange(1, 5), 1, p=[c1_daily / total_number_of_customers,
-                                                                c2_daily / total_number_of_customers,
-                                                                c3_daily / total_number_of_customers,
-                                                                c4_daily / total_number_of_customers])
+                group = np.random.choice(np.arange(1, 5), p=[c1_daily / total_number_of_customers,
+                                                             c2_daily / total_number_of_customers,
+                                                             c3_daily / total_number_of_customers,
+                                                             c4_daily / total_number_of_customers])
                 if group == 1:
                     customer_data = CustomerData(customer + 1, self.group1.get_number())
-                    if np.random.binomial(1, c1_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = int(np.random.uniform(0, 4))
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c1_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c1_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c1_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c1_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)                            # We add the customer only if he bought something
-                    elif np.random.binomial(1, c1_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
-
+                    promo = int(np.random.uniform(0, 4))
+                    self.customer_purchase(day, customer_data, promo, c1_i1, c1_i2, c1_i21_p0, c1_i21_p1, c1_i21_p2, c1_i21_p3)
                 elif group == 2:
                     customer_data = CustomerData(customer + 1, self.group2.get_number())
-                    if np.random.binomial(1, c2_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = int(np.random.uniform(0, 4))
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c2_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c2_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c2_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c2_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c2_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
-
+                    promo = int(np.random.uniform(0, 4))
+                    self.customer_purchase(day, customer_data, promo, c2_i1, c2_i2, c2_i21_p0, c2_i21_p1, c2_i21_p2, c2_i21_p3)
                 elif group == 3:
                     customer_data = CustomerData(customer + 1, self.group3.get_number())
-                    if np.random.binomial(1, c3_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = int(np.random.uniform(0, 4))
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c3_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c3_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c3_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c3_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c3_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
-
+                    promo = int(np.random.uniform(0, 4))
+                    self.customer_purchase(day, customer_data, promo, c3_i1, c3_i2, c3_i21_p0, c3_i21_p1, c3_i21_p2, c3_i21_p3)
                 elif group == 4:
                     customer_data = CustomerData(customer + 1, self.group4.get_number())
-                    if np.random.binomial(1, c4_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = int(np.random.uniform(0, 4))
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c4_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c4_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c4_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c4_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c4_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
+                    promo = int(np.random.uniform(0, 4))
+                    self.customer_purchase(day, customer_data, promo, c4_i1, c4_i2, c4_i21_p0, c4_i21_p1, c4_i21_p2, c4_i21_p3)
 
             # After the CustomerData objects for the day are created, we compute all the conversion rates for the day
-            day.set_conversion_rate()
+            day.set_conversion_rates()
 
             # We add the daily conversion rates to the matrix in Day (useful to compute the average later)
             avg_conversion_rates += day.get_conversion_rates_item_21()
@@ -264,12 +158,20 @@ class Simulator:
         # Creating the Data object to get the actual numbers from the Google Module
         data = Data()
 
+        # Useful structures to compute the conversion rates and customers number averages at the end
         sum_conversion_rates = np.zeros((4, 4))
         sum_num_customers = np.zeros(4)
 
+        # Matrix which contains the probabilities to give each promo code to every customer group
+        # The structure is the usual (rows: promo codes; columns: customer groups)
+        # Initially we give a promo code with uniform probability to each class (sum of each column = 1)
+        # Then, after each day, this matrix will be updated according to the result of the optimization algorithm
         prob_promo = np.full((4, 4), 0.25)
 
-        # For every day
+        # For every day, we generate all the customer data according to probability distributions.
+        # Then, we update the conversion rates for that day and we compute the average of the conversion rates
+        # and of the number of customers up to that day.
+        # Finally, the optimization algorithm is run using these averages, and the prob_promo matrix is updated.
         for day in self.days:
 
             # Number of customers per class = Gaussian TODO: are sigmas correct?
@@ -288,7 +190,7 @@ class Simulator:
             self.p2_temp = self.p2_num
             self.p3_temp = self.p3_num
 
-            # Probability that a customer of a class buys the first item alone = Binomial
+            # Probability that a customer of a class buys the first item (in general - NOT "ONLY" ITEM 1) = Binomial
             c1_i1 = np.random.binomial(c1_daily, data.get_i1_param(1)) / c1_daily
             c2_i1 = np.random.binomial(c2_daily, data.get_i1_param(2)) / c2_daily
             c3_i1 = np.random.binomial(c3_daily, data.get_i1_param(3)) / c3_daily
@@ -324,146 +226,42 @@ class Simulator:
             c3_i21_p3 = np.random.binomial(c3_daily, data.get_i21_p3_param(3)) / c3_daily
             c4_i21_p3 = np.random.binomial(c4_daily, data.get_i21_p3_param(4)) / c4_daily
 
-            # For each customer, we extract at random its group and we create the CustomerData object accordingly.
-            # Then, we draw from a Binomial for each kind of purchase possible, using the numbers computed above.
-            # We call the function customer_purchase passing the extracted numbers, so that the attributes of the
-            # CustomerData object are set accordingly. Also, every time we give a promo to the customer, we decrease
-            # the number of promo codes available for that specific promo code.
-            # The "done" variable is set to True only if the customer is actually created (and its attributes set)
-            # after the initial random extraction to select the group. Indeed, it could happen that the extracted
-            # number corresponds to a group for which the variable c*_daily is not positive anymore (which means
-            # that there cannot be any more customers of that group for the day). If this happens, the variable "done"
-            # would remain False and a new extraction for that customer happens (so we don't "lose" customers since we
-            # remain in the same iteration of the "for customer" loop).
+            # For each customer, we extract its group using the function np.random.choice().
+            # This allows us to extract groups keeping the same proportions as the daily number of customers per group.
+            # Then, we create the CustomerData object accordingly, and we draw from a Bernoulli for each kind of
+            # possible purchase (buy item 1 in general, buy only item 2, buy item 2 after buying item 1 with promos).
+            # Finally, we call the customer_purchase_step1 function passing the extracted numbers, so that the
+            # attributes of the CustomerData object are set accordingly. Also, every time we give a promo to the
+            # customer, we decrease the number of promo codes available for that specific promo code.
+            # The main different with respect to the previous step is that here the promo that we give to the
+            # customer that bought item 1 is not drawn uniformly (except for the first day) but using the result
+            # of the optimization algorithm.
 
             total_number_of_customers = c1_daily + c2_daily + c3_daily + c4_daily
             for customer in range(total_number_of_customers):
-                group = np.random.choice(np.arange(1, 5), 1, p=[c1_daily / total_number_of_customers,
-                                                                c2_daily / total_number_of_customers,
-                                                                c3_daily / total_number_of_customers,
-                                                                c4_daily / total_number_of_customers])
+                group = np.random.choice(np.arange(1, 5), p=[c1_daily / total_number_of_customers,
+                                                             c2_daily / total_number_of_customers,
+                                                             c3_daily / total_number_of_customers,
+                                                             c4_daily / total_number_of_customers])
                 if group == 1:
                     customer_data = CustomerData(customer + 1, self.group1.get_number())
-                    if np.random.binomial(1, c1_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = np.random.choice(4, 1, p=[prob_promo[0][0], prob_promo[1][0], prob_promo[2][0], prob_promo[3][0]])
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c1_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c1_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c1_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c1_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c1_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
-
+                    promo = np.random.choice(4, p=[prob_promo[0][0], prob_promo[1][0], prob_promo[2][0], prob_promo[3][0]])
+                    self.customer_purchase(day, customer_data, promo, c1_i1, c1_i2, c1_i21_p0, c1_i21_p1, c1_i21_p2, c1_i21_p3)
                 elif group == 2:
                     customer_data = CustomerData(customer + 1, self.group2.get_number())
-                    if np.random.binomial(1, c2_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = np.random.choice(4, 1, p=[prob_promo[0][1], prob_promo[1][1], prob_promo[2][1], prob_promo[3][1]])
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c2_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c2_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c2_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c2_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c2_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
-
+                    promo = np.random.choice(4, p=[prob_promo[0][1], prob_promo[1][1], prob_promo[2][1], prob_promo[3][1]])
+                    self.customer_purchase(day, customer_data, promo, c2_i1, c2_i2, c2_i21_p0, c2_i21_p1, c2_i21_p2, c2_i21_p3)
                 elif group == 3:
                     customer_data = CustomerData(customer + 1, self.group3.get_number())
-                    if np.random.binomial(1, c3_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = np.random.choice(4, 1, p=[prob_promo[0][2], prob_promo[1][2], prob_promo[2][2], prob_promo[3][2]])
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c3_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c3_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c3_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c3_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c3_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
-
+                    promo = np.random.choice(4, p=[prob_promo[0][2], prob_promo[1][2], prob_promo[2][2], prob_promo[3][2]])
+                    self.customer_purchase(day, customer_data, promo, c3_i1, c3_i2, c3_i21_p0, c3_i21_p1, c3_i21_p2, c3_i21_p3)
                 elif group == 4:
                     customer_data = CustomerData(customer + 1, self.group4.get_number())
-                    if np.random.binomial(1, c4_i1) == 1:
-                        customer_data.buy_item1()
-                        promo = np.random.choice(4, 1, p=[prob_promo[0][3], prob_promo[1][3], prob_promo[2][3], prob_promo[3][3]])
-                        if promo == 0 and self.p0_temp > 0:
-                            customer_data.give_p0()
-                            self.p0_temp -= 1
-                            if np.random.binomial(1, c4_i21_p0) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 1 and self.p1_temp > 0:
-                            customer_data.give_p1()
-                            self.p1_temp -= 1
-                            if np.random.binomial(1, c4_i21_p1) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 2 and self.p2_temp > 0:
-                            customer_data.give_p2()
-                            self.p2_temp -= 1
-                            if np.random.binomial(1, c4_i21_p2) == 1:
-                                customer_data.buy_item2()
-                        elif promo == 3 and self.p3_temp > 0:
-                            customer_data.give_p3()
-                            self.p3_temp -= 1
-                            if np.random.binomial(1, c4_i21_p3) == 1:
-                                customer_data.buy_item2()
-                        day.add_customer_data(customer_data)  # We add the customer only if he bought something
-                    elif np.random.binomial(1, c4_i2) == 1:
-                        customer_data.buy_item2()
-                        day.add_customer_data(customer_data)
+                    promo = np.random.choice(4, p=[prob_promo[0][3], prob_promo[1][3], prob_promo[2][3], prob_promo[3][3]])
+                    self.customer_purchase(day, customer_data, promo, c4_i1, c4_i2, c4_i21_p0, c4_i21_p1, c4_i21_p2, c4_i21_p3)
 
             # After the CustomerData objects for the day are created, we compute all the conversion rates for the day
-            day.set_conversion_rate()
+            day.set_conversion_rates()
 
             # We compute the average of the conversion rates up to this day
             # Notice that "sum_conversion_rates" is defined before the loop "for day in self.days"
@@ -490,6 +288,36 @@ class Simulator:
 
             #prob_promo[prob_promo == 0] = 0.001                 # Adding some noise since we don't want zero probability
             #prob_promo = normalize(prob_promo, 'l1', axis=0)
+
+########################################################################################################################
+
+    def customer_purchase(self, day, customer_data, promo, buy1, buy2, buy21_p0, buy21_p1, buy21_p2, buy21_p3):
+        if np.random.binomial(1, buy1) == 1:
+            customer_data.buy_item1()
+            if promo == 0 and self.p0_temp > 0:
+                customer_data.give_p0()
+                self.p0_temp -= 1
+                if np.random.binomial(1, buy21_p0) == 1:
+                    customer_data.buy_item2()
+            elif promo == 1 and self.p1_temp > 0:
+                customer_data.give_p1()
+                self.p1_temp -= 1
+                if np.random.binomial(1, buy21_p1) == 1:
+                    customer_data.buy_item2()
+            elif promo == 2 and self.p2_temp > 0:
+                customer_data.give_p2()
+                self.p2_temp -= 1
+                if np.random.binomial(1, buy21_p2) == 1:
+                    customer_data.buy_item2()
+            elif promo == 3 and self.p3_temp > 0:
+                customer_data.give_p3()
+                self.p3_temp -= 1
+                if np.random.binomial(1, buy21_p3) == 1:
+                    customer_data.buy_item2()
+            day.add_customer_data(customer_data)                       # We add the customer only if he bought something
+        elif np.random.binomial(1, buy2) == 1:
+            customer_data.buy_item2()
+            day.add_customer_data(customer_data)                       # We add the customer only if he bought something
 
 ########################################################################################################################
 

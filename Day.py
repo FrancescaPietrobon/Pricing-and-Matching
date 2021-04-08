@@ -72,7 +72,7 @@ class Day:
                 else:
                     self.purchases_item1[3][customer_group] += 1
 
-    def set_conversion_rate(self):
+    def set_conversion_rates(self):
         # purchase1 per class / total_purchase per class
         if self.customers_purchases[0] > 0:
             self.conversion_rates_item1[0] = (self.purchases_item1[0][0] + self.purchases_item1[1][0] + self.purchases_item1[2][0] + self.purchases_item1[3][0] + self.purchases_item21[0][0] + self.purchases_item21[1][0] + self.purchases_item21[2][0] + self.purchases_item21[3][0])/self.customers_purchases[0]

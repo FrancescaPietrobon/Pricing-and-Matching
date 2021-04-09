@@ -1,4 +1,5 @@
 from sklearn.preprocessing import normalize
+from scipy.optimize import linear_sum_assignment
 from Day import *
 from Group import *
 from CustomerData import *
@@ -93,10 +94,9 @@ class Simulator:
 
             # For each customer, we extract its group using the function np.random.choice().
             # This allows us to extract groups keeping the same proportions as the daily number of customers per group.
-            # Then, we create the CustomerData object accordingly, and we draw from a Bernoulli for each kind of
-            # possible purchase (buy item 1 in general, buy only item 2, buy item 2 after buying item 1 with promos).
-            # Finally, we call the customer_purchase_step1 function passing the extracted numbers, so that the
-            # attributes of the CustomerData object are set accordingly. Also, every time we give a promo to the
+            # Then, we create the CustomerData object accordingly, and we extract at random one of the promo codes
+            # to give to that customer. Finally, we call the customer_purchase function, so that the
+            # attributes of the CustomerData object are set accordingly. Every time we give a promo to the
             # customer, we decrease the number of promo codes available for that specific promo code.
             for customer in range(sum(daily_customers)):
                 group = choice(4, p=[daily_customers[0] / sum(daily_customers),
@@ -121,9 +121,18 @@ class Simulator:
         # After having initialized the data for all the days, we compute the average conversion rate
         avg_conversion_rates = avg_conversion_rates / self.num_days
         # And the average number of customers
-        avg_num_customers = avg_num_customers / self.num_days
+        avg_num_customers = (avg_num_customers / self.num_days).astype(int)
+
+        # Computing the daily promos based on the average number of customers
+        self.daily_promos = [int(sum(avg_num_customers) * p0_frac),
+                             int(sum(avg_num_customers) * p1_frac),
+                             int(sum(avg_num_customers) * p2_frac),
+                             int(sum(avg_num_customers) * p3_frac)]
 
         # Finally, we call the linear optimization algorithm
+        # TODO technically in step 1 we should just put numbers into LP and run it
+        #   However, this is a generalization since instead of just putting numbers, we use a Monte Carlo approach
+        #   computing the average and then giving the average as input.
         return LP(self.item2.get_price(), self.discount_p1, self.discount_p2, self.discount_p3,
                   avg_conversion_rates[0][0], avg_conversion_rates[0][1], avg_conversion_rates[0][2], avg_conversion_rates[0][3],
                   avg_conversion_rates[1][0], avg_conversion_rates[1][1], avg_conversion_rates[1][2], avg_conversion_rates[1][3],
@@ -131,6 +140,51 @@ class Simulator:
                   avg_conversion_rates[3][0], avg_conversion_rates[3][1], avg_conversion_rates[3][2], avg_conversion_rates[3][3],
                   self.daily_promos[0], self.daily_promos[1], self.daily_promos[2], self.daily_promos[3],
                   avg_num_customers[0], avg_num_customers[1], avg_num_customers[2], avg_num_customers[3])
+
+        '''
+        p = np.zeros((sum(self.daily_promos), sum(avg_num_customers)))
+
+        for row_index in range(sum(self.daily_promos)):
+            for column_index in range(sum(avg_num_customers)):
+                if row_index < self.daily_promos[0]:
+                    if column_index < avg_num_customers[0]:
+                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][0]
+                    elif column_index < avg_num_customers[1]:
+                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][1]
+                    elif column_index < avg_num_customers[2]:
+                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][2]
+                    else:
+                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][3]
+                elif row_index < self.daily_promos[0] + self.daily_promos[1]:
+                    if column_index < avg_num_customers[0]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][0]
+                    elif column_index < avg_num_customers[1]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][1]
+                    elif column_index < avg_num_customers[2]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][2]
+                    else:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][3]
+                elif row_index < self.daily_promos[0] + self.daily_promos[1] + self.daily_promos[2]:
+                    if column_index < avg_num_customers[0]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][0]
+                    elif column_index < avg_num_customers[1]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][1]
+                    elif column_index < avg_num_customers[2]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][2]
+                    else:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][3]
+                else:
+                    if column_index < avg_num_customers[0]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][0]
+                    elif column_index < avg_num_customers[1]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][1]
+                    elif column_index < avg_num_customers[2]:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][2]
+                    else:
+                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][3]
+
+        return linear_sum_assignment(-p)
+        '''
 
 ########################################################################################################################
 
@@ -206,10 +260,9 @@ class Simulator:
 
             # For each customer, we extract its group using the function np.random.choice().
             # This allows us to extract groups keeping the same proportions as the daily number of customers per group.
-            # Then, we create the CustomerData object accordingly, and we draw from a Bernoulli for each kind of
-            # possible purchase (buy item 1 in general, buy only item 2, buy item 2 after buying item 1 with promos).
-            # Finally, we call the customer_purchase_step1 function passing the extracted numbers, so that the
-            # attributes of the CustomerData object are set accordingly. Also, every time we give a promo to the
+            # Then, we create the CustomerData object accordingly, and we extract one of the promo codes
+            # to give to that customer. Finally, we call the customer_purchase function, so that the
+            # attributes of the CustomerData object are set accordingly. Every time we give a promo to the
             # customer, we decrease the number of promo codes available for that specific promo code.
             # The main difference with respect to the previous step is that here the promo that we give to the
             # customer that bought item 1 is not drawn uniformly (except for the first day) but using the result

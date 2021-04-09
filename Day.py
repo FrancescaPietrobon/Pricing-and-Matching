@@ -48,6 +48,7 @@ class Day:
             self.purchases_item2[customer_group] += 1
         # If the customer bought the first item
         if customer_data.purchased_item1():
+            # TODO we only update purchases_item1 when customer buys ONLY item 1, and not if he buys "ALSO" item 1
             self.customers_purchases[customer_group] += 1
             # According to the promo obtained and the fact that the customer bought also the second item or not,
             # we increase the corresponding element in the purchases counters of the day
@@ -124,13 +125,13 @@ class Day:
             self.conversion_rates_item21[2][3] = self.purchases_item21[2][3] / (self.purchases_item1[2][3] + self.purchases_item21[2][3])
 
         # purchase2 and purchase1 per class / purchase1 per class
-        if self.purchases_item1[3][0] + self.purchases_item21[3][0]:
+        if self.purchases_item1[3][0] + self.purchases_item21[3][0] > 0:
             self.conversion_rates_item21[3][0] = self.purchases_item21[3][0] / (self.purchases_item1[3][0] + self.purchases_item21[3][0])
-        if self.purchases_item1[3][1] + self.purchases_item21[3][1]:
+        if self.purchases_item1[3][1] + self.purchases_item21[3][1] > 0:
             self.conversion_rates_item21[3][1] = self.purchases_item21[3][1] / (self.purchases_item1[3][1] + self.purchases_item21[3][1])
-        if self.purchases_item1[3][2] + self.purchases_item21[3][2]:
+        if self.purchases_item1[3][2] + self.purchases_item21[3][2] > 0:
             self.conversion_rates_item21[3][2] = self.purchases_item21[3][2] / (self.purchases_item1[3][2] + self.purchases_item21[3][2])
-        if self.purchases_item1[3][3] + self.purchases_item21[3][3]:
+        if self.purchases_item1[3][3] + self.purchases_item21[3][3] > 0:
             self.conversion_rates_item21[3][3] = self.purchases_item21[3][3] / (self.purchases_item1[3][3] + self.purchases_item21[3][3])
 
 

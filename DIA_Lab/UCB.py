@@ -16,6 +16,6 @@ class UCB(Learner):
         self.t += 1
         self.empirical_means[pull_arm] = (self.empirical_means[pull_arm]*(self.t-1) + reward)/self.t
         for a in range(self.n_arms):
-            n_samples = len(self.rewards_per_arns[a])
+            n_samples = len(self.rewards_per_arm[a])
             self.confidence[a] = (2*np.log(self.t)/n_samples)**0.5 if n_samples > 0 else np.inf
         self.update_observations(pull_arm, reward)

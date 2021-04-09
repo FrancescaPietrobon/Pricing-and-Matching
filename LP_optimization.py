@@ -16,20 +16,19 @@ def LP(price, p1, p2, p3,
          price*pr_c1_p3*(1-p3), price*pr_c2_p3*(1-p3), price*pr_c3_p3*(1-p3), price*pr_c4_p3*(1-p3)]
 
     # First model: maximum number of promo codes is the number of promo codes for P1, P2 and P3
-    A_inequality = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    A_inequality = [[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                    [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+                    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                    [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]]
 
-    A_equality = [[0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+    A_equality = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                  [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-                  [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-                  [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-                  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-                  [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
-                  ]
+                  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]]
 
-    b_inequality = [max_p0]
+    b_inequality = [max_n1, max_n2, max_n3, max_n4]
 
-    b_equality = [max_p1, max_p2, max_p3, max_n1, max_n2, max_n3, max_n4]
+    b_equality = [max_p0, max_p1, max_p2, max_p3]
 
     '''
     # Second model: no equality constraint on the limit of promo codes P1, P2 and P3
@@ -69,7 +68,7 @@ def LP(price, p1, p2, p3,
     x15_bounds = (0, None)
 
     # Optimization
-    res = linprog(c=c, A_ub=A_inequality, b_ub=b_inequality, A_eq=A_equality, b_eq=b_equality,
+    res = linprog(c=c, A_eq=A_equality, b_eq=b_equality, A_ub=A_inequality, b_ub=b_inequality,
                   bounds=[x0_bounds, x1_bounds, x2_bounds, x3_bounds,
                           x4_bounds, x5_bounds, x6_bounds, x7_bounds,
                           x8_bounds, x9_bounds, x10_bounds, x11_bounds,

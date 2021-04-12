@@ -1,5 +1,4 @@
 from sklearn.preprocessing import normalize
-from scipy.optimize import linear_sum_assignment
 from Day import *
 from Group import *
 from CustomerData import *
@@ -19,7 +18,7 @@ class Simulator:
         self.customers_groups = np.array([Group(1), Group(2), Group(3), Group(4)])
         self.item1 = Item("Apple Watch", 300, 88)
         self.item2 = Item("Personalized wristband", 50, 16)
-        self.days = []  # Old : Day(1, self.group1, self.group2, self.group3, self.group4)
+        self.days = []
         self.num_days = num_days
         for i in range(self.num_days):
             self.days.append(Day(i + 1, self.customers_groups[0], self.customers_groups[1], self.customers_groups[2],
@@ -34,157 +33,51 @@ class Simulator:
         # Creating the Data object to get the actual numbers from the Google Module
         data = Data()
 
-        # Useful structures to compute the conversion rates and customers number averages at the end
-        avg_conversion_rates = np.zeros((4, 4))
-        avg_num_customers = np.zeros(4)
+        # Daily number of customers per class = Gaussian TODO: are sigmas correct?
+        daily_customers = np.array([int(normal(data.get_n(1), 12)),
+                                    int(normal(data.get_n(2), 14)),
+                                    int(normal(data.get_n(3), 16)),
+                                    int(normal(data.get_n(4), 17))])
 
-        # For every day, we generate all the customer data according to probability distributions
-        # Then, we update the conversion rates for that day
-        for day in self.days:
-            # Number of customers per class = Gaussian TODO: are sigmas correct?
-            daily_customers = np.array([int(normal(data.get_n(1), 12)),
-                                        int(normal(data.get_n(2), 14)),
-                                        int(normal(data.get_n(3), 16)),
-                                        int(normal(data.get_n(4), 17))])
+        # Number of promo codes available daily (fixed fraction of the daily number of customers)
+        self.daily_promos = [int(sum(daily_customers) * p0_frac),
+                             int(sum(daily_customers) * p1_frac),
+                             int(sum(daily_customers) * p2_frac),
+                             int(sum(daily_customers) * p3_frac)]
 
-            # Number of promo codes available (fixed fraction of the daily number of customers)
-            self.daily_promos = [int(sum(daily_customers) * p0_frac),
-                                 int(sum(daily_customers) * p1_frac),
-                                 int(sum(daily_customers) * p2_frac),
-                                 int(sum(daily_customers) * p3_frac)]
-            # We create a copy to decrement the value in customer_purchase function since the original must not be
-            # modified since it will be used in the optimization algorithm
-            self.daily_promos_temp = self.daily_promos.copy()
+        # Probability that a customer of a class buys the second item given the first + each promo
+        # rows: promo code (0: P0, 1: P1, 2: P2, 3: P3)
+        # columns: customer group (0: group1, 1: group2, 2: group3, 3: group4)
+        prob_buy_item21 = np.array([  # Promo code P0
+                                    [binomial(daily_customers[0], data.get_i21_p0_param(1)) / daily_customers[0],
+                                     binomial(daily_customers[1], data.get_i21_p0_param(2)) / daily_customers[1],
+                                     binomial(daily_customers[2], data.get_i21_p0_param(3)) / daily_customers[2],
+                                     binomial(daily_customers[3], data.get_i21_p0_param(4)) / daily_customers[3]],
+                                    # Promo code P1
+                                    [binomial(daily_customers[0], data.get_i21_p1_param(1)) / daily_customers[0],
+                                     binomial(daily_customers[1], data.get_i21_p1_param(2)) / daily_customers[1],
+                                     binomial(daily_customers[2], data.get_i21_p1_param(3)) / daily_customers[2],
+                                     binomial(daily_customers[3], data.get_i21_p1_param(4)) / daily_customers[3]],
+                                    # Promo code P2
+                                    [binomial(daily_customers[0], data.get_i21_p2_param(1)) / daily_customers[0],
+                                     binomial(daily_customers[1], data.get_i21_p2_param(2)) / daily_customers[1],
+                                     binomial(daily_customers[2], data.get_i21_p2_param(3)) / daily_customers[2],
+                                     binomial(daily_customers[3], data.get_i21_p2_param(4)) / daily_customers[3]],
+                                    # Promo code P3
+                                    [binomial(daily_customers[0], data.get_i21_p3_param(1)) / daily_customers[0],
+                                     binomial(daily_customers[1], data.get_i21_p3_param(2)) / daily_customers[1],
+                                     binomial(daily_customers[2], data.get_i21_p3_param(3)) / daily_customers[2],
+                                     binomial(daily_customers[3], data.get_i21_p3_param(4)) / daily_customers[3]]
+                                ])
 
-            # Probability that a customer of a class buys the first item (in general - NOT "ONLY" ITEM 1) = Binomial
-            prob_buy_item1 = np.array([binomial(daily_customers[0], data.get_i1_param(1)) / daily_customers[0],
-                                       binomial(daily_customers[1], data.get_i1_param(2)) / daily_customers[1],
-                                       binomial(daily_customers[2], data.get_i1_param(3)) / daily_customers[2],
-                                       binomial(daily_customers[3], data.get_i1_param(4)) / daily_customers[3]])
-
-            # Probability that a customer of a class buys the second item alone = Binomial TODO: values by hand are ok?
-            prob_buy_item2 = np.array([binomial(daily_customers[0], 0.276) / daily_customers[0],
-                                       binomial(daily_customers[1], 0.421) / daily_customers[1],
-                                       binomial(daily_customers[2], 0.358) / daily_customers[2],
-                                       binomial(daily_customers[3], 0.452) / daily_customers[3]])
-
-            # Probability that a customer of a class buys the second item given the first + each promo
-            # The matrix structure is the usual one (rows: promo code; column: customer group)
-            prob_buy_item21 = np.array([  # Promo code P0
-                                        [binomial(daily_customers[0], data.get_i21_p0_param(1)) / daily_customers[0],
-                                         binomial(daily_customers[1], data.get_i21_p0_param(2)) / daily_customers[1],
-                                         binomial(daily_customers[2], data.get_i21_p0_param(3)) / daily_customers[2],
-                                         binomial(daily_customers[3], data.get_i21_p0_param(4)) / daily_customers[3]],
-                                        # Promo code P1
-                                        [binomial(daily_customers[0], data.get_i21_p1_param(1)) / daily_customers[0],
-                                         binomial(daily_customers[1], data.get_i21_p1_param(2)) / daily_customers[1],
-                                         binomial(daily_customers[2], data.get_i21_p1_param(3)) / daily_customers[2],
-                                         binomial(daily_customers[3], data.get_i21_p1_param(4)) / daily_customers[3]],
-                                        # Promo code P2
-                                        [binomial(daily_customers[0], data.get_i21_p2_param(1)) / daily_customers[0],
-                                         binomial(daily_customers[1], data.get_i21_p2_param(2)) / daily_customers[1],
-                                         binomial(daily_customers[2], data.get_i21_p2_param(3)) / daily_customers[2],
-                                         binomial(daily_customers[3], data.get_i21_p2_param(4)) / daily_customers[3]],
-                                        # Promo code P3
-                                        [binomial(daily_customers[0], data.get_i21_p3_param(1)) / daily_customers[0],
-                                         binomial(daily_customers[1], data.get_i21_p3_param(2)) / daily_customers[1],
-                                         binomial(daily_customers[2], data.get_i21_p3_param(3)) / daily_customers[2],
-                                         binomial(daily_customers[3], data.get_i21_p3_param(4)) / daily_customers[3]]
-                                    ])
-
-            # For each customer, we extract its group using the function np.random.choice().
-            # This allows us to extract groups keeping the same proportions as the daily number of customers per group.
-            # Then, we create the CustomerData object accordingly, and we extract at random one of the promo codes
-            # to give to that customer. Finally, we call the customer_purchase function, so that the
-            # attributes of the CustomerData object are set accordingly. Every time we give a promo to the
-            # customer, we decrease the number of promo codes available for that specific promo code.
-            for customer in range(sum(daily_customers)):
-                group = choice(4, p=[daily_customers[0] / sum(daily_customers),
-                                     daily_customers[1] / sum(daily_customers),
-                                     daily_customers[2] / sum(daily_customers),
-                                     daily_customers[3] / sum(daily_customers)])
-
-                customer_data = CustomerData(customer + 1, self.customers_groups[group].get_number())
-                selected_promo = int(uniform(0, 4))
-                self.customer_purchase(day, customer_data, selected_promo, prob_buy_item1[group], prob_buy_item2[group],
-                                       prob_buy_item21[0][group], prob_buy_item21[1][group], prob_buy_item21[2][group],
-                                       prob_buy_item21[3][group])
-
-            # After the CustomerData objects for the day are created, we compute all the conversion rates for the day
-            day.set_conversion_rates()
-
-            # We add the daily conversion rates to the matrix in Day (useful to compute the average later)
-            avg_conversion_rates += day.get_conversion_rates_item_21()
-            # We add the daily number of customers to the matrix in Day (useful to compute the average later)
-            avg_num_customers += day.get_customers_purchases()
-
-        # After having initialized the data for all the days, we compute the average conversion rate
-        avg_conversion_rates = avg_conversion_rates / self.num_days
-        # And the average number of customers
-        avg_num_customers = (avg_num_customers / self.num_days).astype(int)
-
-        # Computing the daily promos based on the average number of customers
-        self.daily_promos = [int(sum(avg_num_customers) * p0_frac),
-                             int(sum(avg_num_customers) * p1_frac),
-                             int(sum(avg_num_customers) * p2_frac),
-                             int(sum(avg_num_customers) * p3_frac)]
-
-        # Finally, we call the linear optimization algorithm
-        # TODO technically in step 1 we should just put numbers into LP and run it
-        #   However, this is a generalization since instead of just putting numbers, we use a Monte Carlo approach
-        #   computing the average and then giving the average as input.
+        # Linear optimization algorithm to find the best matching
         return LP(self.item2.get_price(), self.discount_p1, self.discount_p2, self.discount_p3,
-                  avg_conversion_rates[0][0], avg_conversion_rates[0][1], avg_conversion_rates[0][2], avg_conversion_rates[0][3],
-                  avg_conversion_rates[1][0], avg_conversion_rates[1][1], avg_conversion_rates[1][2], avg_conversion_rates[1][3],
-                  avg_conversion_rates[2][0], avg_conversion_rates[2][1], avg_conversion_rates[2][2], avg_conversion_rates[2][3],
-                  avg_conversion_rates[3][0], avg_conversion_rates[3][1], avg_conversion_rates[3][2], avg_conversion_rates[3][3],
+                  prob_buy_item21[0][0], prob_buy_item21[0][1], prob_buy_item21[0][2], prob_buy_item21[0][3],
+                  prob_buy_item21[1][0], prob_buy_item21[1][1], prob_buy_item21[1][2], prob_buy_item21[1][3],
+                  prob_buy_item21[2][0], prob_buy_item21[2][1], prob_buy_item21[2][2], prob_buy_item21[2][3],
+                  prob_buy_item21[3][0], prob_buy_item21[3][1], prob_buy_item21[3][2], prob_buy_item21[3][3],
                   self.daily_promos[0], self.daily_promos[1], self.daily_promos[2], self.daily_promos[3],
-                  avg_num_customers[0], avg_num_customers[1], avg_num_customers[2], avg_num_customers[3])
-
-        '''
-        p = np.zeros((sum(self.daily_promos), sum(avg_num_customers)))
-
-        for row_index in range(sum(self.daily_promos)):
-            for column_index in range(sum(avg_num_customers)):
-                if row_index < self.daily_promos[0]:
-                    if column_index < avg_num_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][0]
-                    elif column_index < avg_num_customers[1]:
-                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][1]
-                    elif column_index < avg_num_customers[2]:
-                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * avg_conversion_rates[0][3]
-                elif row_index < self.daily_promos[0] + self.daily_promos[1]:
-                    if column_index < avg_num_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][0]
-                    elif column_index < avg_num_customers[1]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][1]
-                    elif column_index < avg_num_customers[2]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * avg_conversion_rates[1][3]
-                elif row_index < self.daily_promos[0] + self.daily_promos[1] + self.daily_promos[2]:
-                    if column_index < avg_num_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][0]
-                    elif column_index < avg_num_customers[1]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][1]
-                    elif column_index < avg_num_customers[2]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * avg_conversion_rates[2][3]
-                else:
-                    if column_index < avg_num_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][0]
-                    elif column_index < avg_num_customers[1]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][1]
-                    elif column_index < avg_num_customers[2]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * avg_conversion_rates[3][3]
-
-        return linear_sum_assignment(-p)
-        '''
+                  daily_customers[0], daily_customers[1], daily_customers[2], daily_customers[3])
 
 ########################################################################################################################
 

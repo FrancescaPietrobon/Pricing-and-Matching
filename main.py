@@ -17,3 +17,7 @@ print(experiment_1_2)
 # Step 3
 simulator_step3 = Simulator()
 step3 = simulator_step3.simulation_step_3()
+
+# Step 4
+simulator_step4 = Simulator()
+step4 = simulator_step4.simulation_step_4()

@@ -4,7 +4,7 @@ from Simulator import *
 # Step 1
 simulator_step1_1 = Simulator()
 simulator_step1_2 = Simulator()
-
+'''
 # Experiment 1
 experiment_1_1 = simulator_step1_1.simulation_step_1(0.7, 0.2, 0.07, 0.03)
 print(experiment_1_1)
@@ -23,12 +23,12 @@ step3 = simulator_step3.simulation_step_3()
 simulator_step4 = Simulator()
 step4 = simulator_step4.simulation_step_4()
 
-
+'''
 # Step 5
 simulator_step5 = Simulator()
 step5 = simulator_step5.simulation_step_5()
 
 
 # Step 6
-simulator_step6 = Simulator()
-step6 = simulator_step6.simulation_step_6()
+#simulator_step6 = Simulator()
+#step6 = simulator_step6.simulation_step_6()

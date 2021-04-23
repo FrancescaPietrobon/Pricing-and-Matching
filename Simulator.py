@@ -9,8 +9,10 @@ from Environment import *
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from numpy.random import normal, binomial
 from scipy.optimize import linear_sum_assignment
+from sklearn.ensemble import RandomForestRegressor
 
 np.random.seed(1234)
 
@@ -143,13 +145,13 @@ class Simulator:
 
         objective = objective / np.linalg.norm(objective)
         opt = max(objective)
-        env = Environment(n_arms=n_arms, objective=objective)
 
         n_experiments = 100
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
         for e in range(n_experiments):
+            env = Environment(n_arms=n_arms, objective=objective)
             ucb1_learner = UCB1(n_arms=n_arms)
             ts_learner = TS_Learner(n_arms=n_arms)
 
@@ -230,6 +232,7 @@ class Simulator:
         ts_rewards_per_experiment = []
 
         for e in range(n_experiments):
+            env = Environment(n_arms=n_arms, objective=objective)
             ucb1_learner = UCB1(n_arms=n_arms)
             ts_learner = TS_Learner(n_arms=n_arms)
 
@@ -267,14 +270,172 @@ class Simulator:
 
     def simulation_step_5(self):
 
-        p = np.array([[1 / 4, 1, 1 / 4], [1 / 2, 1 / 4, 1 / 4], [1 / 4, 1 / 4, 1]])
+        #Dataset
+        #      c1     c2     c3      c4      P0     P1     P2     P3             T (c.)
+        #      1      0       0       0      0      1       0     0             c...
+
+        # Creating the Data object to get the actual numbers from the Google Module
+        data = Data()
+        dataset = pd.DataFrame(columns = ['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2','P3' , 'TARGET'])
+
+        sum_daily_customer = np.zeros(4)
+
+        for i in range(365):
+
+            # Daily number of customers per class = Gaussian TODO: are sigmas correct?
+            daily_customers = np.array([int(normal(data.get_n(1), 12)),
+                                        int(normal(data.get_n(2), 14)),
+                                        int(normal(data.get_n(3), 16)),
+                                        int(normal(data.get_n(4), 17))])
+
+            # Probability that a customer of a class buys the second item given the first + each promo
+            # rows: promo code (0: P0, 1: P1, 2: P2, 3: P3)
+            # columns: customer group (0: group1, 1: group2, 2: group3, 3: group4)
+            prob_buy_item21 = np.array([  # Promo code P0
+                [binomial(daily_customers[0], data.get_i21_p0_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p0_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p0_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p0_param(4)) / daily_customers[3]],
+                # Promo code P1
+                [binomial(daily_customers[0], data.get_i21_p1_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p1_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p1_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p1_param(4)) / daily_customers[3]],
+                # Promo code P2
+                [binomial(daily_customers[0], data.get_i21_p2_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p2_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p2_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p2_param(4)) / daily_customers[3]],
+                # Promo code P3
+                [binomial(daily_customers[0], data.get_i21_p3_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p3_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p3_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p3_param(4)) / daily_customers[3]]
+            ])
+
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 1, 0, 0, 0, prob_buy_item21[0][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 1, 0, 0, 0, prob_buy_item21[0][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 1, 0, 0, 0, prob_buy_item21[0][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 1, 0, 0, 0, prob_buy_item21[0][3]]
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 0, 1, 0, 0, prob_buy_item21[1][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 0, 1, 0, 0, prob_buy_item21[1][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 0, 1, 0, 0, prob_buy_item21[1][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 0, 1, 0, 0, prob_buy_item21[1][3]]
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 0, 0, 1, 0, prob_buy_item21[2][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 0, 0, 1, 0, prob_buy_item21[2][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 0, 0, 1, 0, prob_buy_item21[2][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 0, 0, 1, 0, prob_buy_item21[2][3]]
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 0, 0, 0, 1, prob_buy_item21[3][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 0, 0, 0, 1, prob_buy_item21[3][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 0, 0, 0, 1, prob_buy_item21[3][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 0, 0, 0, 1, prob_buy_item21[3][3]]
+
+            sum_daily_customer += daily_customers
+
+        target = 'TARGET'
+        features = dataset.columns[dataset.columns != target]
+
+        X = dataset[features].values
+        y = dataset[target].values
+
+        regressor = RandomForestRegressor(n_estimators=100, random_state=1234)
+        regressor.fit(X, y)
+
+        prediction_set = pd.DataFrame(columns = ['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2','P3'])
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 0, 0, 0, 1]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 0, 0, 0, 1]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 0, 0, 0, 1]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 0, 0, 0, 1]
+        res = regressor.predict(prediction_set.values)
+
+        print(res)
+
+        # p = np.array([[1/4, 1, 1/4], [1/2, 1/4, 1/4], [1/4, 1/4, 1]])
+        # rows: promo codes; columns: customers - values: price_item2 * (1-discount) * conversion_rate_item2_given1_promo (average)
+        #           cust1 (c1)   cust2 (c1)   cust3 (c1)   cust4 (c2)   cust5 (c3)  ...
+        #   P0
+        #   P0
+        #   P0
+        #   P0
+        #   P1
+        #   P1
+        #   P2
+        #   P3
+        #   ...
+
+        price_item2 = 50
+        prob_buy_item21 = np.array([[res[0], res[1], res[2], res[3]],
+                                    [res[4], res[5], res[6], res[7]],
+                                    [res[8], res[9], res[10], res[11]],
+                                    [res[12], res[13], res[14], res[15]]])
+        discount_p1 = 0.1
+        discount_p2 = 0.2
+        discount_p3 = 0.5
+        avg_daily_customer = (sum_daily_customer / 365).astype(int)
+        n_promos = sum(avg_daily_customer)
+        p = np.zeros((n_promos, sum(avg_daily_customer)))
+        # p.fill(-1e6)
+        for row_index in range(n_promos):
+            for column_index in range(sum(avg_daily_customer)):
+                if row_index < 0.7 * n_promos:
+                    if column_index < avg_daily_customer[0]:
+                        p[row_index, column_index] = price_item2 * prob_buy_item21[0][0]
+                    elif column_index < avg_daily_customer[1]:
+                        p[row_index, column_index] = price_item2 * prob_buy_item21[0][1]
+                    elif column_index < avg_daily_customer[2]:
+                        p[row_index, column_index] = price_item2 * prob_buy_item21[0][2]
+                    else:
+                        p[row_index, column_index] = price_item2 * prob_buy_item21[0][3]
+                elif row_index < 0.9 * n_promos:
+                    if column_index < avg_daily_customer[0]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p1) * prob_buy_item21[1][0]
+                    elif column_index < avg_daily_customer[1]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p1) * prob_buy_item21[1][1]
+                    elif column_index < avg_daily_customer[2]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p1) * prob_buy_item21[1][2]
+                    else:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p1) * prob_buy_item21[1][3]
+                elif row_index < 0.97 * n_promos:
+                    if column_index < avg_daily_customer[0]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p2) * prob_buy_item21[2][0]
+                    elif column_index < avg_daily_customer[1]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p2) * prob_buy_item21[2][1]
+                    elif column_index < avg_daily_customer[2]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p2) * prob_buy_item21[2][2]
+                    else:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p2) * prob_buy_item21[2][3]
+                else:
+                    if column_index < avg_daily_customer[0]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p3) * prob_buy_item21[3][0]
+                    elif column_index < avg_daily_customer[1]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p3) * prob_buy_item21[3][1]
+                    elif column_index < avg_daily_customer[2]:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p3) * prob_buy_item21[3][2]
+                    else:
+                        p[row_index, column_index] = price_item2 * (1 - discount_p3) * prob_buy_item21[3][3]
+
+        #p = p / np.linalg.norm(p)
+        p = p / p.max()
         opt = linear_sum_assignment(-p)
         n_exp = 10
-        T = 3000
+        T = 1000
         regret_ucb = np.zeros((n_exp, T))
+        reward_ucb = []
         for e in range(n_exp):
             learner = UCB_Matching(p.size, *p.shape)
-            print(e)
+            print(e+1)
             rew_UCB = []
             opt_rew = []
             env = Environment(p.size, p)
@@ -285,15 +446,18 @@ class Simulator:
                 rew_UCB.append(rewards.sum())
                 opt_rew.append(p[opt].sum())
             regret_ucb[e, :] = np.cumsum(opt_rew) - np.cumsum(rew_UCB)
+            reward_ucb.append(rew_UCB)
 
         plt.figure(0)
         plt.plot(regret_ucb.mean(axis=0))
+        plt.title('STEP 5')
         plt.ylabel('Regret')
         plt.xlabel('t')
         plt.show()
 
         plt.figure(1)
-        plt.plot(rew_UCB.mean(axis=0))
+        plt.plot(np.mean(reward_ucb, axis=0))
+        plt.title('STEP 5')
         plt.ylabel('Reward')
         plt.xlabel('t')
         plt.show()
@@ -301,4 +465,129 @@ class Simulator:
 ########################################################################################################################
 
     def simulation_step_6(self):
-        pass
+        # Dataset
+        #      c1     c2     c3      c4      P0     P1     P2     P3             T (c.)
+        #      1      0       0       0      0      1       0     0             c...
+
+        # Creating the Data object to get the actual numbers from the Google Module
+        data = Data()
+        dataset = pd.DataFrame(columns=['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2', 'P3', 'TARGET'])
+        dataset2 = pd.DataFrame(columns=['c1', 'c2', 'c3', 'c4', 'TARGET'])
+
+        sum_daily_customer = np.zeros(4)
+
+
+        for i in range(365):
+            # Daily number of customers per class = Gaussian TODO: are sigmas correct?
+            daily_customers = np.array([int(normal(data.get_n(1), 12)),
+                                        int(normal(data.get_n(2), 14)),
+                                        int(normal(data.get_n(3), 16)),
+                                        int(normal(data.get_n(4), 17))])
+
+            prob_buy_item1 = np.array([binomial(daily_customers[0], data.get_i1_param(1)) / daily_customers[0],
+                                       binomial(daily_customers[1], data.get_i1_param(2)) / daily_customers[1],
+                                       binomial(daily_customers[2], data.get_i1_param(3)) / daily_customers[2],
+                                       binomial(daily_customers[3], data.get_i1_param(4)) / daily_customers[3]])
+
+            # Probability that a customer of a class buys the second item given the first + each promo
+            # rows: promo code (0: P0, 1: P1, 2: P2, 3: P3)
+            # columns: customer group (0: group1, 1: group2, 2: group3, 3: group4)
+            prob_buy_item21 = np.array([  # Promo code P0
+                [binomial(daily_customers[0], data.get_i21_p0_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p0_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p0_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p0_param(4)) / daily_customers[3]],
+                # Promo code P1
+                [binomial(daily_customers[0], data.get_i21_p1_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p1_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p1_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p1_param(4)) / daily_customers[3]],
+                # Promo code P2
+                [binomial(daily_customers[0], data.get_i21_p2_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p2_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p2_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p2_param(4)) / daily_customers[3]],
+                # Promo code P3
+                [binomial(daily_customers[0], data.get_i21_p3_param(1)) / daily_customers[0],
+                 binomial(daily_customers[1], data.get_i21_p3_param(2)) / daily_customers[1],
+                 binomial(daily_customers[2], data.get_i21_p3_param(3)) / daily_customers[2],
+                 binomial(daily_customers[3], data.get_i21_p3_param(4)) / daily_customers[3]]
+            ])
+
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 1, 0, 0, 0, prob_buy_item21[0][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 1, 0, 0, 0, prob_buy_item21[0][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 1, 0, 0, 0, prob_buy_item21[0][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 1, 0, 0, 0, prob_buy_item21[0][3]]
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 0, 1, 0, 0, prob_buy_item21[1][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 0, 1, 0, 0, prob_buy_item21[1][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 0, 1, 0, 0, prob_buy_item21[1][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 0, 1, 0, 0, prob_buy_item21[1][3]]
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 0, 0, 1, 0, prob_buy_item21[2][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 0, 0, 1, 0, prob_buy_item21[2][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 0, 0, 1, 0, prob_buy_item21[2][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 0, 0, 1, 0, prob_buy_item21[2][3]]
+            dataset.loc[len(dataset)] = [1, 0, 0, 0, 0, 0, 0, 1, prob_buy_item21[3][0]]
+            dataset.loc[len(dataset)] = [0, 1, 0, 0, 0, 0, 0, 1, prob_buy_item21[3][1]]
+            dataset.loc[len(dataset)] = [0, 0, 1, 0, 0, 0, 0, 1, prob_buy_item21[3][2]]
+            dataset.loc[len(dataset)] = [0, 0, 0, 1, 0, 0, 0, 1, prob_buy_item21[3][3]]
+
+            dataset2.loc[len(dataset2)] = [1, 0, 0, 0,prob_buy_item1[0]]
+            dataset2.loc[len(dataset2)] = [0, 1, 0, 0,prob_buy_item1[1]]
+            dataset2.loc[len(dataset2)] = [0, 0, 1, 0,prob_buy_item1[2]]
+            dataset2.loc[len(dataset2)] = [0, 0, 0, 1,prob_buy_item1[3]]
+
+            sum_daily_customer += daily_customers
+
+        target = 'TARGET'
+        features = dataset.columns[dataset.columns != target]
+        features2 = dataset2.columns[dataset2.columns != target]
+
+        X = dataset[features].values
+        y = dataset[target].values
+
+        X2 = dataset2[features].values
+        y2 = dataset2[target].values
+
+        regressor = RandomForestRegressor(n_estimators=100, random_state=1234)
+        regressor.fit(X, y)
+
+        regressor2 = RandomForestRegressor(n_estimators=100, random_state=1234)
+        regressor2.fit(X2, y2)
+
+        prediction_set = pd.DataFrame(columns=['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2', 'P3'])
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 1, 0, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 0, 1, 0, 0]
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 0, 0, 1, 0]
+        prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 0, 0, 0, 1]
+        prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 0, 0, 0, 1]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 0, 0, 0, 1]
+        prediction_set.loc[len(prediction_set)] = [0, 0, 0, 1, 0, 0, 0, 1]
+
+        prediction_set2 = pd.DataFrame(columns=['c1', 'c2', 'c3', 'c4'])
+        prediction_set2.loc[len(prediction_set2)] = [1, 0, 0, 0]
+        prediction_set2.loc[len(prediction_set2)] = [0, 1, 0, 0]
+        prediction_set2.loc[len(prediction_set2)] = [0, 0, 1, 0]
+        prediction_set2.loc[len(prediction_set2)] = [0, 0, 0, 1]
+
+        res = regressor.predict(prediction_set.values)
+        res2 = regressor2.predict(prediction_set2.values)
+
+        print(res2)
+
+        prob_buy_item21 = np.array([[res[0], res[1], res[2], res[3]],
+                                    [res[4], res[5], res[6], res[7]],
+                                    [res[8], res[9], res[10], res[11]],
+                                    [res[12], res[13], res[14], res[15]]])
+
+        prob_buy_item1 = np.array([res2[0], res2[1], res2[2], res2[3]])
+
+

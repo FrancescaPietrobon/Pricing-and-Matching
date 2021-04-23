@@ -174,7 +174,7 @@ class Simulator:
         plt.ylabel("Regret")
         plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment, axis=0)), "r")
         plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title= "STEP 3")
+        plt.legend(["TS", "UCB1"], title="STEP 3")
         plt.show()
 
         plt.figure(1)
@@ -189,6 +189,7 @@ class Simulator:
 
     def simulation_step_4(self):
         # We choose a conversion rate for item 1 and a margin associated to 6 prices (n_arms):
+        # €200
         # €225 --> conversion rate: 0.65  --> margin: €75
         # €250 --> conversion rate: 0.57 --> margin: €100
         # €275 --> conversion rate: 0.51 --> margin: €125
@@ -196,7 +197,8 @@ class Simulator:
         # €325 --> conversion rate: 0.39 --> margin: €175
         # €350 --> conversion rate: 0.30 --> margin: €200
         # €375 --> conversion rate: 0.27 --> margin: €225
-        conversion_rate = [0.65, 0.57, 0.51, 0.43, 0.39, 0.30, 0.27]
+        # €400
+        conversion_rate = [0.9, 0.75, 0.57, 0.44, 0.43, 0.42, 0.13, 0.10, 0.05]
         daily_customer = [380, 220, 267, 124]
         daily_promos = [693, 198, 69, 29]
 
@@ -207,6 +209,7 @@ class Simulator:
         # - conversion rate item 2 given item 1
 
         # Reward for each price (= arm):
+        # €200 --> €50
         # €225 --> €75 * 0.65 * n_customers + LP (applied for the 0.65 * n_customers )
         # €250 --> €100 * 0.57 * n_customers + LP (applied for the 0.57 * n_customers )
         # €275 --> €125 * 0.51 * n_customers + LP (applied for the 0.51 * n_customers )
@@ -214,25 +217,26 @@ class Simulator:
         # €325 --> €175 * 0.39 * n_customers + LP (applied for the 0.39 * n_customers )
         # €350 --> €200 * 0.30 * n_customers + LP (applied for the 0.30 * n_customers )
         # €375 --> €225 * 0.27 * n_customers + LP (applied for the 0.27 * n_customers )
-        margin = [75, 100, 125, 150, 175, 200, 225]
+        # €400 --> €250
+        margin = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
 
 
-        T = 2500
-        n_arms = 7  # np.ceil((T * np.log(T))**(1/4)).astype(int)                    # With T = 365 we have n_arms = 7 (ln)
+        T = 1000
+        n_arms = 9  # np.ceil((T * np.log(T))**(1/4)).astype(int)                    # With T = 365 we have n_arms = 7 (ln)
         objective = np.zeros(n_arms)
-        for i in range(7):
+        for i in range(n_arms):
             objective[i] = margin[i] * conversion_rate[i]
 
-        objective = objective / np.linalg.norm(objective)
+        #objective = objective / np.linalg.norm(objective)
         opt = max(objective)
-        env = Environment(n_arms=n_arms, objective=objective)
+
 
         n_experiments = 100
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
         for e in range(n_experiments):
-            env = Environment(n_arms=n_arms, objective=objective)
+            env = Environment(n_arms=n_arms, probabilities=conversion_rate, objective=margin)
             ucb1_learner = UCB1(n_arms=n_arms)
             ts_learner = TS_Learner(n_arms=n_arms)
 
@@ -250,12 +254,15 @@ class Simulator:
             ucb1_rewards_per_experiment.append(ucb1_learner.collected_rewards)
             ts_rewards_per_experiment.append(ts_learner.collected_rewards)
 
+        ucb1_rewards_per_experiment = [x * max(margin) for x in ucb1_rewards_per_experiment]
+        ts_rewards_per_experiment = [x * max(margin) for x in ts_rewards_per_experiment]
+
         plt.figure(0)
         plt.xlabel("t")
         plt.ylabel("Regret")
         plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment, axis=0)), "r")
         plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title = "STEP 4")
+        plt.legend(["TS", "UCB1"], title="STEP 4")
         plt.show()
 
         plt.figure(1)
@@ -276,7 +283,7 @@ class Simulator:
 
         # Creating the Data object to get the actual numbers from the Google Module
         data = Data()
-        dataset = pd.DataFrame(columns = ['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2','P3' , 'TARGET'])
+        dataset = pd.DataFrame(columns=['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2', 'P3', 'TARGET'])
 
         sum_daily_customer = np.zeros(4)
 
@@ -341,7 +348,7 @@ class Simulator:
         regressor = RandomForestRegressor(n_estimators=100, random_state=1234)
         regressor.fit(X, y)
 
-        prediction_set = pd.DataFrame(columns = ['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2','P3'])
+        prediction_set = pd.DataFrame(columns=['c1', 'c2', 'c3', 'c4', 'P0', 'P1', 'P2', 'P3'])
         prediction_set.loc[len(prediction_set)] = [1, 0, 0, 0, 1, 0, 0, 0]
         prediction_set.loc[len(prediction_set)] = [0, 1, 0, 0, 1, 0, 0, 0]
         prediction_set.loc[len(prediction_set)] = [0, 0, 1, 0, 1, 0, 0, 0]
@@ -545,7 +552,7 @@ class Simulator:
         X = dataset[features].values
         y = dataset[target].values
 
-        X2 = dataset2[features].values
+        X2 = dataset2[features2].values
         y2 = dataset2[target].values
 
         regressor = RandomForestRegressor(n_estimators=100, random_state=1234)
@@ -589,5 +596,3 @@ class Simulator:
                                     [res[12], res[13], res[14], res[15]]])
 
         prob_buy_item1 = np.array([res2[0], res2[1], res2[2], res2[3]])
-
-

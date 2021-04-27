@@ -28,7 +28,7 @@ class UCB_Matching(UCB):
 
 
 if __name__ == '__main__':
-    from Environment import Environment
+    from Environment import Environment_Second
     import matplotlib.pyplot as plt
 
     p = np.array([[1/4, 1, 1/4], [1/2, 1/4, 1/4], [1/4, 1/4, 1]])
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         print(e)
         rew_UCB = []
         opt_rew = []
-        env = Environment(p.size, p)
+        env = Environment_Second(p.size, p, )
         for t in range(T):
             pulled_arms = learner.pull_arm()
             rewards = env.round(pulled_arms)

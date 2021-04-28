@@ -18,12 +18,12 @@ print(experiment_1_2)
 simulator_step3 = Simulator()
 step3 = simulator_step3.simulation_step_3()
 
-'''
+
 # Step 4
 simulator_step4 = Simulator()
 step4 = simulator_step4.simulation_step_4()
 
-
+'''
 # Step 5
 simulator_step5 = Simulator()
 step5 = simulator_step5.simulation_step_5()

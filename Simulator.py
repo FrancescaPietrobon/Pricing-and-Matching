@@ -102,26 +102,26 @@ class Simulator:
                             [0.07446809, 0, 0, 0]])
 
         # Conversion rates for item 2 given item 1 and promo (one row per class per promo; one element per arm)
-        conversion_rates_item21 = np.array([  # Promo P0, Classes 1-2-3-4
-                                            [[0.52, 0.47, 0.43, 0.38, 0.36, 0.34, 0.31, 0.30, 0.27],
-                                             [0.39, 0.34, 0.29, 0.22, 0.20, 0.19, 0.15, 0.13, 0.10],
-                                             [0.46, 0.40, 0.36, 0.32, 0.29, 0.27, 0.20, 0.17, 0.13],
-                                             [0.33, 0.29, 0.25, 0.21, 0.15, 0.13, 0.11, 0.10, 0.07]],
-                                            # Promo P1, Classes 1-2-3-4
-                                            [[0.64, 0.59, 0.53, 0.48, 0.41, 0.39, 0.35, 0.31, 0.26],
-                                             [0.45, 0.39, 0.37, 0.29, 0.26, 0.23, 0.19, 0.17, 0.12],
-                                             [0.32, 0.29, 0.27, 0.26, 0.25, 0.20, 0.12, 0.08, 0.05],
-                                             [0.37, 0.30, 0.25, 0.24, 0.23, 0.19, 0.16, 0.15, 0.10]],
-                                            # Promo P2, Classes 1-2-3-4
-                                            [[0.74, 0.62, 0.57, 0.50, 0.44, 0.42, 0.37, 0.30, 0.24],
-                                             [0.42, 0.39, 0.35, 0.31, 0.27, 0.23, 0.21, 0.20, 0.16],
-                                             [0.54, 0.49, 0.45, 0.35, 0.32, 0.29, 0.22, 0.21, 0.17],
-                                             [0.36, 0.30, 0.27, 0.21, 0.19, 0.17, 0.13, 0.10, 0.06]],
-                                            # Promo P3, Classes 1-2-3-4
-                                            [[0.95, 0.92, 0.85, 0.79, 0.76, 0.69, 0.58, 0.50, 0.43],
-                                             [0.83, 0.79, 0.73, 0.68, 0.63, 0.56, 0.53, 0.47, 0.40],
-                                             [0.88, 0.80, 0.71, 0.64, 0.61, 0.58, 0.51, 0.43, 0.38],
-                                             [0.61, 0.54, 0.49, 0.47, 0.46, 0.44, 0.35, 0.31, 0.27]]
+        conversion_rates_item21 = np.array([    # Promo P0, Classes 1-2-3-4
+                                                [[0.52, 0.47, 0.43, 0.38, 0.36, 0.34, 0.31, 0.30, 0.27],
+                                                 [0.39, 0.34, 0.29, 0.22, 0.20, 0.19, 0.15, 0.13, 0.10],
+                                                 [0.46, 0.40, 0.36, 0.32, 0.29, 0.27, 0.20, 0.17, 0.13],
+                                                 [0.33, 0.29, 0.25, 0.21, 0.15, 0.13, 0.11, 0.10, 0.07]],
+                                                # Promo P1, Classes 1-2-3-4
+                                                [[0.64, 0.59, 0.53, 0.48, 0.41, 0.39, 0.35, 0.31, 0.26],
+                                                 [0.45, 0.39, 0.37, 0.29, 0.26, 0.23, 0.19, 0.17, 0.12],
+                                                 [0.32, 0.29, 0.27, 0.26, 0.25, 0.20, 0.12, 0.08, 0.05],
+                                                 [0.37, 0.30, 0.25, 0.24, 0.23, 0.19, 0.16, 0.15, 0.10]],
+                                                # Promo P2, Classes 1-2-3-4
+                                                [[0.74, 0.62, 0.57, 0.50, 0.44, 0.42, 0.37, 0.30, 0.24],
+                                                 [0.42, 0.39, 0.35, 0.31, 0.27, 0.23, 0.21, 0.20, 0.16],
+                                                 [0.54, 0.49, 0.45, 0.35, 0.32, 0.29, 0.22, 0.21, 0.17],
+                                                 [0.36, 0.30, 0.27, 0.21, 0.19, 0.17, 0.13, 0.10, 0.06]],
+                                                # Promo P3, Classes 1-2-3-4
+                                                [[0.95, 0.92, 0.85, 0.79, 0.76, 0.69, 0.58, 0.50, 0.43],
+                                                 [0.83, 0.79, 0.73, 0.68, 0.63, 0.56, 0.53, 0.47, 0.40],
+                                                 [0.88, 0.80, 0.71, 0.64, 0.61, 0.58, 0.51, 0.43, 0.38],
+                                                 [0.61, 0.54, 0.49, 0.47, 0.46, 0.44, 0.35, 0.31, 0.27]]
                                             ])
 
         # Computing the objective array (one element per arm)
@@ -230,7 +230,7 @@ class Simulator:
         plt.show()
 
 ########################################################################################################################
-    # TODO generate conversion_rates_item2 from distribution and add the case also for the first environment
+
     def simulation_step_4(self):
         # Time horizon
         T = 1000
@@ -251,76 +251,135 @@ class Simulator:
                             [0.07446809, 0, 0, 0]])
 
         # Conversion rates for item 2 given item 1 and promo (one row per class per promo; one element per arm)
-        conversion_rates_item21 = np.array([  # Promo P0, Classes 1-2-3-4
-            [[0.52, 0.47, 0.43, 0.38, 0.36, 0.34, 0.31, 0.30, 0.27],
-             [0.39, 0.34, 0.29, 0.22, 0.20, 0.19, 0.15, 0.13, 0.10],
-             [0.46, 0.40, 0.36, 0.32, 0.29, 0.27, 0.20, 0.17, 0.13],
-             [0.33, 0.29, 0.25, 0.21, 0.15, 0.13, 0.11, 0.10, 0.07]],
-            # Promo P1, Classes 1-2-3-4
-            [[0.64, 0.59, 0.53, 0.48, 0.41, 0.39, 0.35, 0.31, 0.26],
-             [0.45, 0.39, 0.37, 0.29, 0.26, 0.23, 0.19, 0.17, 0.12],
-             [0.32, 0.29, 0.27, 0.26, 0.25, 0.20, 0.12, 0.08, 0.05],
-             [0.37, 0.30, 0.25, 0.24, 0.23, 0.19, 0.16, 0.15, 0.10]],
-            # Promo P2, Classes 1-2-3-4
-            [[0.74, 0.62, 0.57, 0.50, 0.44, 0.42, 0.37, 0.30, 0.24],
-             [0.42, 0.39, 0.35, 0.31, 0.27, 0.23, 0.21, 0.20, 0.16],
-             [0.54, 0.49, 0.45, 0.35, 0.32, 0.29, 0.22, 0.21, 0.17],
-             [0.36, 0.30, 0.27, 0.21, 0.19, 0.17, 0.13, 0.10, 0.06]],
-            # Promo P3, Classes 1-2-3-4
-            [[0.95, 0.92, 0.85, 0.79, 0.76, 0.69, 0.58, 0.50, 0.43],
-             [0.83, 0.79, 0.73, 0.68, 0.63, 0.56, 0.53, 0.47, 0.40],
-             [0.88, 0.80, 0.71, 0.64, 0.61, 0.58, 0.51, 0.43, 0.38],
-             [0.61, 0.54, 0.49, 0.47, 0.46, 0.44, 0.35, 0.31, 0.27]]
-        ])
+        # We generate each one of them from a Gaussian distribution in which the mean is the corresponding
+        # conversion rate fixed in Step 3, and the variance is fixed.
+        conversion_rates_item21_means = np.array([  # Promo P0, Classes 1-2-3-4
+                                                    [[0.52, 0.47, 0.43, 0.38, 0.36, 0.34, 0.31, 0.30, 0.27],
+                                                     [0.39, 0.34, 0.29, 0.22, 0.20, 0.19, 0.15, 0.13, 0.10],
+                                                     [0.46, 0.40, 0.36, 0.32, 0.29, 0.27, 0.20, 0.17, 0.13],
+                                                     [0.33, 0.29, 0.25, 0.21, 0.15, 0.13, 0.11, 0.10, 0.07]],
+                                                    # Promo P1, Classes 1-2-3-4
+                                                    [[0.64, 0.59, 0.53, 0.48, 0.41, 0.39, 0.35, 0.31, 0.26],
+                                                     [0.45, 0.39, 0.37, 0.29, 0.26, 0.23, 0.19, 0.17, 0.12],
+                                                     [0.32, 0.29, 0.27, 0.26, 0.25, 0.20, 0.12, 0.08, 0.05],
+                                                     [0.37, 0.30, 0.25, 0.24, 0.23, 0.19, 0.16, 0.15, 0.10]],
+                                                    # Promo P2, Classes 1-2-3-4
+                                                    [[0.74, 0.62, 0.57, 0.50, 0.44, 0.42, 0.37, 0.30, 0.24],
+                                                     [0.42, 0.39, 0.35, 0.31, 0.27, 0.23, 0.21, 0.20, 0.16],
+                                                     [0.54, 0.49, 0.45, 0.35, 0.32, 0.29, 0.22, 0.21, 0.17],
+                                                     [0.36, 0.30, 0.27, 0.21, 0.19, 0.17, 0.13, 0.10, 0.06]],
+                                                    # Promo P3, Classes 1-2-3-4
+                                                    [[0.95, 0.92, 0.85, 0.79, 0.76, 0.69, 0.58, 0.50, 0.43],
+                                                     [0.83, 0.79, 0.73, 0.68, 0.63, 0.56, 0.53, 0.47, 0.40],
+                                                     [0.88, 0.80, 0.71, 0.64, 0.61, 0.58, 0.51, 0.43, 0.38],
+                                                     [0.61, 0.54, 0.49, 0.47, 0.46, 0.44, 0.35, 0.31, 0.27]]
+                                                ])
 
+        conversion_rates_item21 = normal(conversion_rates_item21_means, 0.025, (4, 4, 9))
+
+        # Computing the objective array (one element per arm) TODO we are not using daily_customers
         objective = np.zeros(n_arms)
         for i in range(n_arms):
-            objective[i] = prices[i] * conversion_rates_item1[i]
+            objective[i] = prices[i] * conversion_rates_item1[i] + \
+                           self.item2.get_price() * conversion_rates_item1[i] * (
+                           conversion_rates_item21[0][0][i] * weights[0][0] +
+                           conversion_rates_item21[0][1][i] * weights[0][1] +
+                           conversion_rates_item21[0][2][i] * weights[0][2] +
+                           conversion_rates_item21[0][3][i] * weights[0][3] +
+                           conversion_rates_item21[1][0][i] * weights[1][0] * (1 - self.discount_p1) +
+                           conversion_rates_item21[1][1][i] * weights[1][1] * (1 - self.discount_p1) +
+                           conversion_rates_item21[1][2][i] * weights[1][2] * (1 - self.discount_p1) +
+                           conversion_rates_item21[1][3][i] * weights[1][3] * (1 - self.discount_p1) +
+                           conversion_rates_item21[2][0][i] * weights[2][0] * (1 - self.discount_p2) +
+                           conversion_rates_item21[2][1][i] * weights[2][1] * (1 - self.discount_p2) +
+                           conversion_rates_item21[2][2][i] * weights[2][2] * (1 - self.discount_p2) +
+                           conversion_rates_item21[2][3][i] * weights[2][3] * (1 - self.discount_p2) +
+                           conversion_rates_item21[3][0][i] * weights[3][0] * (1 - self.discount_p3) +
+                           conversion_rates_item21[3][1][i] * weights[3][1] * (1 - self.discount_p3) +
+                           conversion_rates_item21[3][2][i] * weights[3][2] * (1 - self.discount_p3) +
+                           conversion_rates_item21[3][3][i] * weights[3][3] * (1 - self.discount_p3))
 
-        #objective = objective / np.linalg.norm(objective)
-        opt = max(objective)
+        # Storing the optimal objective value to compute the regret later
+        opt_env2 = max(objective)
+        normalized_objective = objective / np.linalg.norm(objective)
+        opt_env1 = max(normalized_objective)
 
-
+        # Launching the experiments, using both UCB1 and Thompson Sampling
+        # Two different approaches for the environment are used (see Environment class)
         n_experiments = 100
-        ucb1_rewards_per_experiment = []
-        ts_rewards_per_experiment = []
+        ucb1_rewards_per_experiment_env1 = []
+        ts_rewards_per_experiment_env1 = []
+        ucb1_rewards_per_experiment_env2 = []
+        ts_rewards_per_experiment_env2 = []
 
         for e in range(n_experiments):
-            env = Environment_Second(n_arms=n_arms, probabilities=conversion_rates_item1, candidates=prices)
-            ucb1_learner = UCB1(n_arms=n_arms)
-            ts_learner = TS_Learner(n_arms=n_arms)
+            env1 = Environment_First(n_arms=n_arms, probabilities=normalized_objective)
+            env2 = Environment_Second(n_arms=n_arms, probabilities=conversion_rates_item1, candidates=prices)
+            ucb1_learner_env1 = UCB1(n_arms=n_arms)
+            ucb1_learner_env2 = UCB1(n_arms=n_arms)
+            ts_learner_env1 = TS_Learner(n_arms=n_arms)
+            ts_learner_env2 = TS_Learner(n_arms=n_arms)
 
             for t in range(0, T):
                 # UCB1 Learner
-                pulled_arm = ucb1_learner.pull_arm()
-                reward = env.round(pulled_arm)
-                ucb1_learner.update(pulled_arm, reward)
+                pulled_arm = ucb1_learner_env1.pull_arm()
+                reward = env1.round(pulled_arm)
+                ucb1_learner_env1.update(pulled_arm, reward)
+
+                pulled_arm = ucb1_learner_env2.pull_arm()
+                reward = env2.round(pulled_arm)
+                ucb1_learner_env2.update(pulled_arm, reward)
 
                 # Thompson Sampling Learner
-                pulled_arm = ts_learner.pull_arm()
-                reward = env.round(pulled_arm)
-                ts_learner.update(pulled_arm, reward)
+                pulled_arm = ts_learner_env1.pull_arm()
+                reward = env1.round(pulled_arm)
+                ts_learner_env1.update(pulled_arm, reward)
 
-            ucb1_rewards_per_experiment.append(ucb1_learner.collected_rewards)
-            ts_rewards_per_experiment.append(ts_learner.collected_rewards)
+                pulled_arm = ts_learner_env2.pull_arm()
+                reward = env2.round(pulled_arm)
+                ts_learner_env2.update(pulled_arm, reward)
 
-        ucb1_rewards_per_experiment = [x * max(prices) for x in ucb1_rewards_per_experiment]
-        ts_rewards_per_experiment = [x * max(prices) for x in ts_rewards_per_experiment]
+            ucb1_rewards_per_experiment_env1.append(ucb1_learner_env1.collected_rewards)
+            ts_rewards_per_experiment_env1.append(ts_learner_env1.collected_rewards)
+            ucb1_rewards_per_experiment_env2.append(ucb1_learner_env2.collected_rewards)
+            ts_rewards_per_experiment_env2.append(ts_learner_env2.collected_rewards)
 
+        # Rescaling the rewards (only in the case of the second environment)
+        ucb1_rewards_per_experiment_env2 = [x * max(prices) for x in ucb1_rewards_per_experiment_env2]
+        ts_rewards_per_experiment_env2 = [x * max(prices) for x in ts_rewards_per_experiment_env2]
+
+        # Plotting the regret and the reward related to the first environment
         plt.figure(0)
         plt.xlabel("t")
         plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment, axis=0)), "r")
-        plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 4")
+        plt.plot(np.cumsum(np.mean(opt_env1 - ts_rewards_per_experiment_env1, axis=0)), "r")
+        plt.plot(np.cumsum(np.mean(opt_env1 - ucb1_rewards_per_experiment_env1, axis=0)), "b")
+        plt.legend(["TS", "UCB1"], title="STEP 4 - ENV1")
         plt.show()
 
         plt.figure(1)
         plt.xlabel("t")
         plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment, axis=0), "r")
-        plt.plot(np.mean(ucb1_rewards_per_experiment, axis=0), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 4")
+        plt.plot(np.mean(ts_rewards_per_experiment_env1, axis=0), "r")
+        plt.plot(np.mean(ucb1_rewards_per_experiment_env1, axis=0), "b")
+        plt.legend(["TS-ENV1", "UCB1-ENV1"], title="STEP 4 - ENV1")
+        plt.show()
+
+        # Plotting the regret and the reward related to the second environment
+        plt.figure(2)
+        plt.xlabel("t")
+        plt.ylabel("Regret")
+        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment_env2, axis=0)), "g")
+        plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment_env2, axis=0)), "y")
+        plt.legend(["TS", "UCB1"], title="STEP 4 - ENV2")
+        plt.show()
+
+        plt.figure(3)
+        plt.xlabel("t")
+        plt.ylabel("Reward")
+        plt.plot(np.mean(ts_rewards_per_experiment_env2, axis=0), "g")
+        plt.plot(np.mean(ucb1_rewards_per_experiment_env2, axis=0), "y")
+        plt.legend(["TS", "UCB1"], title="STEP 4 - ENV2")
         plt.show()
 
 ########################################################################################################################

@@ -146,6 +146,25 @@ class Simulator:
                            daily_customers[2] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
                            daily_customers[3] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
 
+        # Rewards for each item if the items are bought
+        reward_item1 = prices * sum(daily_customers)
+        reward_item2 = np.array([[daily_customers[0] * weights[0][0],
+                                  daily_customers[1] * weights[0][1],
+                                  daily_customers[2] * weights[0][2],
+                                  daily_customers[3] * weights[0][3]],
+                                 [daily_customers[0] * weights[1][0] * (1 - self.discount_p1),
+                                  daily_customers[1] * weights[1][1] * (1 - self.discount_p1),
+                                  daily_customers[2] * weights[1][2] * (1 - self.discount_p1),
+                                  daily_customers[3] * weights[1][3] * (1 - self.discount_p1)],
+                                 [daily_customers[0] * weights[2][0] * (1 - self.discount_p2),
+                                  daily_customers[1] * weights[2][1] * (1 - self.discount_p2),
+                                  daily_customers[2] * weights[2][2] * (1 - self.discount_p2),
+                                  daily_customers[3] * weights[2][3] * (1 - self.discount_p2)],
+                                 [daily_customers[0] * weights[3][0] * (1 - self.discount_p3),
+                                  daily_customers[1] * weights[3][1] * (1 - self.discount_p3),
+                                  daily_customers[2] * weights[3][2] * (1 - self.discount_p3),
+                                  daily_customers[3] * weights[3][3] * (1 - self.discount_p3)]]) * self.item2.get_price()
+
         # Storing the optimal objective value to compute the regret later
         opt_env2 = max(objective)
         normalized_objective = objective / np.linalg.norm(objective)
@@ -161,7 +180,9 @@ class Simulator:
 
         for e in range(n_experiments):
             env1 = Environment_First(n_arms=n_arms, probabilities=normalized_objective)
-            env2 = Environment_Second(n_arms=n_arms, probabilities=conversion_rates_item1, candidates=prices)
+            env2 = Environment_Second(n_arms=n_arms, conversion_rates_item1=conversion_rates_item1,
+                                      conversion_rates_item21=conversion_rates_item21, reward_item1=reward_item1,
+                                      reward_item2=reward_item2)
             ucb1_learner_env1 = UCB1(n_arms=n_arms)
             ucb1_learner_env2 = UCB1(n_arms=n_arms)
             ts_learner_env1 = TS_Learner(n_arms=n_arms)
@@ -192,8 +213,8 @@ class Simulator:
             ts_rewards_per_experiment_env2.append(ts_learner_env2.collected_rewards)
 
         # Rescaling the rewards (only in the case of the second environment)
-        ucb1_rewards_per_experiment_env2 = [x * max(prices) for x in ucb1_rewards_per_experiment_env2]
-        ts_rewards_per_experiment_env2 = [x * max(prices) for x in ts_rewards_per_experiment_env2]
+        ucb1_rewards_per_experiment_env2 = [x * (max(reward_item1) + np.sum(reward_item2)) for x in ucb1_rewards_per_experiment_env2]
+        ts_rewards_per_experiment_env2 = [x * (max(reward_item1) + np.sum(reward_item2)) for x in ts_rewards_per_experiment_env2]
 
         # Plotting the regret and the reward related to the first environment
         plt.figure(0)

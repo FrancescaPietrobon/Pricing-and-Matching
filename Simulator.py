@@ -90,7 +90,10 @@ class Simulator:
         prices = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
 
         # Conversion rates for item 1 (one per arm) - The central one (0.43) is taken by step 1
-        conversion_rates_item1 = np.array([0.9, 0.75, 0.57, 0.44, 0.43, 0.42, 0.13, 0.10, 0.05])
+        conversion_rates_item1 = np.array([[0.9, 0.84, 0.72, 0.59, 0.50, 0.42, 0.23, 0.13, 0.07],
+                                          [0.87, 0.75, 0.57, 0.44, 0.36, 0.29, 0.13, 0.10, 0.02],
+                                          [0.89, 0.78, 0.62, 0.48, 0.45, 0.36, 0.17, 0.12, 0.05],
+                                          [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
 
         # Number of daily customers (one per class) - Taken by step 1
         daily_customers = np.array([380, 220, 267, 124])
@@ -127,27 +130,32 @@ class Simulator:
         # Computing the objective array (one element per arm)
         objective = np.zeros(n_arms)
         for i in range(n_arms):
-            objective[i] = prices[i] * conversion_rates_item1[i] * sum(daily_customers) +\
-                           self.item2.get_price() * conversion_rates_item1[i] * (
-                           daily_customers[0] * conversion_rates_item21[0][0][i] * weights[0][0] +
-                           daily_customers[1] * conversion_rates_item21[0][1][i] * weights[0][1] +
-                           daily_customers[2] * conversion_rates_item21[0][2][i] * weights[0][2] +
-                           daily_customers[3] * conversion_rates_item21[0][3][i] * weights[0][3] +
-                           daily_customers[0] * conversion_rates_item21[1][0][i] * weights[1][0] * (1-self.discount_p1) +
-                           daily_customers[1] * conversion_rates_item21[1][1][i] * weights[1][1] * (1-self.discount_p1) +
-                           daily_customers[2] * conversion_rates_item21[1][2][i] * weights[1][2] * (1-self.discount_p1) +
-                           daily_customers[3] * conversion_rates_item21[1][3][i] * weights[1][3] * (1-self.discount_p1) +
-                           daily_customers[0] * conversion_rates_item21[2][0][i] * weights[2][0] * (1-self.discount_p2) +
-                           daily_customers[1] * conversion_rates_item21[2][1][i] * weights[2][1] * (1-self.discount_p2) +
-                           daily_customers[2] * conversion_rates_item21[2][2][i] * weights[2][2] * (1-self.discount_p2) +
-                           daily_customers[3] * conversion_rates_item21[2][3][i] * weights[2][3] * (1-self.discount_p2) +
-                           daily_customers[0] * conversion_rates_item21[3][0][i] * weights[3][0] * (1-self.discount_p3) +
-                           daily_customers[1] * conversion_rates_item21[3][1][i] * weights[3][1] * (1-self.discount_p3) +
-                           daily_customers[2] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
-                           daily_customers[3] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
+            objective[i] = (daily_customers[0] * conversion_rates_item1[0, i] +
+                            daily_customers[1] * conversion_rates_item1[1, i] +
+                            daily_customers[2] * conversion_rates_item1[2, i] +
+                            daily_customers[3] * conversion_rates_item1[3, i]) * prices[i] + self.item2.get_price() * (
+                            daily_customers[0] * conversion_rates_item21[0][0][i] * weights[0][0] +
+                            daily_customers[1] * conversion_rates_item21[0][1][i] * weights[0][1] +
+                            daily_customers[2] * conversion_rates_item21[0][2][i] * weights[0][2] +
+                            daily_customers[3] * conversion_rates_item21[0][3][i] * weights[0][3] +
+                            daily_customers[0] * conversion_rates_item21[1][0][i] * weights[1][0] * (1-self.discount_p1) +
+                            daily_customers[1] * conversion_rates_item21[1][1][i] * weights[1][1] * (1-self.discount_p1) +
+                            daily_customers[2] * conversion_rates_item21[1][2][i] * weights[1][2] * (1-self.discount_p1) +
+                            daily_customers[3] * conversion_rates_item21[1][3][i] * weights[1][3] * (1-self.discount_p1) +
+                            daily_customers[0] * conversion_rates_item21[2][0][i] * weights[2][0] * (1-self.discount_p2) +
+                            daily_customers[1] * conversion_rates_item21[2][1][i] * weights[2][1] * (1-self.discount_p2) +
+                            daily_customers[2] * conversion_rates_item21[2][2][i] * weights[2][2] * (1-self.discount_p2) +
+                            daily_customers[3] * conversion_rates_item21[2][3][i] * weights[2][3] * (1-self.discount_p2) +
+                            daily_customers[0] * conversion_rates_item21[3][0][i] * weights[3][0] * (1-self.discount_p3) +
+                            daily_customers[1] * conversion_rates_item21[3][1][i] * weights[3][1] * (1-self.discount_p3) +
+                            daily_customers[2] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
+                            daily_customers[3] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
 
         # Rewards for each item if the items are bought
-        reward_item1 = prices * sum(daily_customers)
+        reward_item1 = np.zeros([4, n_arms])
+        for i in range(n_arms):
+            reward_item1[:, i] = daily_customers * prices[i]
+
         reward_item2 = np.array([[daily_customers[0] * weights[0][0],
                                   daily_customers[1] * weights[0][1],
                                   daily_customers[2] * weights[0][2],
@@ -213,8 +221,8 @@ class Simulator:
             ts_rewards_per_experiment_env2.append(ts_learner_env2.collected_rewards)
 
         # Rescaling the rewards (only in the case of the second environment)
-        ucb1_rewards_per_experiment_env2 = [x * (max(reward_item1) + np.sum(reward_item2)) for x in ucb1_rewards_per_experiment_env2]
-        ts_rewards_per_experiment_env2 = [x * (max(reward_item1) + np.sum(reward_item2)) for x in ts_rewards_per_experiment_env2]
+        ucb1_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ucb1_rewards_per_experiment_env2]
+        ts_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ts_rewards_per_experiment_env2]
 
         # Plotting the regret and the reward related to the first environment
         plt.figure(0)

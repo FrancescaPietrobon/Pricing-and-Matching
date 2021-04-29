@@ -22,8 +22,8 @@ class Environment_Second:
         self.reward_item2 = reward_item2
 
     def round(self, pulled_arm):
-        bin_item1 = np.random.binomial(1, self.conversion_rates_item1[pulled_arm])
-        reward1 = bin_item1 * self.reward_item1[pulled_arm]
-        reward2 = np.sum(np.random.binomial(1, self.conversion_rates_item21[:, :, pulled_arm]) * self.reward_item2) * bin_item1
-        reward = (reward1 + reward2) / (max(self.reward_item1) + np.sum(self.reward_item2))
+        bin_item1 = np.random.binomial(1, self.conversion_rates_item1[:, pulled_arm])
+        reward1 = np.sum(bin_item1 * self.reward_item1[:, pulled_arm])
+        reward2 = np.sum(np.random.binomial(1, self.conversion_rates_item21[:, :, pulled_arm]) * self.reward_item2)
+        reward = (reward1 + reward2) / (np.sum(self.reward_item1) + np.sum(self.reward_item2))
         return reward

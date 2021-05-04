@@ -1,4 +1,5 @@
 from Learner import *
+np.random.seed(1234)
 
 
 class TS_Learner(Learner):

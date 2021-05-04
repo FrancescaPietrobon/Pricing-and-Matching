@@ -6,6 +6,7 @@ from UCB1 import *
 from UCB1_Gatti import *
 from UCB_matching import *
 from TS_Learner import *
+from TS_Learner_Gatti import *
 from Environment import *
 
 import matplotlib.pyplot as plt
@@ -81,7 +82,7 @@ class Simulator:
 
     def simulation_step_3(self):
         # Time horizon
-        T = 1000
+        T = 10000           # Before it was 1000
 
         # Number of arms (computed as np.ceil((T * np.log(T))**(1/4)).astype(int))
         n_arms = 9
@@ -152,14 +153,6 @@ class Simulator:
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
 
-        # Computing the objective array (one element per arm)
-        objectiveGatti = np.zeros(n_arms)
-        for i in range(n_arms):
-            objectiveGatti[i] = (daily_customers[0] * conversion_rates_item1[0][i] +
-                                 daily_customers[1] * conversion_rates_item1[1][i] +
-                                 daily_customers[2] * conversion_rates_item1[2][i] +
-                                 daily_customers[3] * conversion_rates_item1[3][i]) * prices[i]
-
         reward2Gatti = np.zeros(n_arms)
         for i in range(n_arms):
             reward2Gatti[i] = self.item2.get_price() * (
@@ -207,62 +200,69 @@ class Simulator:
         opt_env2 = max(objective)
         normalized_objective = objective / np.linalg.norm(objective)
         opt_env1 = max(normalized_objective)
-        opt_envGatti = max(objectiveGatti)
 
         # Launching the experiments, using both UCB1 and Thompson Sampling
         # Two different approaches for the environment are used (see Environment class)
         n_experiments = 100
-        ucb1_rewards_per_experiment_env1 = []
-        ts_rewards_per_experiment_env1 = []
+        #ucb1_rewards_per_experiment_env1 = []
+        #ts_rewards_per_experiment_env1 = []
         ucb1_rewards_per_experiment_envGatti = []
-        ucb1_rewards_per_experiment_env2 = []
-        ts_rewards_per_experiment_env2 = []
+        ts_rewards_per_experiment_envGatti = []
+        #ucb1_rewards_per_experiment_env2 = []
+        #ts_rewards_per_experiment_env2 = []
 
         for e in range(n_experiments):
-            env1 = Environment_First(n_arms=n_arms, probabilities=normalized_objective)
-            env2 = Environment_Second(n_arms=n_arms, conversion_rates_item1=conversion_rates_item1,
-                                      conversion_rates_item21=conversion_rates_item21, reward_item1=reward_item1,
-                                      reward_item2=reward_item2)
+            print(e+1)
+            #env1 = Environment_First(n_arms=n_arms, probabilities=normalized_objective)
+            #env2 = Environment_Second(n_arms=n_arms, conversion_rates_item1=conversion_rates_item1,
+                                      #conversion_rates_item21=conversion_rates_item21, reward_item1=reward_item1,
+                                      #reward_item2=reward_item2)
             envGatti = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item1)
-            ucb1_learner_env1 = UCB1(n_arms=n_arms)
-            ucb1_learner_env2 = UCB1(n_arms=n_arms)
+            #ucb1_learner_env1 = UCB1(n_arms=n_arms)
+            #ucb1_learner_env2 = UCB1(n_arms=n_arms)
             ucb1_learner_envGatti = UCB1_Gatti(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward2Gatti=reward2Gatti)
-            ts_learner_env1 = TS_Learner(n_arms=n_arms)
-            ts_learner_env2 = TS_Learner(n_arms=n_arms)
+            ts_learner_envGatti = TS_Learner_Gatti(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward2Gatti=reward2Gatti)
+            #ts_learner_env1 = TS_Learner(n_arms=n_arms)
+            #ts_learner_env2 = TS_Learner(n_arms=n_arms)
 
             for t in range(0, T):
                 # UCB1 Learner
-                pulled_arm = ucb1_learner_env1.pull_arm()
-                reward = env1.round(pulled_arm)
-                ucb1_learner_env1.update(pulled_arm, reward)
+                #pulled_arm = ucb1_learner_env1.pull_arm()
+                #reward = env1.round(pulled_arm)
+                #ucb1_learner_env1.update(pulled_arm, reward)
 
-                pulled_arm = ucb1_learner_env2.pull_arm()
-                reward = env2.round(pulled_arm)
-                ucb1_learner_env2.update(pulled_arm, reward)
+                #pulled_arm = ucb1_learner_env2.pull_arm()
+                #reward = env2.round(pulled_arm)
+                #ucb1_learner_env2.update(pulled_arm, reward)
 
                 pulled_arm = ucb1_learner_envGatti.pull_arm()
                 reward = envGatti.round(pulled_arm)
                 ucb1_learner_envGatti.update(pulled_arm, reward)
 
                 # Thompson Sampling Learner
-                pulled_arm = ts_learner_env1.pull_arm()
-                reward = env1.round(pulled_arm)
-                ts_learner_env1.update(pulled_arm, reward)
+                #pulled_arm = ts_learner_env1.pull_arm()
+                #reward = env1.round(pulled_arm)
+                #ts_learner_env1.update(pulled_arm, reward)
 
-                pulled_arm = ts_learner_env2.pull_arm()
-                reward = env2.round(pulled_arm)
-                ts_learner_env2.update(pulled_arm, reward)
+                #pulled_arm = ts_learner_env2.pull_arm()
+                #reward = env2.round(pulled_arm)
+                #ts_learner_env2.update(pulled_arm, reward)
 
-            ucb1_rewards_per_experiment_env1.append(ucb1_learner_env1.collected_rewards)
-            ts_rewards_per_experiment_env1.append(ts_learner_env1.collected_rewards)
-            ucb1_rewards_per_experiment_env2.append(ucb1_learner_env2.collected_rewards)
-            ts_rewards_per_experiment_env2.append(ts_learner_env2.collected_rewards)
+                pulled_arm = ts_learner_envGatti.pull_arm()
+                reward = envGatti.round(pulled_arm)
+                ts_learner_envGatti.update(pulled_arm, reward)
+
+            #ucb1_rewards_per_experiment_env1.append(ucb1_learner_env1.collected_rewards)
+            #ts_rewards_per_experiment_env1.append(ts_learner_env1.collected_rewards)
+            #ucb1_rewards_per_experiment_env2.append(ucb1_learner_env2.collected_rewards)
+            #ts_rewards_per_experiment_env2.append(ts_learner_env2.collected_rewards)
             ucb1_rewards_per_experiment_envGatti.append(ucb1_learner_envGatti.collected_rewards)
+            ts_rewards_per_experiment_envGatti.append(ts_learner_envGatti.collected_rewards)
 
         # Rescaling the rewards (only in the case of the second environment)
-        ucb1_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ucb1_rewards_per_experiment_env2]
-        ts_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ts_rewards_per_experiment_env2]
-
+        #ucb1_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ucb1_rewards_per_experiment_env2]
+        #ts_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ts_rewards_per_experiment_env2]
+        '''
         # Plotting the regret and the reward related to the first environment
         plt.figure(0)
         plt.xlabel("t")
@@ -296,20 +296,22 @@ class Simulator:
         plt.plot(np.mean(ucb1_rewards_per_experiment_env2, axis=0), "k")
         plt.legend(["TS", "UCB1"], title="STEP 3 - ENV2")
         plt.show()
-
+        '''
         # Plotting the regret and the reward related to the Gatti environment
         plt.figure(4)
         plt.xlabel("t")
         plt.ylabel("Regret")
+        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment_envGatti, axis=0)), "m")
         plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment_envGatti, axis=0)), "k")
-        plt.legend(["UCB1"], title="STEP 3 - ENVGatti")
+        plt.legend(["TS", "UCB1"], title="STEP 3 - ENVGatti")
         plt.show()
 
         plt.figure(5)
         plt.xlabel("t")
         plt.ylabel("Reward")
+        plt.plot(np.mean(ts_rewards_per_experiment_envGatti, axis=0), "m")
         plt.plot(np.mean(ucb1_rewards_per_experiment_envGatti, axis=0), "k")
-        plt.legend(["UCB1"], title="STEP 3 - ENVGatti")
+        plt.legend(["TS", "UCB1"], title="STEP 3 - ENVGatti")
         plt.show()
 
 ########################################################################################################################

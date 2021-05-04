@@ -27,3 +27,13 @@ class Environment_Second:
         reward2 = np.sum(bin_item1 * np.random.binomial(1, self.conversion_rates_item21[:, :, pulled_arm]) * self.reward_item2)
         reward = (reward1 + reward2) / (np.sum(self.reward_item1) + np.sum(self.reward_item2))
         return reward
+
+
+class Environment_Gatti:
+    def __init__(self, n_arms, probabilities):
+        self.n_arms = n_arms
+        self.probabilities = probabilities
+
+    def round(self, pulled_arm):
+        reward = np.random.binomial(1, self.probabilities[:,pulled_arm])
+        return reward

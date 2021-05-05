@@ -82,7 +82,7 @@ class Simulator:
 
     def simulation_step_3(self):
         # Time horizon
-        T = 10000           # Before it was 1000
+        T = 1000           # Before it was 1000
 
         # Number of arms (computed as np.ceil((T * np.log(T))**(1/4)).astype(int))
         n_arms = 9
@@ -153,9 +153,10 @@ class Simulator:
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
 
-        reward2Gatti = np.zeros(n_arms)
+        '''
+        reward2Gattiold = np.zeros(n_arms)
         for i in range(n_arms):
-            reward2Gatti[i] = self.item2.get_price() * (
+            reward2Gattiold[i] = self.item2.get_price() * (
                                    conversion_rates_item21[0][0][i] * weights[0][0] +
                                    conversion_rates_item21[0][1][i] * weights[0][1] +
                                    conversion_rates_item21[0][2][i] * weights[0][2] +
@@ -172,6 +173,30 @@ class Simulator:
                                    conversion_rates_item21[3][1][i] * weights[3][1] * (1 - self.discount_p3) +
                                    conversion_rates_item21[3][2][i] * weights[3][2] * (1 - self.discount_p3) +
                                    conversion_rates_item21[3][3][i] * weights[3][3] * (1 - self.discount_p3))
+        '''
+
+        reward2Gatti = np.zeros([4, n_arms])
+        for i in range(n_arms):
+            reward2Gatti[0, i] = self.item2.get_price() * (
+                                    conversion_rates_item21[0, 0, i] * weights[0][0] +
+                                    conversion_rates_item21[1, 0, i] * weights[1][0] * (1 - self.discount_p1) +
+                                    conversion_rates_item21[2, 0, i] * weights[2][0] * (1 - self.discount_p2) +
+                                    conversion_rates_item21[3, 0, i] * weights[3][0] * (1 - self.discount_p3))
+            reward2Gatti[1, i] = self.item2.get_price() * (
+                                    conversion_rates_item21[0, 1, i] * weights[0][1] +
+                                    conversion_rates_item21[1, 1, i] * weights[1][1] * (1 - self.discount_p1) +
+                                    conversion_rates_item21[2, 1, i] * weights[2][1] * (1 - self.discount_p2) +
+                                    conversion_rates_item21[3, 1, i] * weights[3][1] * (1 - self.discount_p3))
+            reward2Gatti[2, i] = self.item2.get_price() * (
+                                    conversion_rates_item21[0, 2, i] * weights[0][2] +
+                                    conversion_rates_item21[1, 2, i] * weights[1][2] * (1 - self.discount_p1) +
+                                    conversion_rates_item21[2, 2, i] * weights[2][2] * (1 - self.discount_p2) +
+                                    conversion_rates_item21[3, 2, i] * weights[3][2] * (1 - self.discount_p3))
+            reward2Gatti[3, i] = self.item2.get_price() * (
+                                    conversion_rates_item21[0, 3, i] * weights[0][3] +
+                                    conversion_rates_item21[1, 3, i] * weights[1][3] * (1 - self.discount_p1) +
+                                    conversion_rates_item21[2, 3, i] * weights[2][3] * (1 - self.discount_p2) +
+                                    conversion_rates_item21[3, 3, i] * weights[3][3] * (1 - self.discount_p3))
 
         # Rewards for each item if the items are bought
         # For every column (price) the reward for each class

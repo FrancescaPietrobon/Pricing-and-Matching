@@ -16,14 +16,15 @@ class UCB1_Gatti(Learner):
         if self.t < self.n_arms:
             arm = self.t
         else:
-            upper_bound = (self.prices + self.reward2Gatti) * np.dot(self.daily_customers, (self.empirical_means + self.confidence))
+            upper_bound = (self.prices * np.dot(self.daily_customers, (self.empirical_means + self.confidence))) + \
+                          np.dot(self.daily_customers, (self.empirical_means + self.confidence) * self.reward2Gatti)
             arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
         return arm
 
     def update(self, pulled_arm, reward):
         self.t += 1
         self.collected_rewards = np.append(self.collected_rewards,
-                                           np.sum((self.prices[pulled_arm] + self.reward2Gatti[pulled_arm]) * self.daily_customers * reward))
+                                           np.sum((self.prices[pulled_arm] + self.reward2Gatti[:, pulled_arm]) * self.daily_customers * reward))
         self.empirical_means[:, pulled_arm] = (self.empirical_means[:, pulled_arm] * (self.t-1) + reward) / self.t
         for a in range(self.n_arms):
             number_pulled = max(1, len(self.rewards_per_arm[a]))

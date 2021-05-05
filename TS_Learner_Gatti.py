@@ -12,18 +12,14 @@ class TS_Learner_Gatti(Learner):
 
     def pull_arm(self):
         beta = np.random.beta(self.beta_parameters[:, :, 0], self.beta_parameters[:, :, 1])
-        value = (self.prices + self.reward2Gatti) * np.dot(self.daily_customers, beta)
+        value = (self.prices * np.dot(self.daily_customers, beta)) + \
+                      np.dot(self.daily_customers, beta * self.reward2Gatti)
         arm = np.random.choice(np.where(value == value.max())[0])
         return arm
 
     def update(self, pulled_arm, reward):
         self.t += 1
-        self.rewards_per_arm[pulled_arm].append(np.sum((self.prices[pulled_arm] + self.reward2Gatti[pulled_arm]) * self.daily_customers * reward))
-        a = self.prices[pulled_arm]
-        b = self.reward2Gatti[pulled_arm]
-        c = self.daily_customers
-        d = reward
         self.collected_rewards = np.append(self.collected_rewards,
-                                           np.sum((self.prices[pulled_arm] + self.reward2Gatti[pulled_arm]) * self.daily_customers * reward))
+                                           np.sum((self.prices[pulled_arm] + self.reward2Gatti[:, pulled_arm]) * self.daily_customers * reward))
         self.beta_parameters[:, pulled_arm, 0] = self.beta_parameters[:, pulled_arm, 0] + reward
         self.beta_parameters[:, pulled_arm, 1] = self.beta_parameters[:, pulled_arm, 1] + 1.0 - reward

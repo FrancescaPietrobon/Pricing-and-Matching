@@ -13,6 +13,8 @@ class UCB1_item2(Learner):
         self.discounts = discounts
         self.weights = weights
 
+# TODO
+# upper_bound = (self.prices * (self.empirical_means[0] + self.confidence)) + (self.empirical_means[1] + self.confidence) * all_rewards
     def pull_arm(self):
         if self.t < self.n_arms:
             arm = self.t
@@ -21,6 +23,10 @@ class UCB1_item2(Learner):
             arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
         return arm
 
+# TODO re-paste the same UCB as Step 3 but with some modifications to deal with the tuple returned by the new Environment
+# Instead of self.reward_item2 there will be something computed with the second element of the tuple, and the other part using the first element of the tuple (item 1)
+# self.empirical_means[0, :, pulled_arm] = (self.empirical_means[0, :, pulled_arm] * (self.t-1) + reward[0]) / self.t
+# self.empirical_means[1, :, pulled_arm] = (self.empirical_means[1, :, pulled_arm] * (self.t-1) + reward[1]) / self.t
     def update(self, pulled_arm, reward):
         self.t += 1
         self.collected_rewards_matrix = np.append(self.collected_rewards_matrix, self.price * self.discounts * self.weights * reward)

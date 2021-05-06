@@ -1,22 +1,23 @@
-from Group import *
-from Data import *
-from Item import *
-from LP_optimization import *
-from UCB1 import *
-from Step3.UCB1_item1 import *
-from Step4.UCB1_item2 import *
-from UCB_matching import *
-from TS_Learner import *
-from Step3.TS_Learner_item1 import *
-from Step4.TS_Learner_item2 import *
-from Environment import *
-
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.random import normal, binomial
+from scipy import stats
 from scipy.optimize import linear_sum_assignment
 from sklearn.preprocessing import normalize
-from scipy import stats
+
+from Data import *
+from Environment import *
+from Group import *
+from Item import *
+from LP_optimization import *
+from Step3.TS_Learner_item1 import *
+from Step3.UCB1_item1 import *
+from Step4.UCB1_item2 import *
+from Step4.UCB1_item1_new import *
+from Step4.TS_Learner_item1_new import *
+from TS_Learner import *
+from UCB1 import *
+from UCB_matching import *
 
 np.random.seed(1234)
 
@@ -84,7 +85,7 @@ class Simulator:
 
     def simulation_step_3(self):
         # Time horizon
-        T = 1000           # Before it was 1000
+        T = 1000
 
         # Number of arms (computed as np.ceil((T * np.log(T))**(1/4)).astype(int))
         n_arms = 9
@@ -155,28 +156,6 @@ class Simulator:
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
 
-        '''
-        reward2Gattiold = np.zeros(n_arms)
-        for i in range(n_arms):
-            reward2Gattiold[i] = self.item2.get_price() * (
-                                   conversion_rates_item21[0][0][i] * weights[0][0] +
-                                   conversion_rates_item21[0][1][i] * weights[0][1] +
-                                   conversion_rates_item21[0][2][i] * weights[0][2] +
-                                   conversion_rates_item21[0][3][i] * weights[0][3] +
-                                   conversion_rates_item21[1][0][i] * weights[1][0] * (1 - self.discount_p1) +
-                                   conversion_rates_item21[1][1][i] * weights[1][1] * (1 - self.discount_p1) +
-                                   conversion_rates_item21[1][2][i] * weights[1][2] * (1 - self.discount_p1) +
-                                   conversion_rates_item21[1][3][i] * weights[1][3] * (1 - self.discount_p1) +
-                                   conversion_rates_item21[2][0][i] * weights[2][0] * (1 - self.discount_p2) +
-                                   conversion_rates_item21[2][1][i] * weights[2][1] * (1 - self.discount_p2) +
-                                   conversion_rates_item21[2][2][i] * weights[2][2] * (1 - self.discount_p2) +
-                                   conversion_rates_item21[2][3][i] * weights[2][3] * (1 - self.discount_p2) +
-                                   conversion_rates_item21[3][0][i] * weights[3][0] * (1 - self.discount_p3) +
-                                   conversion_rates_item21[3][1][i] * weights[3][1] * (1 - self.discount_p3) +
-                                   conversion_rates_item21[3][2][i] * weights[3][2] * (1 - self.discount_p3) +
-                                   conversion_rates_item21[3][3][i] * weights[3][3] * (1 - self.discount_p3))
-        '''
-
         reward2Gatti = np.zeros([4, n_arms])
         for i in range(n_arms):
             reward2Gatti[0, i] = self.item2.get_price() * (
@@ -200,152 +179,56 @@ class Simulator:
                                     conversion_rates_item21[2, 3, i] * weights[2][3] * (1 - self.discount_p2) +
                                     conversion_rates_item21[3, 3, i] * weights[3][3] * (1 - self.discount_p3))
 
-        # Rewards for each item if the items are bought
-        # For every column (price) the reward for each class
-        reward_item1 = np.zeros([4, n_arms])
-        for i in range(n_arms):
-            reward_item1[:, i] = daily_customers * prices[i]
-
-        reward_item2 = np.array([[daily_customers[0] * weights[0][0],
-                                  daily_customers[1] * weights[0][1],
-                                  daily_customers[2] * weights[0][2],
-                                  daily_customers[3] * weights[0][3]],
-                                 [daily_customers[0] * weights[1][0] * (1 - self.discount_p1),
-                                  daily_customers[1] * weights[1][1] * (1 - self.discount_p1),
-                                  daily_customers[2] * weights[1][2] * (1 - self.discount_p1),
-                                  daily_customers[3] * weights[1][3] * (1 - self.discount_p1)],
-                                 [daily_customers[0] * weights[2][0] * (1 - self.discount_p2),
-                                  daily_customers[1] * weights[2][1] * (1 - self.discount_p2),
-                                  daily_customers[2] * weights[2][2] * (1 - self.discount_p2),
-                                  daily_customers[3] * weights[2][3] * (1 - self.discount_p2)],
-                                 [daily_customers[0] * weights[3][0] * (1 - self.discount_p3),
-                                  daily_customers[1] * weights[3][1] * (1 - self.discount_p3),
-                                  daily_customers[2] * weights[3][2] * (1 - self.discount_p3),
-                                  daily_customers[3] * weights[3][3] * (1 - self.discount_p3)]]) * self.item2.get_price()
-
         # Storing the optimal objective value to compute the regret later
         opt_env2 = max(objective)
-        normalized_objective = objective / np.linalg.norm(objective)
-        opt_env1 = max(normalized_objective)
 
         # Launching the experiments, using both UCB1 and Thompson Sampling
-        # Two different approaches for the environment are used (see Environment class)
         n_experiments = 100
-        #ucb1_rewards_per_experiment_env1 = []
-        #ts_rewards_per_experiment_env1 = []
-        ucb1_rewards_per_experiment_envGatti = []
-        ts_rewards_per_experiment_envGatti = []
-        #ucb1_rewards_per_experiment_env2 = []
-        #ts_rewards_per_experiment_env2 = []
+        ucb1_rewards_per_experiment = []
+        ts_rewards_per_experiment = []
 
         for e in range(n_experiments):
             print(e+1)
-            #env1 = Environment_First(n_arms=n_arms, probabilities=normalized_objective)
-            #env2 = Environment_Second(n_arms=n_arms, conversion_rates_item1=conversion_rates_item1,
-                                      #conversion_rates_item21=conversion_rates_item21, reward_item1=reward_item1,
-                                      #reward_item2=reward_item2)
-            envGatti = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item1)
-            #ucb1_learner_env1 = UCB1(n_arms=n_arms)
-            #ucb1_learner_env2 = UCB1(n_arms=n_arms)
-            ucb1_learner_envGatti = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward2Gatti)
-            ts_learner_envGatti = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward2Gatti)
-            #ts_learner_env1 = TS_Learner(n_arms=n_arms)
-            #ts_learner_env2 = TS_Learner(n_arms=n_arms)
+            env = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item1)
+            ucb1_learner = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward2Gatti)
+            ts_learner = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward2Gatti)
 
             for t in range(0, T):
                 # UCB1 Learner
-                #pulled_arm = ucb1_learner_env1.pull_arm()
-                #reward = env1.round(pulled_arm)
-                #ucb1_learner_env1.update(pulled_arm, reward)
-
-                #pulled_arm = ucb1_learner_env2.pull_arm()
-                #reward = env2.round(pulled_arm)
-                #ucb1_learner_env2.update(pulled_arm, reward)
-
-                pulled_arm = ucb1_learner_envGatti.pull_arm()
-                reward = envGatti.round(pulled_arm)
-                ucb1_learner_envGatti.update(pulled_arm, reward)
+                pulled_arm = ucb1_learner.pull_arm()
+                reward = env.round(pulled_arm)
+                ucb1_learner.update(pulled_arm, reward)
 
                 # Thompson Sampling Learner
-                #pulled_arm = ts_learner_env1.pull_arm()
-                #reward = env1.round(pulled_arm)
-                #ts_learner_env1.update(pulled_arm, reward)
+                pulled_arm = ts_learner.pull_arm()
+                reward = env.round(pulled_arm)
+                ts_learner.update(pulled_arm, reward)
 
-                #pulled_arm = ts_learner_env2.pull_arm()
-                #reward = env2.round(pulled_arm)
-                #ts_learner_env2.update(pulled_arm, reward)
+            ucb1_rewards_per_experiment.append(ucb1_learner.collected_rewards)
+            ts_rewards_per_experiment.append(ts_learner.collected_rewards)
 
-                pulled_arm = ts_learner_envGatti.pull_arm()
-                reward = envGatti.round(pulled_arm)
-                ts_learner_envGatti.update(pulled_arm, reward)
-
-            #ucb1_rewards_per_experiment_env1.append(ucb1_learner_env1.collected_rewards)
-            #ts_rewards_per_experiment_env1.append(ts_learner_env1.collected_rewards)
-            #ucb1_rewards_per_experiment_env2.append(ucb1_learner_env2.collected_rewards)
-            #ts_rewards_per_experiment_env2.append(ts_learner_env2.collected_rewards)
-            ucb1_rewards_per_experiment_envGatti.append(ucb1_learner_envGatti.collected_rewards)
-            ts_rewards_per_experiment_envGatti.append(ts_learner_envGatti.collected_rewards)
-
-        # Rescaling the rewards (only in the case of the second environment)
-        #ucb1_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ucb1_rewards_per_experiment_env2]
-        #ts_rewards_per_experiment_env2 = [x * (np.sum(reward_item1) + np.sum(reward_item2)) for x in ts_rewards_per_experiment_env2]
-        '''
-        # Plotting the regret and the reward related to the first environment
+        # Plotting the regret and the reward
         plt.figure(0)
         plt.xlabel("t")
         plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt_env1 - ts_rewards_per_experiment_env1, axis=0)), "r")
-        plt.plot(np.cumsum(np.mean(opt_env1 - ucb1_rewards_per_experiment_env1, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 3 - ENV1")
+        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment, axis=0)), "r")
+        plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment, axis=0)), "b")
+        plt.legend(["TS", "UCB1"], title="STEP 3")
         plt.show()
 
         plt.figure(1)
         plt.xlabel("t")
         plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment_env1, axis=0), "r")
-        plt.plot(np.mean(ucb1_rewards_per_experiment_env1, axis=0), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 3 - ENV1")
-        plt.show()
-
-        # Plotting the regret and the reward related to the second environment
-        plt.figure(2)
-        plt.xlabel("t")
-        plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment_env2, axis=0)), "m")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment_env2, axis=0)), "k")
-        plt.legend(["TS", "UCB1"], title="STEP 3 - ENV2")
-        plt.show()
-
-        plt.figure(3)
-        plt.xlabel("t")
-        plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment_env2, axis=0), "m")
-        plt.plot(np.mean(ucb1_rewards_per_experiment_env2, axis=0), "k")
-        plt.legend(["TS", "UCB1"], title="STEP 3 - ENV2")
-        plt.show()
-        '''
-        # Plotting the regret and the reward related to the Gatti environment
-        plt.figure(4)
-        plt.xlabel("t")
-        plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment_envGatti, axis=0)), "m")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment_envGatti, axis=0)), "k")
-        plt.legend(["TS", "UCB1"], title="STEP 3 - ENVGatti")
-        plt.show()
-
-        plt.figure(5)
-        plt.xlabel("t")
-        plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment_envGatti, axis=0), "m")
-        plt.plot(np.mean(ucb1_rewards_per_experiment_envGatti, axis=0), "k")
-        plt.legend(["TS", "UCB1"], title="STEP 3 - ENVGatti")
+        plt.plot(np.mean(ts_rewards_per_experiment, axis=0), "r")
+        plt.plot(np.mean(ucb1_rewards_per_experiment, axis=0), "b")
+        plt.legend(["TS", "UCB1"], title="STEP 3")
         plt.show()
 
 ########################################################################################################################
 
     def simulation_step_4(self):
         # Time horizon
-        T = 1000  # Before it was 1000
+        T = 1000
 
         # Number of arms (computed as np.ceil((T * np.log(T))**(1/4)).astype(int))
         n_arms = 9
@@ -360,6 +243,7 @@ class Simulator:
                                            [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
 
         # Number of daily customers (one per class) - Taken by step 1
+        # TODO set to 1 since we don't care (keep or remove?)
         daily_customers = np.ones(4)
 
         # Promo assigment (row: promo; column: customer class) - Taken by step 1
@@ -372,27 +256,10 @@ class Simulator:
         discounts = np.array([1, 1-self.discount_p1, 1-self.discount_p2, 1-self.discount_p3])
 
         # Conversion rates for item 2 given item 1 and promo (one row per class per promo; one element per arm)
-        conversion_rates_item21 = np.array([    # Promo P0, Classes 1-2-3-4
-                                                [[0.52, 0.47, 0.43, 0.38, 0.36, 0.34, 0.31, 0.30, 0.27],
-                                                 [0.39, 0.34, 0.29, 0.22, 0.20, 0.19, 0.15, 0.13, 0.10],
-                                                 [0.46, 0.40, 0.36, 0.32, 0.29, 0.27, 0.20, 0.17, 0.13],
-                                                 [0.33, 0.29, 0.25, 0.21, 0.15, 0.13, 0.11, 0.10, 0.07]],
-                                                # Promo P1, Classes 1-2-3-4
-                                                [[0.64, 0.59, 0.53, 0.48, 0.41, 0.39, 0.35, 0.31, 0.26],
-                                                 [0.45, 0.39, 0.37, 0.29, 0.26, 0.23, 0.19, 0.17, 0.12],
-                                                 [0.32, 0.29, 0.27, 0.26, 0.25, 0.20, 0.12, 0.08, 0.05],
-                                                 [0.37, 0.30, 0.25, 0.24, 0.23, 0.19, 0.16, 0.15, 0.10]],
-                                                # Promo P2, Classes 1-2-3-4
-                                                [[0.74, 0.62, 0.57, 0.50, 0.44, 0.42, 0.37, 0.30, 0.24],
-                                                 [0.42, 0.39, 0.35, 0.31, 0.27, 0.23, 0.21, 0.20, 0.16],
-                                                 [0.54, 0.49, 0.45, 0.35, 0.32, 0.29, 0.22, 0.21, 0.17],
-                                                 [0.36, 0.30, 0.27, 0.21, 0.19, 0.17, 0.13, 0.10, 0.06]],
-                                                # Promo P3, Classes 1-2-3-4
-                                                [[0.95, 0.92, 0.85, 0.79, 0.76, 0.69, 0.58, 0.50, 0.43],
-                                                 [0.83, 0.79, 0.73, 0.68, 0.63, 0.56, 0.53, 0.47, 0.40],
-                                                 [0.88, 0.80, 0.71, 0.64, 0.61, 0.58, 0.51, 0.43, 0.38],
-                                                 [0.61, 0.54, 0.49, 0.47, 0.46, 0.44, 0.35, 0.31, 0.27]]
-                                            ])
+        conversion_rates_item21 = np.array([[0.36, 0.20, 0.29, 0.15],
+                                            [0.41, 0.26, 0.25, 0.23],
+                                            [0.44, 0.27, 0.32, 0.19],
+                                            [0.76, 0.63, 0.61, 0.46]])
 
         # Computing the objective array (one element per arm)
         objective = np.zeros(n_arms)
@@ -401,48 +268,25 @@ class Simulator:
                             daily_customers[1] * conversion_rates_item1[1][i] +
                             daily_customers[2] * conversion_rates_item1[2][i] +
                             daily_customers[3] * conversion_rates_item1[3][i]) * prices[i] + self.item2.get_price() * (
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[0][0][i] * weights[0][0] +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[0][1][i] * weights[0][1] +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[0][2][i] * weights[0][2] +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[0][3][i] * weights[0][3] +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[1][0][i] * weights[1][0] * (1 - self.discount_p1) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[1][1][i] * weights[1][1] * (1 - self.discount_p1) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[1][2][i] * weights[1][2] * (1 - self.discount_p1) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[1][3][i] * weights[1][3] * (1 - self.discount_p1) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[2][0][i] * weights[2][0] * (1 - self.discount_p2) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[2][1][i] * weights[2][1] * (1 - self.discount_p2) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[2][2][i] * weights[2][2] * (1 - self.discount_p2) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[2][3][i] * weights[2][3] * (1 - self.discount_p2) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[3][0][i] * weights[3][0] * (1 - self.discount_p3) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[3][1][i] * weights[3][1] * (1 - self.discount_p3) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2][i] * weights[3][2] * (1 - self.discount_p3) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3][i] * weights[3][3] * (1 - self.discount_p3))
-
-        reward2Gatti = np.zeros([4, n_arms])
-        for i in range(n_arms):
-            reward2Gatti[0, i] = self.item2.get_price() * (
-                    conversion_rates_item21[0, 0, i] * weights[0][0] +
-                    conversion_rates_item21[1, 0, i] * weights[1][0] * (1 - self.discount_p1) +
-                    conversion_rates_item21[2, 0, i] * weights[2][0] * (1 - self.discount_p2) +
-                    conversion_rates_item21[3, 0, i] * weights[3][0] * (1 - self.discount_p3))
-            reward2Gatti[1, i] = self.item2.get_price() * (
-                    conversion_rates_item21[0, 1, i] * weights[0][1] +
-                    conversion_rates_item21[1, 1, i] * weights[1][1] * (1 - self.discount_p1) +
-                    conversion_rates_item21[2, 1, i] * weights[2][1] * (1 - self.discount_p2) +
-                    conversion_rates_item21[3, 1, i] * weights[3][1] * (1 - self.discount_p3))
-            reward2Gatti[2, i] = self.item2.get_price() * (
-                    conversion_rates_item21[0, 2, i] * weights[0][2] +
-                    conversion_rates_item21[1, 2, i] * weights[1][2] * (1 - self.discount_p1) +
-                    conversion_rates_item21[2, 2, i] * weights[2][2] * (1 - self.discount_p2) +
-                    conversion_rates_item21[3, 2, i] * weights[3][2] * (1 - self.discount_p3))
-            reward2Gatti[3, i] = self.item2.get_price() * (
-                    conversion_rates_item21[0, 3, i] * weights[0][3] +
-                    conversion_rates_item21[1, 3, i] * weights[1][3] * (1 - self.discount_p1) +
-                    conversion_rates_item21[2, 3, i] * weights[2][3] * (1 - self.discount_p2) +
-                    conversion_rates_item21[3, 3, i] * weights[3][3] * (1 - self.discount_p3))
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[0][0] * weights[0][0] +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[0][1] * weights[0][1] +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[0][2] * weights[0][2] +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[0][3] * weights[0][3] +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[1][0] * weights[1][0] * (1 - self.discount_p1) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[1][1] * weights[1][1] * (1 - self.discount_p1) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[1][2] * weights[1][2] * (1 - self.discount_p1) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[1][3] * weights[1][3] * (1 - self.discount_p1) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[2][0] * weights[2][0] * (1 - self.discount_p2) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[2][1] * weights[2][1] * (1 - self.discount_p2) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[2][2] * weights[2][2] * (1 - self.discount_p2) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[2][3] * weights[2][3] * (1 - self.discount_p2) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[3][0] * weights[3][0] * (1 - self.discount_p3) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[3][1] * weights[3][1] * (1 - self.discount_p3) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2] * weights[3][2] * (1 - self.discount_p3) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3] * weights[3][3] * (1 - self.discount_p3))
 
         # Storing the optimal objective value to compute the regret later
-        opt_env2 = max(objective)
+        opt = max(objective)
 
         # Launching the experiments, using both UCB1 and Thompson Sampling
         n_experiments = 100
@@ -452,25 +296,20 @@ class Simulator:
         for e in range(n_experiments):
             print(e + 1)
 
-            env_item2_class1 = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item21[:, 0, :])
-            env_item2_class2 = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item21[:, 1, :])
-            env_item2_class3 = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item21[:, 2, :])
-            env_item2_class4 = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item21[:, 3, :])
+            env_item2_class1 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 0])
+            env_item2_class2 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 1])
+            env_item2_class3 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 2])
+            env_item2_class4 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 3])
 
-            ucb1_learner_item2_class1 = UCB1_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 0])
-            ts_learner_item2_class1 = TS_Learner_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 0])
-            ucb1_learner_item2_class2 = UCB1_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 1])
-            ts_learner_item2_class2 = TS_Learner_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 1])
-            ucb1_learner_item2_class3 = UCB1_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 2])
-            ts_learner_item2_class3 = TS_Learner_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 2])
-            ucb1_learner_item2_class4 = UCB1_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 3])
-            ts_learner_item2_class4 = TS_Learner_item2(n_arms=n_arms, price=self.item2.get_price(), discounts=discounts, weights=weights[:, 3])
-
+            ucb1_learner_item2_class1 = UCB1_item2(n_arms=4)
+            ucb1_learner_item2_class2 = UCB1_item2(n_arms=4)
+            ucb1_learner_item2_class3 = UCB1_item2(n_arms=4)
+            ucb1_learner_item2_class4 = UCB1_item2(n_arms=4)
 
             env_item1 = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item1)
 
-            ucb1_learner_item1 = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros([4, n_arms]))
-            ts_learner_item1 = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros([4, n_arms]))
+            ucb1_learner_item1 = UCB1_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))
+            ts_learner_item1 = TS_Learner_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))
 
             for t in range(0, T):
                 # Item 2 Class 1
@@ -478,76 +317,79 @@ class Simulator:
                 reward = env_item2_class1.round(pulled_arm)
                 ucb1_learner_item2_class1.update(pulled_arm, reward)
 
-                pulled_arm = ts_learner_item2_class1.pull_arm()
-                reward = env_item2_class1.round(pulled_arm)
-                ts_learner_item2_class1.update(pulled_arm, reward)
-
                 # Item 2 CLass 2
                 pulled_arm = ucb1_learner_item2_class2.pull_arm()
                 reward = env_item2_class2.round(pulled_arm)
                 ucb1_learner_item2_class2.update(pulled_arm, reward)
-
-                pulled_arm = ts_learner_item2_class2.pull_arm()
-                reward = env_item2_class2.round(pulled_arm)
-                ts_learner_item2_class2.update(pulled_arm, reward)
 
                 # Item 2 Class 3
                 pulled_arm = ucb1_learner_item2_class3.pull_arm()
                 reward = env_item2_class3.round(pulled_arm)
                 ucb1_learner_item2_class3.update(pulled_arm, reward)
 
-                pulled_arm = ts_learner_item2_class3.pull_arm()
-                reward = env_item2_class3.round(pulled_arm)
-                ts_learner_item2_class3.update(pulled_arm, reward)
-
                 # Item 2 Class 4
                 pulled_arm = ucb1_learner_item2_class4.pull_arm()
                 reward = env_item2_class4.round(pulled_arm)
                 ucb1_learner_item2_class4.update(pulled_arm, reward)
 
-                pulled_arm = ts_learner_item2_class4.pull_arm()
-                reward = env_item2_class4.round(pulled_arm)
-                ts_learner_item2_class4.update(pulled_arm, reward)
-
                 # Item 1
-                updated_reward_item2_ucb1 = np.array([[ucb1_learner_item2_class1.get_mean_collected_rewards_matrix()],
-                                                        [ucb1_learner_item2_class2.get_mean_collected_rewards_matrix()],
-                                                        [ucb1_learner_item2_class3.get_mean_collected_rewards_matrix()],
-                                                        [ucb1_learner_item2_class4.get_mean_collected_rewards_matrix()]])
+                if t >= 4:
+                    conversion_rates_item2_ub = np.zeros([4, 4])
+                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_upper_bound()
+                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_upper_bound()
+                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_upper_bound()
+                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_upper_bound()
 
-                updated_reward_item2_ts = np.array([[ts_learner_item2_class1.get_mean_collected_rewards_matrix()],
-                                                        [ts_learner_item2_class2.get_mean_collected_rewards_matrix()],
-                                                        [ts_learner_item2_class3.get_mean_collected_rewards_matrix()],
-                                                        [ts_learner_item2_class4.get_mean_collected_rewards_matrix()]])
+                    reward_item2 = np.zeros(4)
+                    reward_item2[0] = self.item2.get_price() * (
+                            conversion_rates_item2_ub[0, 0] * weights[0][0] +
+                            conversion_rates_item2_ub[1, 0] * weights[1][0] * (1 - self.discount_p1) +
+                            conversion_rates_item2_ub[2, 0] * weights[2][0] * (1 - self.discount_p2) +
+                            conversion_rates_item2_ub[3, 0] * weights[3][0] * (1 - self.discount_p3))
+                    reward_item2[1] = self.item2.get_price() * (
+                            conversion_rates_item2_ub[0, 1] * weights[0][1] +
+                            conversion_rates_item2_ub[1, 1] * weights[1][1] * (1 - self.discount_p1) +
+                            conversion_rates_item2_ub[2, 1] * weights[2][1] * (1 - self.discount_p2) +
+                            conversion_rates_item2_ub[3, 1] * weights[3][1] * (1 - self.discount_p3))
+                    reward_item2[2] = self.item2.get_price() * (
+                            conversion_rates_item2_ub[0, 2] * weights[0][2] +
+                            conversion_rates_item2_ub[1, 2] * weights[1][2] * (1 - self.discount_p1) +
+                            conversion_rates_item2_ub[2, 2] * weights[2][2] * (1 - self.discount_p2) +
+                            conversion_rates_item2_ub[3, 2] * weights[3][2] * (1 - self.discount_p3))
+                    reward_item2[3] = self.item2.get_price() * (
+                            conversion_rates_item2_ub[0, 3] * weights[0][3] +
+                            conversion_rates_item2_ub[1, 3] * weights[1][3] * (1 - self.discount_p1) +
+                            conversion_rates_item2_ub[2, 3] * weights[2][3] * (1 - self.discount_p2) +
+                            conversion_rates_item2_ub[3, 3] * weights[3][3] * (1 - self.discount_p3))
 
-                ucb1_learner_item1.update_reward_item2(updated_reward_item2_ucb1)
-                ts_learner_item1.update_reward_item2(updated_reward_item2_ts)
+                    ucb1_learner_item1.update_reward_item2(reward_item2)
+                    ts_learner_item1.update_reward_item2(reward_item2)
 
-                pulled_arm = ucb1_learner_item1.pull_arm()
-                reward = env_item1.round(pulled_arm)
-                ucb1_learner_item1.update(pulled_arm, reward)
+                    pulled_arm = ucb1_learner_item1.pull_arm()
+                    reward = env_item1.round(pulled_arm)
+                    ucb1_learner_item1.update(pulled_arm, reward)
 
-                pulled_arm = ts_learner_item1.pull_arm()
-                reward = env_item1.round(pulled_arm)
-                ts_learner_item1.update(pulled_arm, reward)
+                    pulled_arm = ts_learner_item1.pull_arm()
+                    reward = env_item1.round(pulled_arm)
+                    ts_learner_item1.update(pulled_arm, reward)
 
             ucb1_rewards_per_experiment_item1.append(ucb1_learner_item1.collected_rewards)
             ts_rewards_per_experiment_item1.append(ts_learner_item1.collected_rewards)
 
-        # Plotting the regret and the reward related to the Gatti environment
-        plt.figure(4)
+        # Plotting the regret and the reward
+        plt.figure(0)
         plt.xlabel("t")
         plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment_item1, axis=0)), "m")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment_item1, axis=0)), "k")
+        plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment_item1, axis=0)), "r")
+        plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment_item1, axis=0)), "b")
         plt.legend(["TS", "UCB1"], title="STEP 4")
         plt.show()
 
-        plt.figure(5)
+        plt.figure(1)
         plt.xlabel("t")
         plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment_item1, axis=0), "m")
-        plt.plot(np.mean(ucb1_rewards_per_experiment_item1, axis=0), "k")
+        plt.plot(np.mean(ts_rewards_per_experiment_item1, axis=0), "r")
+        plt.plot(np.mean(ucb1_rewards_per_experiment_item1, axis=0), "b")
         plt.legend(["TS", "UCB1"], title="STEP 4")
         plt.show()
 

@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(1234)
 
 
-class UCB1_item1(Learner):
+class UCB1_item1_new(Learner):
     def __init__(self, n_arms, daily_customers, prices, reward_item2):
         super().__init__(n_arms)
         self.empirical_means = np.zeros([4, n_arms])
@@ -11,21 +11,18 @@ class UCB1_item1(Learner):
         self.daily_customers = daily_customers
         self.prices = prices
         self.reward_item2 = reward_item2
-        self.upper_bound = None
 
     def pull_arm(self):
         if self.t < self.n_arms:
             arm = self.t
         else:
-            self.upper_bound = (self.prices * np.dot(self.daily_customers, (self.empirical_means + self.confidence))) + \
-                                np.dot(self.daily_customers, (self.empirical_means + self.confidence) * self.reward_item2)
-            arm = np.random.choice(np.where(self.upper_bound == self.upper_bound.max())[0])
+            upper_bound = (self.prices * np.dot(self.daily_customers, (self.empirical_means + self.confidence))) + np.dot(self.daily_customers * self.reward_item2, (self.empirical_means + self.confidence))
+            arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
         return arm
 
     def update(self, pulled_arm, reward):
         self.t += 1
-        self.collected_rewards = np.append(self.collected_rewards,
-                                           np.sum((self.prices[pulled_arm] + self.reward_item2[:, pulled_arm]) * self.daily_customers * reward))
+        self.collected_rewards = np.append(self.collected_rewards, np.sum((self.prices[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
         self.empirical_means[:, pulled_arm] = (self.empirical_means[:, pulled_arm] * (self.t-1) + reward) / self.t
         for a in range(self.n_arms):
             number_pulled = max(1, len(self.rewards_per_arm[a]))
@@ -34,6 +31,3 @@ class UCB1_item1(Learner):
 
     def update_reward_item2(self, updated_reward_item2):
         self.reward_item2 = updated_reward_item2
-
-    def get_upper_bound(self):
-        return self.upper_bound

@@ -253,13 +253,11 @@ class Simulator:
                             [0, 0, 0.25660377, 0],
                             [0.07446809, 0, 0, 0]])
 
-        discounts = np.array([1, 1-self.discount_p1, 1-self.discount_p2, 1-self.discount_p3])
-
         # Conversion rates for item 2 given item 1 and promo (one row per class per promo; one element per arm)
-        conversion_rates_item21 = np.array([[0.36, 0.20, 0.29, 0.15],
-                                            [0.41, 0.26, 0.25, 0.23],
-                                            [0.44, 0.27, 0.32, 0.19],
-                                            [0.76, 0.63, 0.61, 0.46]])
+        conversion_rates_item21 = np.array([[0.36, 0.20, 0.29, 0.16],
+                                            [0.41, 0.26, 0.25, 0.24],
+                                            [0.44, 0.27, 0.32, 0.20],
+                                            [0.76, 0.62, 0.61, 0.46]])
 
         # Computing the objective array (one element per arm)
         objective = np.zeros(n_arms)

@@ -30,16 +30,12 @@ class Simulator:
         self.discount_p1 = 0.1
         self.discount_p2 = 0.2
         self.discount_p3 = 0.5
+        self.data = Data()
 
     def simulation_step_1(self, p0_frac, p1_frac, p2_frac, p3_frac):
-        # Creating the Data object to get the actual numbers from the Google Module
-        data = Data()
 
         # Daily number of customers per class = Gaussian TODO: are sigmas correct?
-        daily_customers = np.array([int(normal(data.get_n(1), 12)),
-                                    int(normal(data.get_n(2), 14)),
-                                    int(normal(data.get_n(3), 16)),
-                                    int(normal(data.get_n(4), 17))])
+        daily_customers = self.data.get_daily_customers()
 
         # Number of promo codes available daily (fixed fraction of the daily number of customers)
         daily_promos = [int(sum(daily_customers) * p0_frac),
@@ -50,27 +46,7 @@ class Simulator:
         # Probability that a customer of a class buys the second item given the first + each promo
         # rows: promo code (0: P0, 1: P1, 2: P2, 3: P3)
         # columns: customer group (0: group1, 1: group2, 2: group3, 3: group4)
-        prob_buy_item21 = np.array([  # Promo code P0
-                                    [binomial(daily_customers[0], data.get_i21_p0_param(1)) / daily_customers[0],
-                                     binomial(daily_customers[1], data.get_i21_p0_param(2)) / daily_customers[1],
-                                     binomial(daily_customers[2], data.get_i21_p0_param(3)) / daily_customers[2],
-                                     binomial(daily_customers[3], data.get_i21_p0_param(4)) / daily_customers[3]],
-                                    # Promo code P1
-                                    [binomial(daily_customers[0], data.get_i21_p1_param(1)) / daily_customers[0],
-                                     binomial(daily_customers[1], data.get_i21_p1_param(2)) / daily_customers[1],
-                                     binomial(daily_customers[2], data.get_i21_p1_param(3)) / daily_customers[2],
-                                     binomial(daily_customers[3], data.get_i21_p1_param(4)) / daily_customers[3]],
-                                    # Promo code P2
-                                    [binomial(daily_customers[0], data.get_i21_p2_param(1)) / daily_customers[0],
-                                     binomial(daily_customers[1], data.get_i21_p2_param(2)) / daily_customers[1],
-                                     binomial(daily_customers[2], data.get_i21_p2_param(3)) / daily_customers[2],
-                                     binomial(daily_customers[3], data.get_i21_p2_param(4)) / daily_customers[3]],
-                                    # Promo code P3
-                                    [binomial(daily_customers[0], data.get_i21_p3_param(1)) / daily_customers[0],
-                                     binomial(daily_customers[1], data.get_i21_p3_param(2)) / daily_customers[1],
-                                     binomial(daily_customers[2], data.get_i21_p3_param(3)) / daily_customers[2],
-                                     binomial(daily_customers[3], data.get_i21_p3_param(4)) / daily_customers[3]]
-                                ])
+        prob_buy_item21 = self.data.get_conversion_rates_item21()
 
         # Linear optimization algorithm to find the best matching
         return LP(self.item2.get_price(), self.discount_p1, self.discount_p2, self.discount_p3,
@@ -156,31 +132,31 @@ class Simulator:
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2][i] * weights[3][2] * (1-self.discount_p3) +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3][i] * weights[3][3] * (1-self.discount_p3))
 
-        reward2Gatti = np.zeros([4, n_arms])
+        reward_item2 = np.zeros([4, n_arms])
         for i in range(n_arms):
-            reward2Gatti[0, i] = self.item2.get_price() * (
+            reward_item2[0, i] = self.item2.get_price() * (
                                     conversion_rates_item21[0, 0, i] * weights[0][0] +
                                     conversion_rates_item21[1, 0, i] * weights[1][0] * (1 - self.discount_p1) +
                                     conversion_rates_item21[2, 0, i] * weights[2][0] * (1 - self.discount_p2) +
                                     conversion_rates_item21[3, 0, i] * weights[3][0] * (1 - self.discount_p3))
-            reward2Gatti[1, i] = self.item2.get_price() * (
+            reward_item2[1, i] = self.item2.get_price() * (
                                     conversion_rates_item21[0, 1, i] * weights[0][1] +
                                     conversion_rates_item21[1, 1, i] * weights[1][1] * (1 - self.discount_p1) +
                                     conversion_rates_item21[2, 1, i] * weights[2][1] * (1 - self.discount_p2) +
                                     conversion_rates_item21[3, 1, i] * weights[3][1] * (1 - self.discount_p3))
-            reward2Gatti[2, i] = self.item2.get_price() * (
+            reward_item2[2, i] = self.item2.get_price() * (
                                     conversion_rates_item21[0, 2, i] * weights[0][2] +
                                     conversion_rates_item21[1, 2, i] * weights[1][2] * (1 - self.discount_p1) +
                                     conversion_rates_item21[2, 2, i] * weights[2][2] * (1 - self.discount_p2) +
                                     conversion_rates_item21[3, 2, i] * weights[3][2] * (1 - self.discount_p3))
-            reward2Gatti[3, i] = self.item2.get_price() * (
+            reward_item2[3, i] = self.item2.get_price() * (
                                     conversion_rates_item21[0, 3, i] * weights[0][3] +
                                     conversion_rates_item21[1, 3, i] * weights[1][3] * (1 - self.discount_p1) +
                                     conversion_rates_item21[2, 3, i] * weights[2][3] * (1 - self.discount_p2) +
                                     conversion_rates_item21[3, 3, i] * weights[3][3] * (1 - self.discount_p3))
 
         # Storing the optimal objective value to compute the regret later
-        opt_env2 = max(objective)
+        opt = max(objective)
 
         # Launching the experiments, using both UCB1 and Thompson Sampling
         n_experiments = 100
@@ -189,9 +165,9 @@ class Simulator:
 
         for e in range(n_experiments):
             print(e+1)
-            env = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item1)
-            ucb1_learner = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward2Gatti)
-            ts_learner = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward2Gatti)
+            env = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
+            ucb1_learner = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward_item2)
+            ts_learner = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=reward_item2)
 
             for t in range(0, T):
                 # UCB1 Learner
@@ -211,8 +187,8 @@ class Simulator:
         plt.figure(0)
         plt.xlabel("t")
         plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ts_rewards_per_experiment, axis=0)), "r")
-        plt.plot(np.cumsum(np.mean(opt_env2 - ucb1_rewards_per_experiment, axis=0)), "b")
+        plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment, axis=0)), "r")
+        plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment, axis=0)), "b")
         plt.legend(["TS", "UCB1"], title="STEP 3")
         plt.show()
 
@@ -227,6 +203,8 @@ class Simulator:
 ########################################################################################################################
 
     def simulation_step_4(self):
+
+
         # Time horizon
         T = 1000
 
@@ -254,10 +232,7 @@ class Simulator:
                             [0.07446809, 0, 0, 0]])
 
         # Conversion rates for item 2 given item 1 and promo (one row per class per promo; one element per arm)
-        conversion_rates_item21 = np.array([[0.36, 0.20, 0.29, 0.16],
-                                            [0.41, 0.26, 0.25, 0.24],
-                                            [0.44, 0.27, 0.32, 0.20],
-                                            [0.76, 0.62, 0.61, 0.46]])
+        conversion_rates_item21 = self.data.get_conversion_rates_item21()
 
         # Computing the objective array (one element per arm)
         objective = np.zeros(n_arms)
@@ -304,7 +279,7 @@ class Simulator:
             ucb1_learner_item2_class3 = UCB1_item2(n_arms=4)
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=4)
 
-            env_item1 = Environment_Gatti(n_arms=n_arms, probabilities=conversion_rates_item1)
+            env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
 
             ucb1_learner_item1 = UCB1_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))
             ts_learner_item1 = TS_Learner_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))

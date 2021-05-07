@@ -29,7 +29,7 @@ class Environment_Second:
         return reward
 
 
-class Environment_Gatti:
+class Environment_Third:
     def __init__(self, n_arms, probabilities):
         self.n_arms = n_arms
         self.probabilities = probabilities
@@ -37,8 +37,3 @@ class Environment_Gatti:
     def round(self, pulled_arm):
         reward = np.random.binomial(1, self.probabilities[:, pulled_arm])
         return reward
-
-# TODO 4 Bandits, one for each class of customers, dealing at the same time with item 1 and item 2
-# We will have 2 different self.probabilities, one for the conversion rates of item 1 (size 1x9) and one for the conversion rates of item 2 (size 4x9)
-# We extract two different rewards from two binomials (put together as a tuple of: (1 value, array_of_4))
-# Finally, in the Learner, we compute the objective given this tuple

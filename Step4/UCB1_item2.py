@@ -31,4 +31,4 @@ class UCB1_item2(Learner):
         return self.empirical_means
 
     def get_upper_bound(self):
-        return self.empirical_means
+        return self.upper_bound

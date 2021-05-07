@@ -34,3 +34,6 @@ class UCB_Matching(UCB):
         for pulled_arm, reward in zip(pulled_arm_flat, rewards):
             self.update_observations(pulled_arm, reward)
             self.empirical_means[pulled_arm] = (self.empirical_means[pulled_arm]*(self.t-1) + reward)/self.t
+
+    def set_price(self, price):
+        self.price = price

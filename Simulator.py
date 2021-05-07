@@ -308,10 +308,10 @@ class Simulator:
                 # Item 1
                 if t >= 4:
                     conversion_rates_item2_ub = np.zeros([4, 4])
-                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_upper_bound()
-                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_upper_bound()
-                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_upper_bound()
-                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_upper_bound()
+                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_empirical_means()
+                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_empirical_means()
+                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_empirical_means()
+                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_empirical_means()
 
                     reward_item2 = np.zeros(4)
                     reward_item2[0] = self.item2.get_price() * (

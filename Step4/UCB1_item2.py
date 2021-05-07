@@ -27,5 +27,5 @@ class UCB1_item2(Learner):
             self.confidence[a] = (2*np.log(self.t) / number_pulled)**0.5
         self.rewards_per_arm[pulled_arm].append(reward)
 
-    def get_upper_bound(self):
-        return self.upper_bound
+    def get_empirical_means(self):
+        return self.empirical_means

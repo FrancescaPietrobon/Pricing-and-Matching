@@ -12,13 +12,17 @@ class UCB_Matching(UCB):
         self.discounts = discounts
         self.p_frac = p_frac
 
-        self.upper_conf = None
+        self.upper_conf = np.zeros((n_rows, n_cols))
         assert n_arms == n_cols * n_rows
 
     def pull_arm(self):
-        self.upper_conf = self.price * np.dot((self.empirical_means + self.confidence), self.discounts * self.p_frac)
+        #self.upper_conf = self.price * (self.discounts * self.p_frac).trasnpose() * (self.empirical_means + self.confidence).reshape(self.n_rows, self.n_cols)
+        self.upper_conf[0,:] = self.price * self.discounts[0] * self.p_frac[0] * (self.empirical_means + self.confidence).reshape(self.n_rows, self.n_cols)[0,:]
+        self.upper_conf[1, :] = self.price * self.discounts[1] * self.p_frac[1] * (self.empirical_means + self.confidence).reshape(self.n_rows, self.n_cols)[1,:]
+        self.upper_conf[2, :] = self.price * self.discounts[2] * self.p_frac[2] * (self.empirical_means + self.confidence).reshape(self.n_rows, self.n_cols)[2,:]
+
         self.upper_conf[np.isinf(self.upper_conf)] = 1e3
-        row_ind, col_ind = linear_sum_assignment(-self.upper_conf.reshape(self.n_rows, self.n_cols))
+        row_ind, col_ind = linear_sum_assignment(-self.upper_conf) #.reshape(self.n_rows, self.n_cols))
         return row_ind, col_ind
 
     def update(self, pulled_arms, rewards):

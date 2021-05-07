@@ -399,7 +399,7 @@ class Simulator:
 
         opt = linear_sum_assignment(-objective)
 
-        n_exp = 20
+        n_exp = 100
         T = 5000
         regret_ucb = np.zeros((n_exp, T))
         reward_ucb = []
@@ -417,8 +417,8 @@ class Simulator:
             ucb1_learner_item2_class3 = UCB1_item2(n_arms=4)
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=4)
 
-            env = Environment_First(probabilities.size, probabilities)              #TODO check type of environment
-            learner = UCB_Matching(probabilities.size, *probabilities.shape, self.item2.getprice(), discounts, p_frac)
+            env = Environment_First(probabilities.size, probabilities)
+            learner = UCB_Matching(probabilities.size, *probabilities.shape, self.item2.get_price(), discounts, p_frac)
 
             rew_UCB = []
             opt_rew = []
@@ -446,26 +446,26 @@ class Simulator:
                 ucb1_learner_item2_class4.update(pulled_arm, reward)
 
                 #Matching
-                if t >= 4:
-                    conversion_rates_item2_ub = np.zeros([4, 4])
-                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_upper_bound()
-                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_upper_bound()
-                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_upper_bound()
-                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_upper_bound()
 
-                    probabilities = np.zero((3,4))
-                    for i in range(3):
-                        for j in range(4):
-                            probabilities[i][j] = conversion_rates_item2_ub[i+1,j]
+                conversion_rates_item2_ub = np.zeros([4, 4])
+                conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_upper_bound()
+                conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_upper_bound()
+                conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_upper_bound()
+                conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_upper_bound()
 
-                    env.set_probabilities(probabilities)
+                probabilities = np.zeros((3,4))
+                for i in range(3):
+                    for j in range(4):
+                        probabilities[i][j] = conversion_rates_item2_ub[i+1,j]
 
-                    pulled_arms = learner.pull_arm()
-                    rewards = env.round(pulled_arms)
-                    learner.update(pulled_arms, rewards)
+                env.set_probabilities(probabilities)
 
-                    rew_UCB.append((rewards* self.price * self.discounts * self.p_frac).sum())
-                    opt_rew.append(objective[opt].sum())
+                pulled_arms = learner.pull_arm()
+                rewards = env.round(pulled_arms)
+                learner.update(pulled_arms, rewards)
+
+                rew_UCB.append((rewards * self.item2.get_price() * discounts * p_frac).sum())
+                opt_rew.append(objective[opt].sum())
 
             regret_ucb[e, :] = np.cumsum(opt_rew) - np.cumsum(rew_UCB)
             reward_ucb.append(rew_UCB)

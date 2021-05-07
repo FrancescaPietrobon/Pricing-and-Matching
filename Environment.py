@@ -11,6 +11,9 @@ class Environment_First:
         reward = np.random.binomial(1, self.probabilities[pulled_arm])
         return reward
 
+    def set_probabilities(self, probabilities):
+        self.probabilities = probabilities
+
 
 # Second case of Environment, in which the reward is obtained considering also the candidates
 class Environment_Second:

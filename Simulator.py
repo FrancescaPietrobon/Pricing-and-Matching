@@ -370,107 +370,103 @@ class Simulator:
 
     def simulation_step_5(self, p0_frac, p1_frac, p2_frac, p3_frac):
 
-        conversion_rates_item21_means = np.array([[0.36, 0.20, 0.29, 0.10],
-                                                  [0.40, 0.26, 0.25, 0.24],
-                                                  [0.44, 0.27, 0.32, 0.20],
-                                                  [0.76, 0.62, 0.61, 0.46]])
+        conversion_rates_item21 = self.data.get_conversion_rates_item21()
 
-        conversion_rates_item21 = normal(conversion_rates_item21_means, 0.025, (4, 4))
 
-        daily_customers_means = np.array([380, 220, 267, 124])
-        daily_customers = (normal(daily_customers_means, 15, 4)).astype(int)
+        daily_customers = np.ones(4)
 
-        # p = np.array([[1/4, 1, 1/4], [1/2, 1/4, 1/4], [1/4, 1/4, 1]])
-        # rows: promo codes; columns: customers - values: price_item2 * (1-discount) * conversion_rate_item2_given1_promo (average)
-        #           cust1 (c1)   cust2 (c1)   cust3 (c1)   cust4 (c2)   cust5 (c3)  ...
-        #   P0
-        #   P0
-        #   P0
-        #   P0
-        #   P1
-        #   P1
-        #   P2
-        #   P3
-        #   ...
-        '''
-        n_promos = sum(daily_customers)
-        p = np.zeros((n_promos, sum(daily_customers)))
+        discounts = np.array([1-self.discount_p1, 1-self.discount_p2, 1-self.discount_p3])
 
-        for row_index in range(n_promos):
-            for column_index in range(sum(daily_customers)):
-                if row_index < p0_frac * n_promos:
-                    if column_index < daily_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * conversion_rates_item21[0][0]
-                    elif column_index < (daily_customers[0] + daily_customers[1]):
-                        p[row_index, column_index] = self.item2.get_price() * conversion_rates_item21[0][1]
-                    elif column_index < (daily_customers[0] + daily_customers[1] + daily_customers[2]):
-                        p[row_index, column_index] = self.item2.get_price() * conversion_rates_item21[0][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * conversion_rates_item21[0][3]
-                elif row_index < (p0_frac + p1_frac) * n_promos:
-                    if column_index < daily_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][0]
-                    elif column_index < (daily_customers[0] + daily_customers[1]):
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][1]
-                    elif column_index < (daily_customers[0] + daily_customers[1] + daily_customers[2]):
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][3]
-                elif row_index < (p0_frac + p1_frac + p2_frac) * n_promos:
-                    if column_index < daily_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][0]
-                    elif column_index < (daily_customers[0] + daily_customers[1]):
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][1]
-                    elif column_index < (daily_customers[0] + daily_customers[1] + daily_customers[2]):
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][3]
-                else:
-                    if column_index < daily_customers[0]:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][0]
-                    elif column_index < (daily_customers[0] + daily_customers[1]):
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][1]
-                    elif column_index < (daily_customers[0] + daily_customers[1] + daily_customers[2]):
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][2]
-                    else:
-                        p[row_index, column_index] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][3]
-        '''
+        p_frac = np.array([p1_frac, p2_frac, p3_frac])
 
         # Assumption:
         # The number of promos of every type of promo is smaller than the number of customers of every class
-        p = np.zeros((3, 4))
-        p[0][0] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][0] * daily_customers[0] * p1_frac
-        p[0][1] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][1] * daily_customers[1] * p1_frac
-        p[0][2] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][2] * daily_customers[2] * p1_frac
-        p[0][3] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][3] * daily_customers[3] * p1_frac
-        p[1][0] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][0] * daily_customers[0] * p2_frac
-        p[1][1] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][1] * daily_customers[1] * p2_frac
-        p[1][2] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][2] * daily_customers[2] * p2_frac
-        p[1][3] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][3] * daily_customers[3] * p2_frac
-        p[2][0] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][0] * daily_customers[0] * p3_frac
-        p[2][1] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][1] * daily_customers[1] * p3_frac
-        p[2][2] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][2] * daily_customers[2] * p3_frac
-        p[2][3] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][3] * daily_customers[3] * p3_frac
+        objective = np.zeros((3, 4))
+        objective[0][0] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][0] * daily_customers[0] * p1_frac
+        objective[0][1] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][1] * daily_customers[1] * p1_frac
+        objective[0][2] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][2] * daily_customers[2] * p1_frac
+        objective[0][3] = self.item2.get_price() * (1 - self.discount_p1) * conversion_rates_item21[1][3] * daily_customers[3] * p1_frac
+        objective[1][0] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][0] * daily_customers[0] * p2_frac
+        objective[1][1] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][1] * daily_customers[1] * p2_frac
+        objective[1][2] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][2] * daily_customers[2] * p2_frac
+        objective[1][3] = self.item2.get_price() * (1 - self.discount_p2) * conversion_rates_item21[2][3] * daily_customers[3] * p2_frac
+        objective[2][0] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][0] * daily_customers[0] * p3_frac
+        objective[2][1] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][1] * daily_customers[1] * p3_frac
+        objective[2][2] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][2] * daily_customers[2] * p3_frac
+        objective[2][3] = self.item2.get_price() * (1 - self.discount_p3) * conversion_rates_item21[3][3] * daily_customers[3] * p3_frac
 
-        #p = p / np.linalg.norm(p)
-        p = p / p.max()
-        opt = linear_sum_assignment(-p)
+        probabilities = np.zeros((3, 4))
+
+        opt = linear_sum_assignment(-objective)
+
         n_exp = 20
         T = 5000
         regret_ucb = np.zeros((n_exp, T))
         reward_ucb = []
         for e in range(n_exp):
-            learner = UCB_Matching(p.size, *p.shape)
-            print(e+1)
+
+            print(e + 1)
+
+            env_item2_class1 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 0])
+            env_item2_class2 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 1])
+            env_item2_class3 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 2])
+            env_item2_class4 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 3])
+
+            ucb1_learner_item2_class1 = UCB1_item2(n_arms=4)
+            ucb1_learner_item2_class2 = UCB1_item2(n_arms=4)
+            ucb1_learner_item2_class3 = UCB1_item2(n_arms=4)
+            ucb1_learner_item2_class4 = UCB1_item2(n_arms=4)
+
+            env = Environment_First(probabilities.size, probabilities)              #TODO check type of environment
+            learner = UCB_Matching(probabilities.size, *probabilities.shape, self.item2.getprice(), discounts, p_frac)
+
             rew_UCB = []
             opt_rew = []
-            env = Environment_First(p.size, p)
+
             for t in range(T):
-                pulled_arms = learner.pull_arm()
-                rewards = env.round(pulled_arms)
-                learner.update(pulled_arms, rewards)
-                rew_UCB.append(rewards.sum())
-                opt_rew.append(p[opt].sum())
+
+                # Item 2 Class 1
+                pulled_arm = ucb1_learner_item2_class1.pull_arm()
+                reward = env_item2_class1.round(pulled_arm)
+                ucb1_learner_item2_class1.update(pulled_arm, reward)
+
+                # Item 2 CLass 2
+                pulled_arm = ucb1_learner_item2_class2.pull_arm()
+                reward = env_item2_class2.round(pulled_arm)
+                ucb1_learner_item2_class2.update(pulled_arm, reward)
+
+                # Item 2 Class 3
+                pulled_arm = ucb1_learner_item2_class3.pull_arm()
+                reward = env_item2_class3.round(pulled_arm)
+                ucb1_learner_item2_class3.update(pulled_arm, reward)
+
+                # Item 2 Class 4
+                pulled_arm = ucb1_learner_item2_class4.pull_arm()
+                reward = env_item2_class4.round(pulled_arm)
+                ucb1_learner_item2_class4.update(pulled_arm, reward)
+
+                #Matching
+                if t >= 4:
+                    conversion_rates_item2_ub = np.zeros([4, 4])
+                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_upper_bound()
+                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_upper_bound()
+                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_upper_bound()
+                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_upper_bound()
+
+                    probabilities = np.zero((3,4))
+                    for i in range(3):
+                        for j in range(4):
+                            probabilities[i][j] = conversion_rates_item2_ub[i+1,j]
+
+                    env.set_probabilities(probabilities)
+
+                    pulled_arms = learner.pull_arm()
+                    rewards = env.round(pulled_arms)
+                    learner.update(pulled_arms, rewards)
+
+                    rew_UCB.append((rewards* self.price * self.discounts * self.p_frac).sum())
+                    opt_rew.append(objective[opt].sum())
+
             regret_ucb[e, :] = np.cumsum(opt_rew) - np.cumsum(rew_UCB)
             reward_ucb.append(rew_UCB)
 

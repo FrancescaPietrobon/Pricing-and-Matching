@@ -4,16 +4,21 @@ from scipy.optimize import linear_sum_assignment
 
 
 class UCB_Matching(UCB):
-    def __init__(self, n_arms, n_rows, n_cols):
+    def __init__(self, n_arms, n_rows, n_cols, price, discounts, p_frac):
         super().__init__(n_arms)
         self.n_rows = n_rows
         self.n_cols = n_cols
+        self.price = price
+        self.discounts = discounts
+        self.p_frac = p_frac
+
+        self.upper_conf = None
         assert n_arms == n_cols * n_rows
 
     def pull_arm(self):
-        upper_conf = self.empirical_means + self.confidence
-        upper_conf[np.isinf(upper_conf)] = 1e3
-        row_ind, col_ind = linear_sum_assignment(-upper_conf.reshape(self.n_rows, self.n_cols))
+        self.upper_conf = self.price * np.dot((self.empirical_means + self.confidence), self.discounts * self.p_frac)
+        self.upper_conf[np.isinf(self.upper_conf)] = 1e3
+        row_ind, col_ind = linear_sum_assignment(-self.upper_conf.reshape(self.n_rows, self.n_cols))
         return row_ind, col_ind
 
     def update(self, pulled_arms, rewards):

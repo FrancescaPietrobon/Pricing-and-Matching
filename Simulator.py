@@ -1,9 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy.random import normal, binomial
+from numpy.random import normal
 from scipy import stats
-from scipy.optimize import linear_sum_assignment
-from sklearn.preprocessing import normalize
 
 from Data import *
 from Environment import *
@@ -204,7 +202,6 @@ class Simulator:
 
     def simulation_step_4(self):
 
-
         # Time horizon
         T = 1000
 
@@ -368,10 +365,9 @@ class Simulator:
 
 ########################################################################################################################
 
-    def simulation_step_5(self, p0_frac, p1_frac, p2_frac, p3_frac):
+    def simulation_step_5(self, p1_frac, p2_frac, p3_frac):
 
         conversion_rates_item21 = self.data.get_conversion_rates_item21()
-
 
         daily_customers = np.ones(4)
 
@@ -424,7 +420,6 @@ class Simulator:
             opt_rew = []
 
             for t in range(T):
-
                 # Item 2 Class 1
                 pulled_arm = ucb1_learner_item2_class1.pull_arm()
                 reward = env_item2_class1.round(pulled_arm)
@@ -445,18 +440,17 @@ class Simulator:
                 reward = env_item2_class4.round(pulled_arm)
                 ucb1_learner_item2_class4.update(pulled_arm, reward)
 
-                #Matching
-
+                # Matching
                 conversion_rates_item2_ub = np.zeros([4, 4])
                 conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_empirical_means()
                 conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_empirical_means()
                 conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_empirical_means()
                 conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_empirical_means()
 
-                probabilities = np.zeros((3,4))
+                probabilities = np.zeros((3, 4))
                 for i in range(3):
                     for j in range(4):
-                        probabilities[i][j] = conversion_rates_item2_ub[i+1,j]
+                        probabilities[i][j] = conversion_rates_item2_ub[i+1, j]
 
                 env.set_probabilities(probabilities)
 
@@ -487,24 +481,8 @@ class Simulator:
 ########################################################################################################################
 
     def simulation_step_6(self, p0_frac, p1_frac, p2_frac, p3_frac):
-        # Learning the matching
-        conversion_rates_item21 = self.data.get_conversion_rates_item21()
-
-        conversion_rates_item21_by_price = np.array([[self.data.get_conversion_rates_item21() + 0.1],
-                                                     [self.data.get_conversion_rates_item21()],
-                                                     [self.data.get_conversion_rates_item21() - 0.1]])
-
-        daily_customers = np.ones(4)
-
-        discounts = np.array([1 - self.discount_p1, 1 - self.discount_p2, 1 - self.discount_p3])
-
-        p_frac = np.array([p1_frac, p2_frac, p3_frac])
-
-        n_arms = 9
-
-        # Candidate prices (one per arm) - The central one (€300) is taken by step 1
-        prices = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
-
+        # Candidate prices (one per arm) - The central ones (€300 and €50) is taken by step 1
+        prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
         prices_item2 = np.array([40, 50, 60])
 
         # Conversion rates for item 1 (one per arm)
@@ -513,6 +491,27 @@ class Simulator:
                                            [0.89, 0.78, 0.62, 0.48, 0.45, 0.36, 0.17, 0.12, 0.05],
                                            [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
 
+        # Conversion rates for item 2 (taken from the form)
+        conversion_rates_item21 = self.data.get_conversion_rates_item21()
+
+        # Conversion rates for item 2 (one per arm)
+        conversion_rates_item21_by_price = np.array([[self.data.get_conversion_rates_item21() + 0.1],
+                                                     [self.data.get_conversion_rates_item21()],
+                                                     [self.data.get_conversion_rates_item21() - 0.1]])
+
+        # Number of daily customers per class # TODO keep or remove as in previous steps?
+        daily_customers = np.ones(4)
+
+        # Array of 1-discount percentages
+        discounts = np.array([1 - self.discount_p1, 1 - self.discount_p2, 1 - self.discount_p3])
+
+        # Array of promo fractions
+        p_frac = np.array([p1_frac, p2_frac, p3_frac])
+
+        # Number of arms for pricing item 1
+        n_arms = 9
+
+        # Matching weights taken by step 1
         weights = np.array([[0.92553191, 1, 0, 1],
                             [0, 0, 0.74339623, 0],
                             [0, 0, 0.25660377, 0],
@@ -524,7 +523,7 @@ class Simulator:
             objective[i] = (daily_customers[0] * conversion_rates_item1[0][i] +
                             daily_customers[1] * conversion_rates_item1[1][i] +
                             daily_customers[2] * conversion_rates_item1[2][i] +
-                            daily_customers[3] * conversion_rates_item1[3][i]) * prices[i] + self.item2.get_price() * (
+                            daily_customers[3] * conversion_rates_item1[3][i]) * prices_item1[i] + self.item2.get_price() * (
                             daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[0][0] * weights[0][0] +
                             daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[0][1] * weights[0][1] +
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[0][2] * weights[0][2] +
@@ -541,8 +540,6 @@ class Simulator:
                             daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[3][1] * weights[3][1] * (1 - self.discount_p3) +
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2] * weights[3][2] * (1 - self.discount_p3) +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3] * weights[3][3] * (1 - self.discount_p3))
-
-        probabilities = np.zeros((3, 4))
 
         # Storing the optimal objective value to compute the regret later
         opt = max(objective)
@@ -566,13 +563,14 @@ class Simulator:
             ucb1_learner_item2_class3 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=12)
 
+            probabilities = np.zeros((3, 4))
             ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, discounts=discounts, p_frac=p_frac)
             env_matching = Environment_First(probabilities.size, probabilities)
 
             env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
 
-            ucb1_learner_item1 = UCB1_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))
-            ts_learner_item1 = TS_Learner_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))
+            ucb1_learner_item1 = UCB1_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices_item1, reward_item2=np.zeros(4))
+            ts_learner_item1 = TS_Learner_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices_item1, reward_item2=np.zeros(4))
 
 
             for t in range(T):

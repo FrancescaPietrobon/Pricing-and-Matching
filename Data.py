@@ -4,17 +4,16 @@ from Form import *
 
 np.random.seed(1234)
 
+
 class Data:
     def __init__(self):
-
         data = Form()
 
         # Daily number of customers per class = Gaussian TODO: are sigmas correct?
         self.daily_customers = np.array([int(normal(data.get_n(1), 12)),
-                                    int(normal(data.get_n(2), 14)),
-                                    int(normal(data.get_n(3), 16)),
-                                    int(normal(data.get_n(4), 17))])
-
+                                         int(normal(data.get_n(2), 14)),
+                                         int(normal(data.get_n(3), 16)),
+                                         int(normal(data.get_n(4), 17))])
 
         # Probability that a customer of a class buys the second item given the first + each promo
         # rows: promo code (0: P0, 1: P1, 2: P2, 3: P3)
@@ -46,6 +45,3 @@ class Data:
 
     def get_conversion_rates_item21(self):
         return self.conversion_rates_item21
-
-
-

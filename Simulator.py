@@ -14,6 +14,7 @@ from Step4.UCB1_item2 import *
 from Step4.UCB1_item1_new import *
 from Step4.TS_Learner_item1_new import *
 from TS_Learner import *
+from Learner_Customers import *
 from UCB1 import *
 from UCB_matching import *
 
@@ -219,7 +220,8 @@ class Simulator:
 
         # Number of daily customers (one per class) - Taken by step 1
         # TODO set to 1 since we don't care (keep or remove?)
-        daily_customers = np.ones(4)
+        daily_customers = np.array([380, 220, 267, 124])
+        sd = np.ones(4)*25
 
         # Promo assigment (row: promo; column: customer class) - Taken by step 1
         # TODO use also the matrix of the second experiment of Step 1 (give matrix in input)
@@ -266,6 +268,11 @@ class Simulator:
         for e in range(n_experiments):
             print(e + 1)
 
+            env_daily_customers = Daily_Customers(mean=daily_customers, sd=sd)
+            learner_daily_customers = Learner_Customers()
+
+            daily_customers_empirical_means = np.zeros(4)
+
             env_item2_class1 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 0])
             env_item2_class2 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 1])
             env_item2_class3 = Environment_First(n_arms=4, probabilities=conversion_rates_item21[:, 2])
@@ -282,6 +289,10 @@ class Simulator:
             ts_learner_item1 = TS_Learner_item1_new(n_arms=n_arms, daily_customers=daily_customers, prices=prices, reward_item2=np.zeros(4))
 
             for t in range(0, T):
+
+                daily_customers_sample = env_daily_customers.sample()
+                daily_customers_empirical_means = learner_daily_customers.update_daily_customers(empirical_means=daily_customers_empirical_means, sample=daily_customers_sample)
+
                 # Item 2 Class 1
                 pulled_arm = ucb1_learner_item2_class1.pull_arm()
                 reward = env_item2_class1.round(pulled_arm)
@@ -334,6 +345,8 @@ class Simulator:
 
                     ucb1_learner_item1.update_reward_item2(reward_item2)
                     ts_learner_item1.update_reward_item2(reward_item2)
+                    ucb1_learner_item1.update_daily_customers(daily_customers_empirical_means)
+                    ts_learner_item1.update_daily_customers(daily_customers_empirical_means)
 
                     pulled_arm = ucb1_learner_item1.pull_arm()
                     reward = env_item1.round(pulled_arm)

@@ -40,3 +40,12 @@ class Environment_Third:
     def round(self, pulled_arm):
         reward = np.random.binomial(1, self.probabilities[:, pulled_arm])
         return reward
+
+
+class Daily_Customers:
+    def __init__(self, mean, sd):
+        self.mean = mean
+        self.sd = sd
+
+    def sample(self):
+        return np.clip(np.random.normal(self.mean, self.sd), 0, 500)

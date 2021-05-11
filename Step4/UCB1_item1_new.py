@@ -31,3 +31,6 @@ class UCB1_item1_new(Learner):
 
     def update_reward_item2(self, updated_reward_item2):
         self.reward_item2 = updated_reward_item2
+
+    def update_daily_customers(self, daily_customers_empirical_means):
+        self.daily_customers = daily_customers_empirical_means

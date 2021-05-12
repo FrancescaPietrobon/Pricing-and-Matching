@@ -2,7 +2,7 @@ from Learner import *
 np.random.seed(1234)
 
 
-class TS_Learner_item1_new(Learner):
+class TS_Learner_item1(Learner):
     def __init__(self, n_arms, daily_customers, prices, reward_item2):
         super().__init__(n_arms)
         self.beta_parameters = np.ones((4, n_arms, 2))

@@ -41,5 +41,11 @@ while True:
         step6 = simulator_step6.simulation_step_6(0.7, 0.2, 0.07, 0.03)
         break
 
+    elif choice == 7:
+        # Step 7
+        simulator_step7 = Simulator()
+        step7 = simulator_step7.simulation_step_7(0.7, 0.2, 0.07, 0.03)
+        break
+
     else:
         print("You entered an invalid step number. Please try again.")

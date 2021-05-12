@@ -458,6 +458,7 @@ class Simulator:
 
         # Array of 1-discount percentages
         discounts = np.array([1-self.discounts[0], 1-self.discounts[1], 1-self.discounts[2]])
+        promos = np.array([1, 1-self.discounts[0], 1-self.discounts[1], 1-self.discounts[2]])
 
         # Array of promo fractions
         p_frac = np.array([p1_frac, p2_frac, p3_frac])
@@ -507,10 +508,10 @@ class Simulator:
         for e in range(n_exp):
             print(e + 1)
 
-            env_item2_class1 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 0].flatten())
-            env_item2_class2 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 1].flatten())
-            env_item2_class3 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 2].flatten())
-            env_item2_class4 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 3].flatten())
+            env_item2_class1 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 0].flatten())
+            env_item2_class2 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 1].flatten())
+            env_item2_class3 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 2].flatten())
+            env_item2_class4 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 3].flatten())
 
             ucb1_learner_item2_class1 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class2 = UCB1_item2(n_arms=12)
@@ -551,18 +552,18 @@ class Simulator:
 
                 # Matching
                 conversion_rates_item2_ub = np.zeros([4, 4])
-                argmax_index_item2_class1 = np.argmax([sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[0]) * prices_item2[0],
-                                                      sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[1]) * prices_item2[1],
-                                                      sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[2]) * prices_item2[2]])
-                argmax_index_item2_class2 = np.argmax([sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[0]) * prices_item2[0],
-                                                      sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[1]) * prices_item2[1],
-                                                      sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[2]) * prices_item2[2]])
-                argmax_index_item2_class3 = np.argmax([sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[0]) * prices_item2[0],
-                                                      sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[1]) * prices_item2[1],
-                                                      sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[2]) * prices_item2[2]])
-                argmax_index_item2_class4 = np.argmax([sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[0]) * prices_item2[0],
-                                                      sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[1]) * prices_item2[1],
-                                                      sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[2]) * prices_item2[2]])
+                argmax_index_item2_class1 = np.argmax([sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                      sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                      sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[2] * prices_item2[2]* promos)])
+                argmax_index_item2_class2 = np.argmax([sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                      sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                      sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
+                argmax_index_item2_class3 = np.argmax([sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                      sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                      sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
+                argmax_index_item2_class4 = np.argmax([sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                      sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                      sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
 
                 majority_voting = stats.mode([argmax_index_item2_class1, argmax_index_item2_class2, argmax_index_item2_class3, argmax_index_item2_class4])[0][0]
 

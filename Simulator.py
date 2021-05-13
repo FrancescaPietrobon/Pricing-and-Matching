@@ -12,6 +12,7 @@ from TS_Learner_item1 import *
 from Learner_Customers import *
 from UCB_matching import *
 from SWTS_Learner import *
+from SWTS_Learner_item2 import *
 
 np.random.seed(1234)
 
@@ -647,6 +648,8 @@ class Simulator:
         # Candidate prices (one per arm) - The central ones (€300 and €50) is taken by step 1
         prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
         prices_item2 = np.array([40, 50, 60])
+        n_phases = 5
+        window_size = int(np.sqrt(T))
 
         # Conversion rates for item 1 (one per arm)
         conversion_rates_item1 = np.array([[0.9, 0.84, 0.72, 0.59, 0.50, 0.42, 0.23, 0.13, 0.07],
@@ -659,20 +662,22 @@ class Simulator:
                                               [conversion_rates_item1],
                                               [conversion_rates_item1 - 0.05],
                                               [conversion_rates_item1 - 0.1]])
+        # dim (5,1,4,9): 5 phases - 4 customers classes - 9 prices
 
         # Conversion rates for item 2 (taken from the form)
         conversion_rates_item21 = self.data.get_conversion_rates_item21()
 
         # Conversion rates for item 2 (one per arm)
-        conversion_rates_item21_by_price = np.array([[self.data.get_conversion_rates_item21() + 0.1],
+        conversion_rates_item21_by_price = np.array([[self.data.get_conversion_rates_item21() + 0.05],
                                                      [self.data.get_conversion_rates_item21()],
-                                                     [self.data.get_conversion_rates_item21() - 0.1]])
+                                                     [self.data.get_conversion_rates_item21() - 0.05]])
 
         conversion_rates_item21_by_price_NS = np.array([[conversion_rates_item21_by_price + 0.1],
                                                         [conversion_rates_item21_by_price + 0.05],
                                                         [conversion_rates_item21_by_price],
                                                         [conversion_rates_item21_by_price - 0.05],
                                                         [conversion_rates_item21_by_price - 0.1]])
+        # dim (5,1,3,1,4,4): 5 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
 
         # Number of daily customers per class # TODO keep or remove as in previous steps?
         daily_customers = np.ones(4)
@@ -694,31 +699,33 @@ class Simulator:
                             [0.07446809, 0, 0, 0]])
 
         # Computing the objective array (one element per arm)
-        objective = np.zeros(n_arms)
+        objective = np.zeros([n_arms, n_phases, 3])
         for i in range(n_arms):
-            objective[i] = (daily_customers[0] * conversion_rates_item1[0][i] +
-                            daily_customers[1] * conversion_rates_item1[1][i] +
-                            daily_customers[2] * conversion_rates_item1[2][i] +
-                            daily_customers[3] * conversion_rates_item1[3][i]) * prices_item1[i] + self.item2.get_price() * (
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[0][0] * weights[0][0] +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[0][1] * weights[0][1] +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[0][2] * weights[0][2] +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[0][3] * weights[0][3] +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[1][0] * weights[1][0] * (1-self.discounts[0]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[1][1] * weights[1][1] * (1-self.discounts[0]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[1][2] * weights[1][2] * (1-self.discounts[0]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[1][3] * weights[1][3] * (1-self.discounts[0]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[2][0] * weights[2][0] * (1-self.discounts[1]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[2][1] * weights[2][1] * (1-self.discounts[1]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[2][2] * weights[2][2] * (1-self.discounts[1]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[2][3] * weights[2][3] * (1-self.discounts[1]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[3][0] * weights[3][0] * (1-self.discounts[2]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[3][1] * weights[3][1] * (1-self.discounts[2]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2] * weights[3][2] * (1-self.discounts[2]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3] * weights[3][3] * (1-self.discounts[2]))
+            for j in range(n_phases):
+                for k in range(3):
+                    objective[i, j, k] = (daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i]) * prices_item1[i] + prices_item2[k] * (
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 0] * weights[0][0] +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 1] * weights[0][1] +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 2] * weights[0][2] +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 3] * weights[0][3] +
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 0] * weights[1][0] * (1-self.discounts[0]) +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 1] * weights[1][1] * (1-self.discounts[0]) +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 2] * weights[1][2] * (1-self.discounts[0]) +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 3] * weights[1][3] * (1-self.discounts[0]) +
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 0] * weights[2][0] * (1-self.discounts[1]) +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 1] * weights[2][1] * (1-self.discounts[1]) +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 2] * weights[2][2] * (1-self.discounts[1]) +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 3] * weights[2][3] * (1-self.discounts[1]) +
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 0] * weights[3][0] * (1-self.discounts[2]) +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 1] * weights[3][1] * (1-self.discounts[2]) +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 2] * weights[3][2] * (1-self.discounts[2]) +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 3] * weights[3][3] * (1-self.discounts[2]))
 
         # Storing the optimal objective value to compute the regret later
-        opt = max(objective)
+        opt = np.amax(np.amax(objective, axis=2), axis=0)
 
         n_exp = 20
         T = 5000
@@ -734,19 +741,34 @@ class Simulator:
             env_item2_class3 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 2].flatten())
             env_item2_class4 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 3].flatten())
 
+            env_item2_class1_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 0].flatten())
+            env_item2_class2_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 1].flatten())
+            env_item2_class3_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 2].flatten())
+            env_item2_class4_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 3].flatten())
+
             ucb1_learner_item2_class1 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class2 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class3 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=12)
 
+            SWTS_learner_item2_class1 = SWTS_Learner_item2(n_arms=60)
+            SWTS_learner_item2_class2 = SWTS_Learner_item2(n_arms=60)
+            SWTS_learner_item2_class3 = SWTS_Learner_item2(n_arms=60)
+            SWTS_learner_item2_class4 = SWTS_Learner_item2(n_arms=60)
+
             probabilities = np.zeros((3, 4))
+            probabilities_NS = np.zeros((5, 3, 4))
+
             ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, discounts=discounts, p_frac=p_frac)
             env_matching = Environment_First(probabilities.size, probabilities)
 
             env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
+            env_item1_NS = Non_Stationary_Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1_NS, horizon=T)
 
             ucb1_learner_item1 = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices_item1, reward_item2=np.zeros(4))
             ts_learner_item1 = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices_item1, reward_item2=np.zeros(4))
+
+            ts_learner_item1_NS = SWTS_Learner(n_arms=n_arms, daily_customers=daily_customers, prices=prices_item1, reward_item2=np.zeros(4), window_size=window_size)
 
 
             for t in range(T):
@@ -770,6 +792,27 @@ class Simulator:
                 pulled_arm = ucb1_learner_item2_class4.pull_arm()
                 reward = env_item2_class4.round(pulled_arm)
                 ucb1_learner_item2_class4.update(pulled_arm, reward)
+
+                # Non stationary
+                # Item 2 Class 1
+                pulled_arm = SWTS_learner_item2_class1.pull_arm()
+                reward = env_item2_class1_NS.round(pulled_arm)
+                SWTS_learner_item2_class1.update(pulled_arm, reward)
+
+                # Item 2 CLass 2
+                pulled_arm = SWTS_learner_item2_class2.pull_arm()
+                reward = env_item2_class2_NS.round(pulled_arm)
+                SWTS_learner_item2_class2.update(pulled_arm, reward)
+
+                # Item 2 Class 3
+                pulled_arm = SWTS_learner_item2_class3.pull_arm()
+                reward = env_item2_class3_NS.round(pulled_arm)
+                SWTS_learner_item2_class3.update(pulled_arm, reward)
+
+                # Item 2 Class 4
+                pulled_arm = SWTS_learner_item2_class4.pull_arm()
+                reward = env_item2_class4_NS.round(pulled_arm)
+                SWTS_learner_item2_class4.update(pulled_arm, reward)
 
                 # Matching
                 conversion_rates_item2_ub = np.zeros([4, 4])
@@ -804,6 +847,42 @@ class Simulator:
                 pulled_arms = ucb1_learner_matching.pull_arm()
                 rewards = env_matching.round(pulled_arms)
                 ucb1_learner_matching.update(pulled_arms, rewards)
+
+                # Non stationary
+                # Matching
+                for i in range(5):
+                    conversion_rates_item2_ub = np.zeros([4, 4])
+                    argmax_index_item2_class1 = np.argmax([sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                           sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                           sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
+                    argmax_index_item2_class2 = np.argmax([sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                           sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                           sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
+                    argmax_index_item2_class3 = np.argmax([sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                           sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                           sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
+                    argmax_index_item2_class4 = np.argmax([sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                           sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
+                                                           sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
+
+                    majority_voting = stats.mode([argmax_index_item2_class1, argmax_index_item2_class2, argmax_index_item2_class3,argmax_index_item2_class4])[0][0]
+
+                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[majority_voting]
+                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[majority_voting]
+                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[majority_voting]
+                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[majority_voting]
+
+                    probabilities = np.zeros((3, 4))
+                    for i in range(3):
+                        for j in range(4):
+                            probabilities[i][j] = conversion_rates_item2_ub[i + 1, j]
+
+                    env_matching.set_probabilities(probabilities)
+                    ucb1_learner_matching.set_price(prices_item2[majority_voting])
+
+                    pulled_arms = ucb1_learner_matching.pull_arm()
+                    rewards = env_matching.round(pulled_arms)
+                    ucb1_learner_matching.update(pulled_arms, rewards)
 
                 # Price item 1
                 res = np.zeros((3, 4))

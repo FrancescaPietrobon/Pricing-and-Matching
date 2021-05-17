@@ -649,7 +649,10 @@ class Simulator:
         prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
         prices_item2 = np.array([40, 50, 60])
         n_phases = 5
+        T = 5000
+        phases_len = int(T / n_phases)
         window_size = int(np.sqrt(T))
+        n_exp = 10
 
         # Conversion rates for item 1 (one per arm)
         conversion_rates_item1 = np.array([[0.9, 0.84, 0.72, 0.59, 0.50, 0.42, 0.23, 0.13, 0.07],
@@ -657,11 +660,11 @@ class Simulator:
                                            [0.89, 0.78, 0.62, 0.48, 0.45, 0.36, 0.17, 0.12, 0.05],
                                            [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
 
-        conversion_rates_item1_NS = np.array([[conversion_rates_item1 + 0.1],
-                                              [conversion_rates_item1 + 0.05],
+        conversion_rates_item1_NS = np.array([[conversion_rates_item1 + 0.01],
+                                              [conversion_rates_item1 + 0.005],
                                               [conversion_rates_item1],
-                                              [conversion_rates_item1 - 0.05],
-                                              [conversion_rates_item1 - 0.1]])
+                                              [conversion_rates_item1 - 0.005],
+                                              [conversion_rates_item1 - 0.01]])
         # dim (5,1,4,9): 5 phases - 4 customers classes - 9 prices
 
         # Conversion rates for item 2 (taken from the form)
@@ -672,11 +675,11 @@ class Simulator:
                                                      [self.data.get_conversion_rates_item21()],
                                                      [self.data.get_conversion_rates_item21() - 0.05]])
 
-        conversion_rates_item21_by_price_NS = np.array([[conversion_rates_item21_by_price + 0.1],
-                                                        [conversion_rates_item21_by_price + 0.05],
+        conversion_rates_item21_by_price_NS = np.array([[conversion_rates_item21_by_price + 0.01],
+                                                        [conversion_rates_item21_by_price + 0.005],
                                                         [conversion_rates_item21_by_price],
-                                                        [conversion_rates_item21_by_price - 0.05],
-                                                        [conversion_rates_item21_by_price - 0.1]])
+                                                        [conversion_rates_item21_by_price - 0.005],
+                                                        [conversion_rates_item21_by_price - 0.01]])
         # dim (5,1,3,1,4,4): 5 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
 
         # Number of daily customers per class # TODO keep or remove as in previous steps?
@@ -727,11 +730,10 @@ class Simulator:
         # Storing the optimal objective value to compute the regret later
         opt = np.amax(np.amax(objective, axis=2), axis=0)
 
-        n_exp = 20
-        T = 5000
-
         ucb1_rewards_per_experiment_item1 = []
         ts_rewards_per_experiment_item1 = []
+        ts_rewards_per_experiment_item1_NS = []
+
 
         for e in range(n_exp):
             print(e + 1)
@@ -741,23 +743,23 @@ class Simulator:
             env_item2_class3 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 2].flatten())
             env_item2_class4 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, :, 3].flatten())
 
-            env_item2_class1_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 0].flatten())
-            env_item2_class2_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 1].flatten())
-            env_item2_class3_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 2].flatten())
-            env_item2_class4_NS = Non_Stationary_Environment_First(n_arms=60, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 3].flatten())
+            env_item2_class1_NS = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 0].reshape(5, 12), horizon=T)
+            env_item2_class2_NS = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 1].reshape(5, 12), horizon=T)
+            env_item2_class3_NS = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 2].reshape(5, 12), horizon=T)
+            env_item2_class4_NS = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price_NS[:, :, :, :, :, 3].reshape(5, 12), horizon=T)
 
             ucb1_learner_item2_class1 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class2 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class3 = UCB1_item2(n_arms=12)
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=12)
 
-            SWTS_learner_item2_class1 = SWTS_Learner_item2(n_arms=60)
-            SWTS_learner_item2_class2 = SWTS_Learner_item2(n_arms=60)
-            SWTS_learner_item2_class3 = SWTS_Learner_item2(n_arms=60)
-            SWTS_learner_item2_class4 = SWTS_Learner_item2(n_arms=60)
+            SWTS_learner_item2_class1 = SWTS_Learner_item2(n_arms=12, window_size=window_size)
+            SWTS_learner_item2_class2 = SWTS_Learner_item2(n_arms=12, window_size=window_size)
+            SWTS_learner_item2_class3 = SWTS_Learner_item2(n_arms=12, window_size=window_size)
+            SWTS_learner_item2_class4 = SWTS_Learner_item2(n_arms=12, window_size=window_size)
 
             probabilities = np.zeros((3, 4))
-            probabilities_NS = np.zeros((5, 3, 4))
+            #probabilities_NS = np.zeros((5, 3, 4))
 
             ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, discounts=discounts, p_frac=p_frac)
             env_matching = Environment_First(probabilities.size, probabilities)
@@ -848,42 +850,6 @@ class Simulator:
                 rewards = env_matching.round(pulled_arms)
                 ucb1_learner_matching.update(pulled_arms, rewards)
 
-                # Non stationary
-                # Matching
-                for i in range(5):
-                    conversion_rates_item2_ub = np.zeros([4, 4])
-                    argmax_index_item2_class1 = np.argmax([sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
-                                                           sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
-                                                           sum(ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
-                    argmax_index_item2_class2 = np.argmax([sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
-                                                           sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
-                                                           sum(ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
-                    argmax_index_item2_class3 = np.argmax([sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
-                                                           sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
-                                                           sum(ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
-                    argmax_index_item2_class4 = np.argmax([sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
-                                                           sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[1] * prices_item2[1] * promos),
-                                                           sum(ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[2] * prices_item2[2] * promos)])
-
-                    majority_voting = stats.mode([argmax_index_item2_class1, argmax_index_item2_class2, argmax_index_item2_class3,argmax_index_item2_class4])[0][0]
-
-                    conversion_rates_item2_ub[:, 0] = ucb1_learner_item2_class1.get_empirical_means().reshape(3, 4)[majority_voting]
-                    conversion_rates_item2_ub[:, 1] = ucb1_learner_item2_class2.get_empirical_means().reshape(3, 4)[majority_voting]
-                    conversion_rates_item2_ub[:, 2] = ucb1_learner_item2_class3.get_empirical_means().reshape(3, 4)[majority_voting]
-                    conversion_rates_item2_ub[:, 3] = ucb1_learner_item2_class4.get_empirical_means().reshape(3, 4)[majority_voting]
-
-                    probabilities = np.zeros((3, 4))
-                    for i in range(3):
-                        for j in range(4):
-                            probabilities[i][j] = conversion_rates_item2_ub[i + 1, j]
-
-                    env_matching.set_probabilities(probabilities)
-                    ucb1_learner_matching.set_price(prices_item2[majority_voting])
-
-                    pulled_arms = ucb1_learner_matching.pull_arm()
-                    rewards = env_matching.round(pulled_arms)
-                    ucb1_learner_matching.update(pulled_arms, rewards)
-
                 # Price item 1
                 res = np.zeros((3, 4))
 
@@ -920,22 +886,102 @@ class Simulator:
                 reward = env_item1.round(pulled_arm)
                 ts_learner_item1.update(pulled_arm, reward)
 
+
+                # Non stationary
+                # Matching
+                conversion_rates_item2_ub = np.zeros([4, 4])
+                argmax_index_item2_class1 = np.argmax([sum(SWTS_learner_item2_class1.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                       sum(SWTS_learner_item2_class1.get_empirical_means().reshape(3, 4)[0] * prices_item2[1] * promos),
+                                                       sum(SWTS_learner_item2_class1.get_empirical_means().reshape(3, 4)[0] * prices_item2[2] * promos)])
+                argmax_index_item2_class2 = np.argmax([sum(SWTS_learner_item2_class2.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                       sum(SWTS_learner_item2_class2.get_empirical_means().reshape(3, 4)[0] * prices_item2[1] * promos),
+                                                       sum(SWTS_learner_item2_class2.get_empirical_means().reshape(3, 4)[0] * prices_item2[2] * promos)])
+                argmax_index_item2_class3 = np.argmax([sum(SWTS_learner_item2_class3.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                       sum(SWTS_learner_item2_class3.get_empirical_means().reshape(3, 4)[0] * prices_item2[1] * promos),
+                                                       sum(SWTS_learner_item2_class3.get_empirical_means().reshape(3, 4)[0] * prices_item2[2] * promos)])
+                argmax_index_item2_class4 = np.argmax([sum(SWTS_learner_item2_class4.get_empirical_means().reshape(3, 4)[0] * prices_item2[0] * promos),
+                                                       sum(SWTS_learner_item2_class4.get_empirical_means().reshape(3, 4)[0] * prices_item2[1] * promos),
+                                                       sum(SWTS_learner_item2_class4.get_empirical_means().reshape(3, 4)[0] * prices_item2[2] * promos)])
+
+                majority_voting = stats.mode([argmax_index_item2_class1, argmax_index_item2_class2, argmax_index_item2_class3,argmax_index_item2_class4])[0][0]
+
+                conversion_rates_item2_ub[:, 0] = SWTS_learner_item2_class1.get_empirical_means().reshape(3, 4)[majority_voting]
+                conversion_rates_item2_ub[:, 1] = SWTS_learner_item2_class2.get_empirical_means().reshape(3, 4)[majority_voting]
+                conversion_rates_item2_ub[:, 2] = SWTS_learner_item2_class3.get_empirical_means().reshape(3, 4)[majority_voting]
+                conversion_rates_item2_ub[:, 3] = SWTS_learner_item2_class4.get_empirical_means().reshape(3, 4)[majority_voting]
+
+                probabilities_NS = np.zeros((3, 4))
+                for i in range(3):
+                    for j in range(4):
+                        probabilities_NS[i][j] = conversion_rates_item2_ub[i + 1, j]
+
+                env_matching.set_probabilities(probabilities_NS)
+                ucb1_learner_matching.set_price(prices_item2[majority_voting])
+
+                pulled_arms = ucb1_learner_matching.pull_arm()
+                rewards = env_matching.round(pulled_arms)
+                ucb1_learner_matching.update(pulled_arms, rewards)
+
+                # Price item 1
+                res = np.zeros((3, 4))
+
+                res[pulled_arms[0][0]][pulled_arms[1][0]] = 1
+                res[pulled_arms[0][1]][pulled_arms[1][1]] = 1
+                res[pulled_arms[0][2]][pulled_arms[1][2]] = 1
+
+                p_frac = np.array([p0_frac, p1_frac, p2_frac, p3_frac])
+                weights = np.zeros((4, 4))
+                for i in range(0, 3):
+                    for j in range(0, 4):
+                        if res[i][j] == 1:
+                            weights[i + 1][j] = p_frac[i + 1] * sum(daily_customers)
+
+                for j in range(0, 4):
+                    weights[0][j] = daily_customers[j] - sum(weights[:, j])
+
+                reward_item2 = np.zeros(4)
+                for i in range(4):
+                    reward_item2[i] = self.item2.get_price() * (
+                            conversion_rates_item2_ub[0][i] * weights[0][i] +
+                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[0]) +
+                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[1]) +
+                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[2]))
+
+                ts_learner_item1_NS.update_reward_item2(reward_item2)
+
+                pulled_arm = ts_learner_item1_NS.pull_arm()
+                reward = env_item1_NS.round(pulled_arm)
+                ts_learner_item1_NS.update(pulled_arm, reward)
+
             ucb1_rewards_per_experiment_item1.append(ucb1_learner_item1.collected_rewards)
             ts_rewards_per_experiment_item1.append(ts_learner_item1.collected_rewards)
+            ts_rewards_per_experiment_item1_NS.append(ts_learner_item1_NS.collected_rewards)
+
+        ts_instantaneous_regret = np.zeros(T)
+        swts_instantaneous_regret = np.zeros(T)
+        optimum_per_round = np.zeros(T)
+
+        for i in range(0, n_phases):
+            t_index = range(i * phases_len, (i + 1) * phases_len)
+            optimum_per_round[t_index] = opt[i]
+            ts_instantaneous_regret[t_index] = opt[i] - np.mean(ts_rewards_per_experiment_item1, axis=0)[t_index]
+            swts_instantaneous_regret[t_index] = opt[i] - np.mean(ts_rewards_per_experiment_item1_NS, axis=0)[t_index]
+
 
         # Plotting the regret and the reward
         plt.figure(0)
         plt.xlabel("t")
-        plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment_item1, axis=0)), "r")
-        plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment_item1, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 6")
+        plt.ylabel("Reward")
+        plt.plot(np.mean(ts_rewards_per_experiment_item1, axis=0), 'r')
+        plt.plot(np.mean(ts_rewards_per_experiment_item1_NS, axis=0), 'b')
+        plt.plot(optimum_per_round, '--k')
+        plt.legend(["TS", "SW-TS", "Optimum"], title="STEP 7")
         plt.show()
 
         plt.figure(1)
         plt.xlabel("t")
-        plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment_item1, axis=0), "r")
-        plt.plot(np.mean(ucb1_rewards_per_experiment_item1, axis=0), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 6")
+        plt.ylabel("Regret")
+        plt.plot(np.cumsum(ts_instantaneous_regret), 'r')
+        plt.plot(np.cumsum(swts_instantaneous_regret), 'b')
+        plt.legend(["TS", "SW-TS"], title="STEP 7")
         plt.show()

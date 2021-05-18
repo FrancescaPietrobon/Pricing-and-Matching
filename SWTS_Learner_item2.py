@@ -8,6 +8,7 @@ class SWTS_Learner_item2(Learner):
         self.beta_parameters = np.ones((n_arms, 2))
         self.empirical_means = np.ones(n_arms)
         self.window_size = window_size
+        self.pull_arms = np.array([])
 
     def pull_arm(self):
         idx = np.argmax(np.random.beta(self.beta_parameters[:, 0], self.beta_parameters[:, 1]))
@@ -17,11 +18,12 @@ class SWTS_Learner_item2(Learner):
     def update(self, pulled_arm, reward):
         self.t += 1
         self.update_observations(pulled_arm, reward)
-        cum_rew = np.sum(self.rewards_per_arm[pulled_arm][-self.window_size:])
-        n_rounds_arm = len(self.rewards_per_arm[pulled_arm][-self.window_size:])
-
-        self.beta_parameters[pulled_arm, 0] = cum_rew + 1.0
-        self.beta_parameters[pulled_arm, 1] = n_rounds_arm - cum_rew + 1.0
+        self.pull_arms = np.append(self.pull_arms, pulled_arm)
+        for arm in range(self.n_arms):
+            n_samples = np.sum(self.pull_arms[-self.window_size:] == arm)
+            cum_rew = np.sum(self.rewards_per_arm[arm][-n_samples:], axis=0) if n_samples > 0 else 0
+            self.beta_parameters[arm, 0] = cum_rew + 1.0
+            self.beta_parameters[arm, 1] = n_samples - cum_rew + 1.0
 
     def get_empirical_means(self):
         return self.empirical_means

@@ -6,7 +6,7 @@ from sklearn.preprocessing import normalize
 from Data import *
 from Environment import *
 from Item import *
-from LP_optimization import *
+from matching_lp import *
 from Learner_Customers import *
 from SWTS_Learner import *
 from SWTS_Learner_item2 import *
@@ -29,17 +29,14 @@ class Simulator:
         daily_customers = self.data.get_daily_customers()
 
         # Number of promo codes available daily (fixed fraction of the daily number of customers)
-        daily_promos = [int(sum(daily_customers) * promo_fractions[0]),
-                        int(sum(daily_customers) * promo_fractions[1]),
-                        int(sum(daily_customers) * promo_fractions[2]),
-                        int(sum(daily_customers) * promo_fractions[3])]
+        daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
 
-        # Probability that a customer of a class buys the second item given the first + each promo
-        # rows: promo (0: P0, 1: P1, 2: P2, 3: P3); columns: customer class (0: class1, 1: class2, 2: class3, 3: class4)
-        prob_buy_item21 = self.data.get_conversion_rates_item21()
+        # Probability that a customer of a class buys the second item given that he bought the first and has a promo
+        # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
+        prob_buy_item2 = self.data.get_conversion_rates_item21()
 
-        # Linear optimization algorithm to find the best matching
-        return LP(self.item2.get_price(), self.discounts, prob_buy_item21, daily_promos, daily_customers)
+        # Linear optimization algorithm to find the best matching between promos and customer classes
+        return matching_lp(self.item2.get_price(), self.discounts, prob_buy_item2, daily_promos, daily_customers)
 
 ########################################################################################################################
 

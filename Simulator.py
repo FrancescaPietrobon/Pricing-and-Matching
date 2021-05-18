@@ -18,9 +18,9 @@ np.random.seed(1234)
 
 class Simulator:
     def __init__(self):
-        self.item1 = Item("Apple Watch", 300, 88)
-        self.item2 = Item("Personalized wristband", 50, 16)
-        self.discounts = np.array([0.1, 0.2, 0.5])
+        self.item1 = Item(name="Apple Watch", price=300, margin=88)
+        self.item2 = Item(name="Personalized wristband", price=50, margin=16)
+        self.discounts = np.array([0, 0.1, 0.2, 0.5])
         self.data = Data()
 
     def simulation_step_1(self, promo_fractions):
@@ -38,13 +38,7 @@ class Simulator:
         prob_buy_item21 = self.data.get_conversion_rates_item21()
 
         # Linear optimization algorithm to find the best matching
-        return LP(self.item2.get_price(), self.discounts[0], self.discounts[1], self.discounts[2],
-                  prob_buy_item21[0][0], prob_buy_item21[0][1], prob_buy_item21[0][2], prob_buy_item21[0][3],
-                  prob_buy_item21[1][0], prob_buy_item21[1][1], prob_buy_item21[1][2], prob_buy_item21[1][3],
-                  prob_buy_item21[2][0], prob_buy_item21[2][1], prob_buy_item21[2][2], prob_buy_item21[2][3],
-                  prob_buy_item21[3][0], prob_buy_item21[3][1], prob_buy_item21[3][2], prob_buy_item21[3][3],
-                  daily_promos[0], daily_promos[1], daily_promos[2], daily_promos[3],
-                  daily_customers[0], daily_customers[1], daily_customers[2], daily_customers[3])
+        return LP(self.item2.get_price(), self.discounts, prob_buy_item21, daily_promos, daily_customers)
 
 ########################################################################################################################
 
@@ -85,18 +79,18 @@ class Simulator:
                             daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[0][1] * weights[0][1] +
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[0][2] * weights[0][2] +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[0][3] * weights[0][3] +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[1][0] * weights[1][0] * (1-self.discounts[0]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[1][1] * weights[1][1] * (1-self.discounts[0]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[1][2] * weights[1][2] * (1-self.discounts[0]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[1][3] * weights[1][3] * (1-self.discounts[0]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[2][0] * weights[2][0] * (1-self.discounts[1]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[2][1] * weights[2][1] * (1-self.discounts[1]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[2][2] * weights[2][2] * (1-self.discounts[1]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[2][3] * weights[2][3] * (1-self.discounts[1]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[3][0] * weights[3][0] * (1-self.discounts[2]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[3][1] * weights[3][1] * (1-self.discounts[2]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[3][2] * weights[3][2] * (1-self.discounts[2]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[3][3] * weights[3][3] * (1-self.discounts[2]))
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[1][0] * weights[1][0] * (1-self.discounts[1]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[1][1] * weights[1][1] * (1-self.discounts[1]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[1][2] * weights[1][2] * (1-self.discounts[1]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[1][3] * weights[1][3] * (1-self.discounts[1]) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[2][0] * weights[2][0] * (1-self.discounts[2]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[2][1] * weights[2][1] * (1-self.discounts[2]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[2][2] * weights[2][2] * (1-self.discounts[2]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[2][3] * weights[2][3] * (1-self.discounts[2]) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[3][0] * weights[3][0] * (1-self.discounts[3]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[3][1] * weights[3][1] * (1-self.discounts[3]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[3][2] * weights[3][2] * (1-self.discounts[3]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[3][3] * weights[3][3] * (1-self.discounts[3]))
 
         # Optimal objective value, useful to compute the regret later
         opt = max(objective)
@@ -106,9 +100,9 @@ class Simulator:
         for i in range(4):
             reward_item2[i] = self.item2.get_price() * (
                     conversion_rates_item2[0][i] * weights[0][i] +
-                    conversion_rates_item2[1][i] * weights[1][i] * (1 - self.discounts[0]) +
-                    conversion_rates_item2[2][i] * weights[2][i] * (1 - self.discounts[1]) +
-                    conversion_rates_item2[3][i] * weights[3][i] * (1 - self.discounts[2]))
+                    conversion_rates_item2[1][i] * weights[1][i] * (1-self.discounts[1]) +
+                    conversion_rates_item2[2][i] * weights[2][i] * (1-self.discounts[2]) +
+                    conversion_rates_item2[3][i] * weights[3][i] * (1-self.discounts[3]))
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         n_experiments = 100
@@ -192,18 +186,18 @@ class Simulator:
                             daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[0][1] * weights[0][1] +
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[0][2] * weights[0][2] +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[0][3] * weights[0][3] +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[1][0] * weights[1][0] * (1-self.discounts[0]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[1][1] * weights[1][1] * (1-self.discounts[0]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[1][2] * weights[1][2] * (1-self.discounts[0]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[1][3] * weights[1][3] * (1-self.discounts[0]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[2][0] * weights[2][0] * (1-self.discounts[1]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[2][1] * weights[2][1] * (1-self.discounts[1]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[2][2] * weights[2][2] * (1-self.discounts[1]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[2][3] * weights[2][3] * (1-self.discounts[1]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[3][0] * weights[3][0] * (1-self.discounts[2]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[3][1] * weights[3][1] * (1-self.discounts[2]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[3][2] * weights[3][2] * (1-self.discounts[2]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[3][3] * weights[3][3] * (1-self.discounts[2]))
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[1][0] * weights[1][0] * (1-self.discounts[1]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[1][1] * weights[1][1] * (1-self.discounts[1]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[1][2] * weights[1][2] * (1-self.discounts[1]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[1][3] * weights[1][3] * (1-self.discounts[1]) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[2][0] * weights[2][0] * (1-self.discounts[2]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[2][1] * weights[2][1] * (1-self.discounts[2]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[2][2] * weights[2][2] * (1-self.discounts[2]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[2][3] * weights[2][3] * (1-self.discounts[2]) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item2[3][0] * weights[3][0] * (1-self.discounts[3]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item2[3][1] * weights[3][1] * (1-self.discounts[3]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item2[3][2] * weights[3][2] * (1-self.discounts[3]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item2[3][3] * weights[3][3] * (1-self.discounts[3]))
 
         # Optimal objective value, useful to compute the regret later
         opt = max(objective)
@@ -273,9 +267,9 @@ class Simulator:
                 for i in range(4):
                     reward_item2[i] = self.item2.get_price() * (
                             conversion_rates_item2_em[0][i] * weights[0][i] +
-                            conversion_rates_item2_em[1][i] * weights[1][i] * (1-self.discounts[0]) +
-                            conversion_rates_item2_em[2][i] * weights[2][i] * (1-self.discounts[1]) +
-                            conversion_rates_item2_em[3][i] * weights[3][i] * (1-self.discounts[2]))
+                            conversion_rates_item2_em[1][i] * weights[1][i] * (1-self.discounts[1]) +
+                            conversion_rates_item2_em[2][i] * weights[2][i] * (1-self.discounts[2]) +
+                            conversion_rates_item2_em[3][i] * weights[3][i] * (1-self.discounts[3]))
 
                 # Updating the daily customers and the reward of item 2 in the learners for the price of item 1
                 ucb1_learner_item1.update_daily_customers(daily_customers_empirical_means)
@@ -323,7 +317,7 @@ class Simulator:
         conversion_rates_item21 = self.data.get_conversion_rates_item21()
 
         # Number of daily customers (one per class)
-        daily_customers = np.ones(1)
+        daily_customers = np.ones(4)
 
         # TODO create this array in the main and pass it to this function
         p_frac = np.array([p1_frac, p2_frac, p3_frac])
@@ -384,7 +378,6 @@ class Simulator:
 
                 # Retrieving the conversion rates in a 3x4 matrix (row: promo; column: customer class)
                 # As always, we do not consider promo P0 for the matching, since it corresponds to "no discount"
-                probabilities = np.zeros((3, 4))
                 probabilities[:, 0] = ucb1_learner_item2_class1.get_empirical_means()[1:]
                 probabilities[:, 1] = ucb1_learner_item2_class2.get_empirical_means()[1:]
                 probabilities[:, 2] = ucb1_learner_item2_class3.get_empirical_means()[1:]
@@ -444,8 +437,8 @@ class Simulator:
         daily_customers = np.ones(4)
 
         # Array of 1-discount percentages
-        discounts = np.array([1-self.discounts[0], 1-self.discounts[1], 1-self.discounts[2]])
-        promos = np.array([1, 1-self.discounts[0], 1-self.discounts[1], 1-self.discounts[2]])
+        discounts = np.array([1-self.discounts[1], 1-self.discounts[2], 1-self.discounts[3]])
+        promos = np.array([1, 1-self.discounts[1], 1-self.discounts[2], 1-self.discounts[3]])
 
         # Array of promo fractions
         p_frac = np.array([p1_frac, p2_frac, p3_frac])
@@ -470,18 +463,18 @@ class Simulator:
                             daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[0][1] * weights[0][1] +
                             daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[0][2] * weights[0][2] +
                             daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[0][3] * weights[0][3] +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[1][0] * weights[1][0] * (1-self.discounts[0]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[1][1] * weights[1][1] * (1-self.discounts[0]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[1][2] * weights[1][2] * (1-self.discounts[0]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[1][3] * weights[1][3] * (1-self.discounts[0]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[2][0] * weights[2][0] * (1-self.discounts[1]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[2][1] * weights[2][1] * (1-self.discounts[1]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[2][2] * weights[2][2] * (1-self.discounts[1]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[2][3] * weights[2][3] * (1-self.discounts[1]) +
-                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[3][0] * weights[3][0] * (1-self.discounts[2]) +
-                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[3][1] * weights[3][1] * (1-self.discounts[2]) +
-                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2] * weights[3][2] * (1-self.discounts[2]) +
-                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3] * weights[3][3] * (1-self.discounts[2]))
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[1][0] * weights[1][0] * (1-self.discounts[1]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[1][1] * weights[1][1] * (1-self.discounts[1]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[1][2] * weights[1][2] * (1-self.discounts[1]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[1][3] * weights[1][3] * (1-self.discounts[1]) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[2][0] * weights[2][0] * (1-self.discounts[2]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[2][1] * weights[2][1] * (1-self.discounts[2]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[2][2] * weights[2][2] * (1-self.discounts[2]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[2][3] * weights[2][3] * (1-self.discounts[2]) +
+                            daily_customers[0] * conversion_rates_item1[0][i] * conversion_rates_item21[3][0] * weights[3][0] * (1-self.discounts[3]) +
+                            daily_customers[1] * conversion_rates_item1[1][i] * conversion_rates_item21[3][1] * weights[3][1] * (1-self.discounts[3]) +
+                            daily_customers[2] * conversion_rates_item1[2][i] * conversion_rates_item21[3][2] * weights[3][2] * (1-self.discounts[3]) +
+                            daily_customers[3] * conversion_rates_item1[3][i] * conversion_rates_item21[3][3] * weights[3][3] * (1-self.discounts[3]))
 
         # Storing the optimal objective value to compute the regret later
         opt = max(objective)
@@ -592,9 +585,9 @@ class Simulator:
                 for i in range(4):
                     reward_item2[i] = self.item2.get_price() * (
                             conversion_rates_item2_ub[0][i] * weights[0][i] +
-                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[0]) +
-                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[1]) +
-                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[2]))
+                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[1]) +
+                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[2]) +
+                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[3]))
 
                 ucb1_learner_item1.update_reward_item2(reward_item2)
                 ts_learner_item1.update_reward_item2(reward_item2)
@@ -671,8 +664,8 @@ class Simulator:
         daily_customers = np.ones(4)
 
         # Array of 1-discount percentages
-        discounts = np.array([1-self.discounts[0], 1-self.discounts[1], 1-self.discounts[2]])
-        promos = np.array([1, 1-self.discounts[0], 1-self.discounts[1], 1-self.discounts[2]])
+        discounts = np.array([1-self.discounts[1], 1-self.discounts[2], 1-self.discounts[3]])
+        promos = np.array([1, 1-self.discounts[1], 1-self.discounts[2], 1-self.discounts[3]])
 
         # Array of promo fractions
         p_frac = np.array([p1_frac, p2_frac, p3_frac])
@@ -699,18 +692,18 @@ class Simulator:
                                     daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 1] * weights[0][1] +
                                     daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 2] * weights[0][2] +
                                     daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 0, 3] * weights[0][3] +
-                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 0] * weights[1][0] * (1-self.discounts[0]) +
-                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 1] * weights[1][1] * (1-self.discounts[0]) +
-                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 2] * weights[1][2] * (1-self.discounts[0]) +
-                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 3] * weights[1][3] * (1-self.discounts[0]) +
-                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 0] * weights[2][0] * (1-self.discounts[1]) +
-                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 1] * weights[2][1] * (1-self.discounts[1]) +
-                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 2] * weights[2][2] * (1-self.discounts[1]) +
-                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 3] * weights[2][3] * (1-self.discounts[1]) +
-                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 0] * weights[3][0] * (1-self.discounts[2]) +
-                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 1] * weights[3][1] * (1-self.discounts[2]) +
-                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 2] * weights[3][2] * (1-self.discounts[2]) +
-                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 3] * weights[3][3] * (1-self.discounts[2]))
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 0] * weights[1][0] * (1-self.discounts[1]) +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 1] * weights[1][1] * (1-self.discounts[1]) +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 2] * weights[1][2] * (1-self.discounts[1]) +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 1, 3] * weights[1][3] * (1-self.discounts[1]) +
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 0] * weights[2][0] * (1-self.discounts[2]) +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 1] * weights[2][1] * (1-self.discounts[2]) +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 2] * weights[2][2] * (1-self.discounts[2]) +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 2, 3] * weights[2][3] * (1-self.discounts[2]) +
+                                    daily_customers[0] * conversion_rates_item1_NS[j, :, 0, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 0] * weights[3][0] * (1-self.discounts[3]) +
+                                    daily_customers[1] * conversion_rates_item1_NS[j, :, 1, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 1] * weights[3][1] * (1-self.discounts[3]) +
+                                    daily_customers[2] * conversion_rates_item1_NS[j, :, 2, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 2] * weights[3][2] * (1-self.discounts[3]) +
+                                    daily_customers[3] * conversion_rates_item1_NS[j, :, 3, i] * conversion_rates_item21_by_price_NS[j, :, k, :, 3, 3] * weights[3][3] * (1-self.discounts[3]))
 
         # Storing the optimal objective value to compute the regret later
         opt = np.amax(np.amax(objective, axis=2), axis=0)
@@ -856,9 +849,9 @@ class Simulator:
                 for i in range(4):
                     reward_item2[i] = self.item2.get_price() * (
                             conversion_rates_item2_ub[0][i] * weights[0][i] +
-                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[0]) +
-                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[1]) +
-                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[2]))
+                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[1]) +
+                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[2]) +
+                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[3]))
 
                 ucb1_learner_item1.update_reward_item2(reward_item2)
                 ts_learner_item1.update_reward_item2(reward_item2)
@@ -928,9 +921,9 @@ class Simulator:
                 for i in range(4):
                     reward_item2[i] = self.item2.get_price() * (
                             conversion_rates_item2_ub[0][i] * weights[0][i] +
-                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[0]) +
-                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[1]) +
-                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[2]))
+                            conversion_rates_item2_ub[1][i] * weights[1][i] * (1 - self.discounts[1]) +
+                            conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[2]) +
+                            conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[3]))
 
                 ts_learner_item1_NS.update_reward_item2(reward_item2)
 

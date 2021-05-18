@@ -1,19 +1,13 @@
 from scipy.optimize import linprog
 
 
-def LP(price, p1, p2, p3,
-       pr_c1_p0, pr_c2_p0, pr_c3_p0, pr_c4_p0,
-       pr_c1_p1, pr_c2_p1, pr_c3_p1, pr_c4_p1,
-       pr_c1_p2, pr_c2_p2, pr_c3_p2,pr_c4_p2,
-       pr_c1_p3, pr_c2_p3, pr_c3_p3, pr_c4_p3,
-       max_p0, max_p1, max_p2, max_p3,
-       max_n1, max_n2, max_n3, max_n4):
+def LP(price_item2, discounts, prob_buy_item21, daily_promos, daily_customers):
 
     # Objective Function
-    c = [price*pr_c1_p0, price*pr_c2_p0, price*pr_c3_p0, price*pr_c4_p0,
-         price*pr_c1_p1*(1-p1), price*pr_c2_p1*(1-p1), price*pr_c3_p1*(1-p1), price*pr_c4_p1*(1-p1),
-         price*pr_c1_p2*(1-p2), price*pr_c2_p2*(1-p2), price*pr_c3_p2*(1-p2), price*pr_c4_p2*(1-p2),
-         price*pr_c1_p3*(1-p3), price*pr_c2_p3*(1-p3), price*pr_c3_p3*(1-p3), price*pr_c4_p3*(1-p3)]
+    c = [price_item2 * prob_buy_item21[0][0], price_item2 * prob_buy_item21[0][1], price_item2 * prob_buy_item21[0][2], price_item2 * prob_buy_item21[0][3],
+         price_item2 * prob_buy_item21[1][0] * (1-discounts[1]), price_item2 * prob_buy_item21[1][1] * (1-discounts[1]), price_item2 * prob_buy_item21[1][2] * (1-discounts[1]), price_item2 * prob_buy_item21[1][3] * (1-discounts[1]),
+         price_item2 * prob_buy_item21[2][0] * (1-discounts[2]), price_item2 * prob_buy_item21[2][1] * (1-discounts[2]), price_item2 * prob_buy_item21[2][2] * (1-discounts[2]), price_item2 * prob_buy_item21[2][3] * (1-discounts[2]),
+         price_item2 * prob_buy_item21[3][0] * (1-discounts[3]), price_item2 * prob_buy_item21[3][1] * (1-discounts[3]), price_item2 * prob_buy_item21[3][2] * (1-discounts[3]), price_item2 * prob_buy_item21[3][3] * (1-discounts[3])]
 
     # First model: maximum number of promo codes is the number of promo codes for P1, P2 and P3
     A_inequality = [[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
@@ -26,28 +20,9 @@ def LP(price, p1, p2, p3,
                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]]
 
-    b_inequality = [max_n1, max_n2, max_n3, max_n4]
+    b_inequality = [daily_customers[0], daily_customers[1], daily_customers[2], daily_customers[3]]
 
-    b_equality = [max_p0, max_p1, max_p2, max_p3]
-
-    '''
-    # Second model: no equality constraint on the limit of promo codes P1, P2 and P3
-    A_inequality = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-                    ]
-
-    A_equality = [[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-                  [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-                  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-                  [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
-                  ]
-
-    b_inequality = [max_p0, max_p1, max_p2, max_p3]
-
-    b_equality = [max_n1, max_n2, max_n3, max_n4]
-    '''
+    b_equality = [daily_promos[0], daily_promos[1], daily_promos[2], daily_promos[3]]
 
     # Variables
     x0_bounds = (0, None)

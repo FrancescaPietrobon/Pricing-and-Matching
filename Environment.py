@@ -77,7 +77,7 @@ class Non_Stationary_Environment_Third:
 
     def round(self, pulled_arm):
         current_phase = int(self.t / self.phases_size)
-        p = self.probabilities[current_phase, :, :, pulled_arm]
+        p = self.probabilities[current_phase, :, pulled_arm]
         reward = np.random.binomial(1, p)
         self.t += 1
         return reward

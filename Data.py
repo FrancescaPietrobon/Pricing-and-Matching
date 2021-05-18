@@ -15,9 +15,8 @@ class Data:
                                          int(normal(data.get_n(3), 16)),
                                          int(normal(data.get_n(4), 17))])
 
-        # Probability that a customer of a class buys the second item given the first + each promo
-        # rows: promo code (0: P0, 1: P1, 2: P2, 3: P3)
-        # columns: customer group (0: group1, 1: group2, 2: group3, 3: group4)
+        # Probability that a customer of a class buys the second item given that he bought the first and has a promo
+        # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
         self.conversion_rates_item21 = np.array([  # Promo code P0
             [binomial(self.daily_customers[0], data.get_i21_p0_param(1)) / self.daily_customers[0],
              binomial(self.daily_customers[1], data.get_i21_p0_param(2)) / self.daily_customers[1],
@@ -40,8 +39,23 @@ class Data:
              binomial(self.daily_customers[3], data.get_i21_p3_param(4)) / self.daily_customers[3]]
         ])
 
+        # Candidate prices for item 1
+        self.prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
+
+        # Candidate conversion rates for item 1 (row: customer class; column: price item 1)
+        self.conversion_rates_item1 = np.array([[0.9, 0.84, 0.72, 0.59, 0.50, 0.42, 0.23, 0.13, 0.07],
+                                                [0.87, 0.75, 0.57, 0.44, 0.36, 0.29, 0.13, 0.10, 0.02],
+                                                [0.89, 0.78, 0.62, 0.48, 0.45, 0.36, 0.17, 0.12, 0.05],
+                                                [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
+
     def get_daily_customers(self):
         return self.daily_customers
 
     def get_conversion_rates_item21(self):
         return self.conversion_rates_item21
+
+    def get_prices_item1(self):
+        return self.prices_item1
+
+    def get_conversion_rates_item1(self):
+        return self.conversion_rates_item1

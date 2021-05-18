@@ -40,18 +40,15 @@ class Simulator:
 
 ########################################################################################################################
 
-    def simulation_step_3(self):
+    def simulation_step_3(self, promo_fractions):
         # Number of arms (computed as np.ceil((T * np.log(T))**(1/4)).astype(int))
         n_arms = 9
 
-        # Candidate prices (one per arm)
-        prices = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
+        # Candidate prices for item 1 (one per arm)
+        prices = self.data.get_prices_item1()
 
-        # Conversion rates for item 1 (one per arm)
-        conversion_rates_item1 = np.array([[0.9, 0.84, 0.72, 0.59, 0.50, 0.42, 0.23, 0.13, 0.07],
-                                          [0.87, 0.75, 0.57, 0.44, 0.36, 0.29, 0.13, 0.10, 0.02],
-                                          [0.89, 0.78, 0.62, 0.48, 0.45, 0.36, 0.17, 0.12, 0.05],
-                                          [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
+        # Conversion rates for item 1 (4x9 matrix: one per arm per customer class)
+        conversion_rates_item1 = self.data.get_conversion_rates_item1()
 
         # Conversion rates for item 2 given item 1 and promo (row: promo; column: customer class)
         conversion_rates_item2 = self.data.get_conversion_rates_item21()
@@ -60,11 +57,7 @@ class Simulator:
         daily_customers = self.data.get_daily_customers()
 
         # Promo assigment (row: promo; column: customer class) - Taken by step 1
-        # TODO use also the matrix of the second experiment of Step 1 (give matrix in input)
-        weights = np.array([[0.92553191, 1, 0, 1],
-                            [0, 0, 0.74339623, 0],
-                            [0, 0, 0.25660377, 0],
-                            [0.07446809, 0, 0, 0]])
+        weights = normalize(self.simulation_step_1(promo_fractions)[1], 'l1', axis=0)
 
         # Objective array (one element per arm)
         objective = np.zeros(n_arms)
@@ -93,7 +86,7 @@ class Simulator:
         # Optimal objective value, useful to compute the regret later
         opt = max(objective)
 
-        # Reward obtained when buying item 2 (one element per arm)
+        # Reward obtained when buying item 2 (one element per customer class)
         reward_item2 = np.zeros(4)
         for i in range(4):
             reward_item2[i] = self.item2.get_price() * (
@@ -104,17 +97,17 @@ class Simulator:
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         n_experiments = 100
-        T = 1000
+        time_horizon = 1000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
         for e in range(n_experiments):
-            print(e+1)
+            print("Experiment ", e+1)
             env = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
             ucb1_learner = UCB1_item1(n_arms, daily_customers, prices, reward_item2)
             ts_learner = TS_Learner_item1(n_arms, daily_customers, prices, reward_item2)
 
-            for t in range(0, T):
+            for t in range(0, time_horizon):
                 # UCB1 Learner
                 pulled_arm = ucb1_learner.pull_arm()
                 reward = env.round(pulled_arm)
@@ -128,37 +121,19 @@ class Simulator:
             ucb1_rewards_per_experiment.append(ucb1_learner.collected_rewards)
             ts_rewards_per_experiment.append(ts_learner.collected_rewards)
 
-        # Plotting the regret and the reward
-        plt.figure(0)
-        plt.xlabel("t")
-        plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment, axis=0)), "r")
-        plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 3")
-        plt.show()
-
-        plt.figure(1)
-        plt.xlabel("t")
-        plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment, axis=0), "r")
-        plt.plot(np.mean(ucb1_rewards_per_experiment, axis=0), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 3")
-        plt.show()
+        return [opt, ucb1_rewards_per_experiment, ts_rewards_per_experiment]
 
 ########################################################################################################################
 
-    def simulation_step_4(self):
+    def simulation_step_4(self, promo_fractions):
         # Number of arms (computed as np.ceil((T * np.log(T))**(1/4)).astype(int))
         n_arms = 9
 
-        # Candidate prices (one per arm)
-        prices = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
+        # Candidate prices for item 1 (one per arm)
+        prices = self.data.get_prices_item1()
 
-        # Conversion rates for item 1 (one per arm)
-        conversion_rates_item1 = np.array([[0.9, 0.84, 0.72, 0.59, 0.50, 0.42, 0.23, 0.13, 0.07],
-                                           [0.87, 0.75, 0.57, 0.44, 0.36, 0.29, 0.13, 0.10, 0.02],
-                                           [0.89, 0.78, 0.62, 0.48, 0.45, 0.36, 0.17, 0.12, 0.05],
-                                           [0.88, 0.78, 0.59, 0.44, 0.37, 0.31, 0.15, 0.13, 0.03]])
+        # Conversion rates for item 1 (4x9 matrix: one per arm per customer class)
+        conversion_rates_item1 = self.data.get_conversion_rates_item1()
 
         # Conversion rates for item 2 given item 1 and promo (row: promo; column: customer class)
         conversion_rates_item2 = self.data.get_conversion_rates_item21()
@@ -167,11 +142,7 @@ class Simulator:
         daily_customers = self.data.get_daily_customers()
 
         # Promo assigment (row: promo; column: customer class) - Taken by step 1
-        # TODO use also the matrix of the second experiment of Step 1 (make two experiments)
-        weights = np.array([[0.92553191, 1, 0, 1],
-                            [0, 0, 0.74339623, 0],
-                            [0, 0, 0.25660377, 0],
-                            [0.07446809, 0, 0, 0]])
+        weights = normalize(self.simulation_step_1(promo_fractions)[1], 'l1', axis=0)
 
         # Objective array (one element per arm)
         objective = np.zeros(n_arms)
@@ -208,12 +179,14 @@ class Simulator:
         ts_rewards_per_experiment_item1 = []
 
         for e in range(n_experiments):
-            print(e + 1)
+            print("Experiment", e+1)
 
+            # Environment and learner for the number of daily customers
             env_daily_customers = Daily_Customers(mean=daily_customers, sd=25)
             learner_daily_customers = Learner_Customers()
             daily_customers_empirical_means = np.zeros(4)
 
+            # Environments and learners for the conversion rates of item 2 (one per customer class)
             env_item2_class1 = Environment_First(n_arms=4, probabilities=conversion_rates_item2[:, 0])
             env_item2_class2 = Environment_First(n_arms=4, probabilities=conversion_rates_item2[:, 1])
             env_item2_class3 = Environment_First(n_arms=4, probabilities=conversion_rates_item2[:, 2])
@@ -223,6 +196,7 @@ class Simulator:
             ucb1_learner_item2_class3 = UCB1_item2(n_arms=4)
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=4)
 
+            # Environment and learners (UCB1 and Thompson Sampling) for the price of item 1
             env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
             ucb1_learner_item1 = UCB1_item1(n_arms, daily_customers, prices, reward_item2=np.zeros(4))
             ts_learner_item1 = TS_Learner_item1(n_arms, daily_customers, prices, reward_item2=np.zeros(4))
@@ -260,7 +234,7 @@ class Simulator:
                 conversion_rates_item2_em[:, 2] = ucb1_learner_item2_class3.get_empirical_means()
                 conversion_rates_item2_em[:, 3] = ucb1_learner_item2_class4.get_empirical_means()
 
-                # Computing the reward obtained when buying item 2 (one element per arm)
+                # Computing the reward obtained when buying item 2 (one element per customer class)
                 reward_item2 = np.zeros(4)
                 for i in range(4):
                     reward_item2[i] = self.item2.get_price() * (
@@ -288,22 +262,7 @@ class Simulator:
             ucb1_rewards_per_experiment_item1.append(ucb1_learner_item1.collected_rewards)
             ts_rewards_per_experiment_item1.append(ts_learner_item1.collected_rewards)
 
-        # Plotting the regret and the reward
-        plt.figure(0)
-        plt.xlabel("t")
-        plt.ylabel("Regret")
-        plt.plot(np.cumsum(np.mean(opt - ts_rewards_per_experiment_item1, axis=0)), "r")
-        plt.plot(np.cumsum(np.mean(opt - ucb1_rewards_per_experiment_item1, axis=0)), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 4")
-        plt.show()
-
-        plt.figure(1)
-        plt.xlabel("t")
-        plt.ylabel("Reward")
-        plt.plot(np.mean(ts_rewards_per_experiment_item1, axis=0), "r")
-        plt.plot(np.mean(ucb1_rewards_per_experiment_item1, axis=0), "b")
-        plt.legend(["TS", "UCB1"], title="STEP 4")
-        plt.show()
+        return [opt, ucb1_rewards_per_experiment_item1, ts_rewards_per_experiment_item1]
 
 ########################################################################################################################
 

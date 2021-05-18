@@ -508,7 +508,7 @@ class Simulator:
             ucb1_learner_item2_class4 = UCB1_item2(n_arms=12)
 
             probabilities = np.zeros((3, 4))
-            ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, daily_customers=daily_customers, discounts=discounts, p_frac=p_frac)
+            ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, daily_customers=daily_customers, discounts=1-self.discounts, p_frac=p_frac)
             env_matching = Environment_First(probabilities.size, probabilities)
 
             env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
@@ -636,7 +636,7 @@ class Simulator:
         prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
         prices_item2 = np.array([40, 50, 60])
         n_phases = 3
-        T = 5000
+        T = 300
         phases_len = int(T / n_phases)
         window_size = int(np.sqrt(T))
         n_exp = 10
@@ -651,7 +651,7 @@ class Simulator:
                                               conversion_rates_item1,
                                               conversion_rates_item1 - 0.2])
         conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
-        # dim (5,1,4,9): 5 phases - 4 customers classes - 9 prices
+        # dim (5,4,9): 5 phases - 4 customers classes - 9 prices
 
         # Conversion rates for item 2 (taken from the form)
         conversion_rates_item21 = self.data.get_conversion_rates_item21()
@@ -665,7 +665,7 @@ class Simulator:
                                                         conversion_rates_item21_by_price,
                                                         conversion_rates_item21_by_price - 0.2])
         conversion_rates_item21_by_price_NS = np.clip(conversion_rates_item21_by_price_NS, 0, 1)
-        # dim (5,1,3,1,4,4): 5 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
+        # dim (5,3,4,4): 5 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
 
         # Number of daily customers per class # TODO keep or remove as in previous steps?
         daily_customers = np.ones(4)
@@ -746,7 +746,7 @@ class Simulator:
             probabilities = np.zeros((3, 4))
             #probabilities_NS = np.zeros((5, 3, 4))
 
-            ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, daily_customers=daily_customers, discounts=discounts, p_frac=p_frac)
+            ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, daily_customers=daily_customers, discounts=1-self.discounts, p_frac=p_frac)
             env_matching = Environment_First(probabilities.size, probabilities)
 
             env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)

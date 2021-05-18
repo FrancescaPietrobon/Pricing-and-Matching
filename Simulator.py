@@ -651,7 +651,7 @@ class Simulator:
         prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
         prices_item2 = np.array([40, 50, 60])
         n_phases = 3
-        T = 300
+        T = 5000
         phases_len = int(T / n_phases)
         window_size = int(np.sqrt(T))
         n_exp = 10
@@ -682,8 +682,8 @@ class Simulator:
         conversion_rates_item21_by_price_NS = np.clip(conversion_rates_item21_by_price_NS, 0, 1)
         # dim (5,3,4,4): 5 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
 
-        # Number of daily customers per class # TODO keep or remove as in previous steps?
-        daily_customers = np.ones(4)
+        # Number of daily customers per class
+        daily_customers = self.data.get_daily_customers()
 
         # Array of 1-discount percentages
         discounts = np.array([1-self.discounts[1], 1-self.discounts[2], 1-self.discounts[3]])
@@ -738,6 +738,10 @@ class Simulator:
         for e in range(n_exp):
             print(e + 1)
 
+            env_daily_customers = Daily_Customers(mean=daily_customers, sd=25)
+            learner_daily_customers = Learner_Customers()
+            daily_customers_empirical_means = np.zeros(4)
+
             env_item2_class1 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 0].flatten())
             env_item2_class2 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 1].flatten())
             env_item2_class3 = Environment_First(n_arms=12, probabilities=conversion_rates_item21_by_price[:, :, 2].flatten())
@@ -774,6 +778,12 @@ class Simulator:
 
 
             for t in range(T):
+
+                # Learning the number of customers
+                daily_customers_sample = env_daily_customers.sample()
+                daily_customers_empirical_means = learner_daily_customers.update_daily_customers(
+                    empirical_means=daily_customers_empirical_means, sample=daily_customers_sample)
+
                 # TODO think about the update
                 # Item 2 Class 1
                 pulled_arm = ucb1_learner_item2_class1.pull_arm()
@@ -845,6 +855,7 @@ class Simulator:
 
                 env_matching.set_probabilities(probabilities)
                 ucb1_learner_matching.set_price(prices_item2[majority_voting])
+                ucb1_learner_matching.update_daily_customers(daily_customers_empirical_means)
 
                 pulled_arms = ucb1_learner_matching.pull_arm()
                 rewards = env_matching.round(pulled_arms)
@@ -862,10 +873,12 @@ class Simulator:
                 for i in range(0, 3):
                     for j in range(0, 4):
                         if res[i][j] == 1:
-                            weights[i + 1][j] = p_frac[i + 1] * sum(daily_customers)
+                            weights[i + 1][j] = p_frac[i + 1] * sum(daily_customers_empirical_means)
 
                 for j in range(0, 4):
-                    weights[0][j] = daily_customers[j] - sum(weights[:, j])
+                    weights[0][j] = daily_customers_empirical_means[j] - sum(weights[:, j])
+
+                weights = normalize(weights, 'l1', axis=0)
 
                 reward_item2 = np.zeros(4)
                 for i in range(4):
@@ -876,7 +889,9 @@ class Simulator:
                             conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[3]))
 
                 ucb1_learner_item1.update_reward_item2(reward_item2)
+                ucb1_learner_item1.update_daily_customers(daily_customers_empirical_means)
                 ts_learner_item1.update_reward_item2(reward_item2)
+                ts_learner_item1.update_daily_customers(daily_customers_empirical_means)
 
                 pulled_arm = ucb1_learner_item1.pull_arm()
                 reward = env_item1.round(pulled_arm)
@@ -915,8 +930,9 @@ class Simulator:
                     for j in range(4):
                         probabilities_NS[i][j] = conversion_rates_item2_ub[i + 1, j]
 
-                env_matching.set_probabilities(probabilities_NS)
+                env_matching.set_probabilities(probabilities)
                 ucb1_learner_matching.set_price(prices_item2[majority_voting])
+                ucb1_learner_matching.update_daily_customers(daily_customers_empirical_means)
 
                 pulled_arms = ucb1_learner_matching.pull_arm()
                 rewards = env_matching.round(pulled_arms)
@@ -934,10 +950,12 @@ class Simulator:
                 for i in range(0, 3):
                     for j in range(0, 4):
                         if res[i][j] == 1:
-                            weights[i + 1][j] = p_frac[i + 1] * sum(daily_customers)
+                            weights[i + 1][j] = p_frac[i + 1] * sum(daily_customers_empirical_means)
 
                 for j in range(0, 4):
-                    weights[0][j] = daily_customers[j] - sum(weights[:, j])
+                    weights[0][j] = daily_customers_empirical_means[j] - sum(weights[:, j])
+
+                weights = normalize(weights, 'l1', axis=0)
 
                 reward_item2 = np.zeros(4)
                 for i in range(4):
@@ -947,6 +965,7 @@ class Simulator:
                             conversion_rates_item2_ub[2][i] * weights[2][i] * (1 - self.discounts[2]) +
                             conversion_rates_item2_ub[3][i] * weights[3][i] * (1 - self.discounts[3]))
 
+                ts_learner_item1_NS.update_daily_customers(daily_customers_empirical_means)
                 ts_learner_item1_NS.update_reward_item2(reward_item2)
 
                 pulled_arm = ts_learner_item1_NS.pull_arm()

@@ -18,7 +18,7 @@ class UCB_Matching(UCB):
 
     def pull_arm(self):
         for i in range(self.n_rows):
-            self.upper_conf[i, :] = self.price * self.discounts[i+1] * self.p_frac[i] * self.daily_customers *\
+            self.upper_conf[i, :] = self.price * self.discounts[i+1] * self.p_frac[i+1] * self.daily_customers *\
                                     (self.empirical_means + self.confidence).reshape(self.n_rows, self.n_cols)[i, :]
         self.upper_conf[np.isinf(self.upper_conf)] = 1e3
         row_ind, col_ind = linear_sum_assignment(-self.upper_conf)

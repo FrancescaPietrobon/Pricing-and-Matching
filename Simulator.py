@@ -544,8 +544,8 @@ class Simulator:
         weights = normalize(self.simulation_step_1(promo_fractions)[1], 'l1', axis=0)
 
         # Launching the experiments
-        n_experiments = 10
-        time_horizon = 31
+        n_experiments = 50
+        time_horizon = 1000
 
         # Parameters for Non-Stationary Environment
         n_phases = 2

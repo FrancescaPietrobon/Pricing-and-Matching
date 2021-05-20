@@ -8,6 +8,7 @@ class SWTS_Learner(TS_Learner_item1):
         self.window_size = window_size
         self.pull_arms = np.array([])
 
+    '''
     def update(self, pulled_arm, reward):
         self.t += 1
         self.rewards_per_arm[pulled_arm].append(reward)
@@ -18,3 +19,14 @@ class SWTS_Learner(TS_Learner_item1):
             cum_rew = np.sum(self.rewards_per_arm[arm][-n_samples:], axis=0) if n_samples > 0 else 0
             self.beta_parameters[:, arm, 0] = cum_rew + 1.0
             self.beta_parameters[:, arm, 1] = n_samples - cum_rew + 1.0
+    '''
+
+    def update(self, pulled_arm, reward):
+        self.t += 1
+        self.rewards_per_arm[pulled_arm].append(reward)
+        self.collected_rewards = np.append(self.collected_rewards, np.sum((self.prices[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
+        cum_rew = np.sum(self.rewards_per_arm[pulled_arm][-self.window_size:], axis=0)
+        n_rounds_arm = len(self.rewards_per_arm[pulled_arm][-self.window_size:])
+
+        self.beta_parameters[:, pulled_arm, 0] = cum_rew + 1.0
+        self.beta_parameters[:, pulled_arm, 1] = n_rounds_arm - cum_rew + 1.0

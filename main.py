@@ -65,7 +65,7 @@ def main():
             break
 
         elif choice == 7:
-            step7 = Simulator().simulation_step_7(0.7, 0.2, 0.07, 0.03)
+            experiment_7_1 = Simulator().simulation_step_7(p_frac_exp1)
             break
 
         elif choice == 8:

@@ -1,4 +1,5 @@
 import numpy as np
+import math
 np.random.seed(1234)
 
 # First case of Environment (standard one)
@@ -56,7 +57,7 @@ class Non_Stationary_Environment_First:
         self.n_arms = n_arms
         self.probabilities = probabilities
         self.t = 0
-        n_phases = len(self.probabilities)
+        n_phases = np.shape(self.probabilities)[0]
         self.phases_size = horizon/n_phases
 
     def round(self, pulled_arm):
@@ -71,13 +72,14 @@ class Non_Stationary_Environment_Third:
     def __init__(self, n_arms, probabilities, horizon):
         self.n_arms = n_arms
         self.probabilities = probabilities
-        self.t = 0
-        n_phases = len(self.probabilities)
-        self.phases_size = horizon/n_phases
+        self.time = 0
+        n_phases = np.shape(self.probabilities)[0]
+        self.phases_size = int(horizon/n_phases)
 
     def round(self, pulled_arm):
-        current_phase = int(self.t / self.phases_size)
+        current_phase = math.floor(self.time / self.phases_size)
         p = self.probabilities[current_phase, :, pulled_arm]
         reward = np.random.binomial(1, p)
-        self.t += 1
+        self.time += 1
         return reward
+

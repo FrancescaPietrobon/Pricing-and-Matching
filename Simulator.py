@@ -513,9 +513,13 @@ class Simulator:
 
         # Conversion rates for item 1 (one per arm)
         conversion_rates_item1 = self.data.conversion_rates_item1
-        conversion_rates_item1_NS = np.array([conversion_rates_item1 + 0.15,
+        '''
+        conversion_rates_item1_NS = np.array([conversion_rates_item1 + 0.2,
                                               conversion_rates_item1,
-                                              conversion_rates_item1 + 0.25])
+                                              conversion_rates_item1 - 0.2])
+        '''
+        conversion_rates_item1_NS = np.array([conversion_rates_item1 + 0.2,
+                                              conversion_rates_item1 - 0.2])
         conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
         # dim (5,4,9): 5 phases - 4 customers classes - 9 prices
 
@@ -523,8 +527,12 @@ class Simulator:
         conversion_rates_item2 = np.array([self.data.conversion_rates_item21 + 0.1,
                                            self.data.conversion_rates_item21,
                                            self.data.conversion_rates_item21 - 0.1])
+        '''
         conversion_rates_item2_NS = np.array([conversion_rates_item2 + 0.2,
                                               conversion_rates_item2,
+                                              conversion_rates_item2 - 0.2])
+        '''
+        conversion_rates_item2_NS = np.array([conversion_rates_item2 + 0.2,
                                               conversion_rates_item2 - 0.2])
         conversion_rates_item2_NS = np.clip(conversion_rates_item2_NS, 0, 1)
         # dim (5,3,4,4): 5 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
@@ -537,10 +545,10 @@ class Simulator:
 
         # Launching the experiments
         n_experiments = 10
-        time_horizon = 1000
+        time_horizon = 31
 
         # Parameters for Non-Stationary Environment
-        n_phases = 3
+        n_phases = 2
         phases_len = int(time_horizon/n_phases)
         window_size = int(np.sqrt(time_horizon))
 
@@ -592,10 +600,17 @@ class Simulator:
             learner_daily_customers = Learner_Customers()
             daily_customers_empirical_means = np.zeros(4)
 
+            '''
             env_item2_class1 = Environment_First(n_arms=12, probabilities=conversion_rates_item2[:, :, 0].flatten())
             env_item2_class2 = Environment_First(n_arms=12, probabilities=conversion_rates_item2[:, :, 1].flatten())
             env_item2_class3 = Environment_First(n_arms=12, probabilities=conversion_rates_item2[:, :, 2].flatten())
             env_item2_class4 = Environment_First(n_arms=12, probabilities=conversion_rates_item2[:, :, 3].flatten())
+            '''
+
+            env_item2_class1 = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item2_NS[:, :, :, 0].reshape(n_phases, 12), horizon=time_horizon)
+            env_item2_class2 = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item2_NS[:, :, :, 1].reshape(n_phases, 12), horizon=time_horizon)
+            env_item2_class3 = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item2_NS[:, :, :, 2].reshape(n_phases, 12), horizon=time_horizon)
+            env_item2_class4 = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item2_NS[:, :, :, 3].reshape(n_phases, 12), horizon=time_horizon)
 
             env_item2_class1_NS = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item2_NS[:, :, :, 0].reshape(n_phases, 12), horizon=time_horizon)
             env_item2_class2_NS = Non_Stationary_Environment_First(n_arms=12, probabilities=conversion_rates_item2_NS[:, :, :, 1].reshape(n_phases, 12), horizon=time_horizon)
@@ -617,7 +632,8 @@ class Simulator:
             ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0, daily_customers=daily_customers, discounts=1-self.discounts, p_frac=promo_fractions)
             env_matching = Environment_First(probabilities.size, probabilities)
 
-            env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
+            # env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
+            env_item1 = Non_Stationary_Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1_NS, horizon=time_horizon)
             env_item1_NS = Non_Stationary_Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1_NS, horizon=time_horizon)
 
             ucb1_learner_item1 = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, prices=prices_item1, reward_item2=np.zeros(4))
@@ -732,14 +748,18 @@ class Simulator:
                 for i in range(4):
                     reward_item2[i] = sum(prices_item2[majority_voting] * (1 - self.discounts) * conversion_rates_item2_ub[:, i] * weights[:, i])
 
+                '''
                 ucb1_learner_item1.update_reward_item2(reward_item2)
                 ucb1_learner_item1.update_daily_customers(daily_customers_empirical_means)
+                '''
                 ts_learner_item1.update_reward_item2(reward_item2)
                 ts_learner_item1.update_daily_customers(daily_customers_empirical_means)
 
+                '''
                 pulled_arm = ucb1_learner_item1.pull_arm()
                 reward = env_item1.round(pulled_arm)
                 ucb1_learner_item1.update(pulled_arm, reward)
+                '''
 
                 pulled_arm = ts_learner_item1.pull_arm()
                 reward = env_item1.round(pulled_arm)

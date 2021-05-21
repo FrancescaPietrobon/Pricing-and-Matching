@@ -69,8 +69,8 @@ def main():
             break
 
         elif choice == 8:
-            print("This step has not been implemented yet.")
-            #step7 = Simulator().simulation_step_8(0.7, 0.2, 0.07, 0.03)
+            experiment_8_1 = Simulator().simulation_step_8(p_frac_exp1)
+            experiment_8_2 = Simulator().simulation_step_8(p_frac_exp2)
             break
 
         else:

@@ -40,9 +40,3 @@ class CUMSUM_UCB1_item1(UCB1_item1):
         self.rewards_per_arm[pulled_arm].append(reward)
         self.valid_rewards_per_arms[pulled_arm].append(reward)
         self.collected_rewards = np.append(self.collected_rewards, np.sum((self.prices[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
-
-    def update_reward_item2(self, updated_reward_item2):
-        self.reward_item2 = updated_reward_item2
-
-    def update_daily_customers(self, daily_customers_empirical_means):
-        self.daily_customers = daily_customers_empirical_means

@@ -390,7 +390,7 @@ class Simulator:
                     reward = env.round(pulled_arm)
                     learner.update(pulled_arm, reward)
 
-                # Taking the best price for item 1 for each class
+                # Taking the best price for item 2 for each class
                 # Each "empirical_means" is reshaped into a 3x4 matrix (3 prices for item 2, 4 conversion rates)
                 indices_best_price_item2 = np.zeros(4)
                 for i in range(4):
@@ -935,7 +935,7 @@ class Simulator:
                     reward = env.round(pulled_arm)
                     learner.update(pulled_arm, reward)
 
-                # Taking the best price for item 1 for each class
+                # Taking the best price for item 2 for each class
                 # Each "empirical_means" is reshaped into a 3x4 matrix (3 prices for item 2, 4 conversion rates)
                 indices_best_price_item2 = np.zeros(4)
                 for i in range(4):

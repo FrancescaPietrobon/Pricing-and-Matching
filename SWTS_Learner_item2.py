@@ -17,8 +17,8 @@ class SWTS_Learner_item2(Learner):
             sample = np.zeros(self.n_arms)
             sample = np.random.beta(self.beta_parameters[:, 0], self.beta_parameters[:, 1])
             idx = np.argmax(sample)
-            # self.empirical_means = (self.empirical_means * (self.t-1) + sample) / self.t
-            self.empirical_means = self.beta_parameters[:, 0] / (self.beta_parameters[:, 0] + self.beta_parameters[:, 1])
+            self.empirical_means = (self.empirical_means * (self.t-1) + sample) / self.t
+            #self.empirical_means = self.beta_parameters[:, 0] / (self.beta_parameters[:, 0] + self.beta_parameters[:, 1])
         return idx
 
     def update(self, pulled_arm, reward):

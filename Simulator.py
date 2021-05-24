@@ -461,7 +461,7 @@ class Simulator:
         return [opt, ucb1_rewards_per_experiment_item1, ts_rewards_per_experiment_item1]
 
 ########################################################################################################################
-
+    # TODO clean code
     def simulation_step_7(self, promo_fractions):
         # Number of arms for pricing item 1
         n_arms = 9
@@ -753,7 +753,7 @@ class Simulator:
                     for j in range(4):
                         probabilities_NS[i][j] = conversion_rates_item2_ub[i + 1, j]
 
-                env_matching.set_probabilities(probabilities)
+                env_matching.set_probabilities(probabilities_NS)
                 ucb1_learner_matching.set_price(prices_item2[majority_voting])
                 ucb1_learner_matching.update_daily_customers(daily_customers_empirical_means)
 
@@ -856,7 +856,7 @@ class Simulator:
 
         # Parameters for the experiments
         n_experiments = 50
-        time_horizon = 1000
+        time_horizon = 3000
 
         # Parameters for Non-Stationary Environment
         n_phases = 2
@@ -921,7 +921,7 @@ class Simulator:
 
             # Environment and learner for the price of item 1
             env_item1_NS = Non_Stationary_Environment_Third(n_arms, conversion_rates_item1_NS, time_horizon)
-            ucb1_learner_item1 = CUMSUM_UCB1_item1(n_arms, daily_customers, prices_item1, reward_item2=np.zeros(4), M=100, eps=0.05, h=20, alpha=0.01)
+            ucb1_learner_item1 = CUMSUM_UCB1_item1(n_arms, daily_customers, prices_item1, reward_item2=np.zeros(4), M=M, eps=0.05, h=20, alpha=0.01)
 
             for t in range(time_horizon):
                 # Learning the number of customers

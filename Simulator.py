@@ -305,9 +305,7 @@ class Simulator:
         return [regret_ucb, reward_ucb]
 
 ########################################################################################################################
-    # TODO needs more cleaning inside the "time_horizon" for cycle
-    # TODO add another dimension to the objective to have a different objective also for each price of item 2 (?)
-    #   (and differentiate also the weights) - as done in steps 7/8
+
     def simulation_step_6(self, promo_fractions):
         # Number of arms for pricing item 1
         n_arms = 9
@@ -328,18 +326,23 @@ class Simulator:
         # Number of daily customers per class
         daily_customers = self.data.daily_customers
 
-        # Promo assigment weights (row: promo; column: customer class) - Taken by step 1
-        weights = normalize(self.simulation_step_1(promo_fractions)[1], 'l1', axis=0)
+        # Promo assigment weights (one matrix for each candidate price for item 2; row: promo; column: customer class)
+        daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
+        weights = np.zeros((3, 4, 4))
+        for k in range(3):
+            weights[k] = normalize(lp.matching_lp(prices_item2[k], self.discounts, conversion_rates_item2[k],
+                                                  daily_promos, daily_customers)[1], 'l1', axis=0)
 
-        # Objective array (one element per arm)
-        objective = np.zeros(n_arms)
+        # Objective array (one element for every combination of candidate prices for item 1 and item 2)
+        objective = np.zeros((n_arms, 3))
         for i in range(n_arms):
-            objective[i] = sum(prices_item1[i] * daily_customers * conversion_rates_item1[:, i] +
-                               self.item2.price * daily_customers * conversion_rates_item1[:, i] *
-                               (np.dot(1 - self.discounts, conversion_rates_item2[1] * weights)))
+            for k in range(3):
+                objective[i, k] = sum(prices_item1[i] * daily_customers * conversion_rates_item1[:, i] +
+                                      prices_item2[k] * daily_customers * conversion_rates_item1[:, i] *
+                                      (np.dot(1 - self.discounts, conversion_rates_item2[k] * weights[k])))
 
         # Storing the optimal objective value to compute the regret later
-        opt = max(objective)
+        opt = np.max(objective)
 
         # Launching the experiments
         n_experiments = 20
@@ -510,25 +513,6 @@ class Simulator:
         n_phases = 2
         phases_len = int(time_horizon/n_phases)
         window_size = int(np.sqrt(time_horizon))
-
-        '''
-        daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
-        weights = np.zeros((3, 4, 4))
-        for k in range(3):
-            weights[k] = normalize(lp.matching_lp(prices_item2[k], self.discounts, conversion_rates_item2[k], daily_promos, daily_customers)[1], 'l1', axis=0)
-
-        # TODO objective step 6
-        # Objective array (one element per arm)
-        objective = np.zeros((n_arms, 3))
-        for i in range(n_arms):
-            for k in range(3):
-                objective[i, k] = sum(prices_item1[i] * daily_customers * conversion_rates_item1[:, i] +
-                                      prices_item2[k] * daily_customers * conversion_rates_item1[:, i] *
-                                      (np.dot(1 - self.discounts, conversion_rates_item2[k] * weights[k])))
-
-        # Storing the optimal objective value to compute the regret later
-        opt = np.max(objective)
-        '''
 
         daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
         weights = np.zeros((n_phases, 3, 4, 4))

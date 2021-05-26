@@ -13,19 +13,23 @@ def main():
         choice = int(input("Select the step (1-3-4-5-6-7-8): "))
 
         if choice == 1:
-            experiment_1_1 = Simulator().simulation_step_1(p_frac_exp1)
-            result = pd.DataFrame(data=experiment_1_1[1],
-                                  index=["P0", "P1", "P2", "P3"],
-                                  columns=["Class1", "Class2", "Class3", "Class4"])
-            print("\nExperiment 1: fractions", p_frac_exp1,
-                  "\nOptimal assignment of promos to customer classes:\n", result)
+            experiment_1_1, prices_item2 = Simulator().simulation_step_1(p_frac_exp1)
+            for i in range(len(experiment_1_1)):
+                result = pd.DataFrame(data=experiment_1_1[i],
+                                      index=["P0", "P1", "P2", "P3"],
+                                      columns=["Class1", "Class2", "Class3", "Class4"])
+                print("\nExperiment 1: fractions", p_frac_exp1,
+                      "\nPrice item 2:", prices_item2[i],
+                      "\nOptimal assignment of promos to customer classes:\n", result)
 
-            experiment_1_2 = Simulator().simulation_step_1(p_frac_exp2)
-            result = pd.DataFrame(data=experiment_1_2[1],
-                                  index=["P0", "P1", "P2", "P3"],
-                                  columns=["Class1", "Class2", "Class3", "Class4"])
-            print("\nExperiment 2: fractions", p_frac_exp2,
-                  "\nOptimal assignment of promos to customer classes:\n", result)
+            experiment_1_2, prices_item2 = Simulator().simulation_step_1(p_frac_exp2)
+            for i in range(len(experiment_1_1)):
+                result = pd.DataFrame(data=experiment_1_2[i],
+                                      index=["P0", "P1", "P2", "P3"],
+                                      columns=["Class1", "Class2", "Class3", "Class4"])
+                print("\nExperiment 1: fractions", p_frac_exp2,
+                      "\nPrice item 2:", prices_item2[i],
+                      "\nOptimal assignment of promos to customer classes:\n", result)
             break
 
         elif choice == 3:

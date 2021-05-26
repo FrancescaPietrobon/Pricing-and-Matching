@@ -41,13 +41,18 @@ class Data:
 
         # Candidate prices for item 1
         # TODO: define item1 and item 2 in this class instead of simulator, to take the price (€300) from here
-        self.prices_item1 = np.array([50, 100, 150, 200, 300, 400, 450, 500, 550])
+        self.prices_item1 = np.array([150, 200, 300, 400, 450])
 
         # Candidate conversion rates for item 1 (row: customer class; column: price item 1)
-        self.conversion_rates_item1 = np.array([[0.90, 0.84, 0.72, 0.59, form.i1_param[0], 0.42, 0.23, 0.13, 0.07],
-                                                [0.87, 0.75, 0.57, 0.44, form.i1_param[1], 0.29, 0.13, 0.10, 0.02],
-                                                [0.89, 0.78, 0.62, 0.48, form.i1_param[2], 0.36, 0.17, 0.12, 0.05],
-                                                [0.88, 0.78, 0.59, 0.44, form.i1_param[3], 0.31, 0.15, 0.13, 0.03]])
+        #self.conversion_rates_item1 = np.array([[0.90, 0.84, 0.72, 0.59, form.i1_param[0], 0.42, 0.23, 0.13, 0.07],
+        #                                        [0.87, 0.75, 0.57, 0.44, form.i1_param[1], 0.29, 0.13, 0.10, 0.02],
+        #                                        [0.89, 0.78, 0.62, 0.48, form.i1_param[2], 0.36, 0.17, 0.12, 0.05],
+        #                                        [0.88, 0.78, 0.59, 0.44, form.i1_param[3], 0.31, 0.15, 0.13, 0.03]])
+
+        self.conversion_rates_item1 = np.array([[0.72, 0.59, form.i1_param[0], 0.42, 0.23],
+                                                [0.57, 0.44, form.i1_param[1], 0.29, 0.13],
+                                                [0.62, 0.48, form.i1_param[2], 0.36, 0.17],
+                                                [0.59, 0.44, form.i1_param[3], 0.31, 0.15]])
 
         self.prices_item2 = np.array([40, 50, 60])
 

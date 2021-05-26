@@ -33,15 +33,26 @@ class Simulator:
         # Daily number of customers per class
         daily_customers = self.data.daily_customers
 
+        # Prices item 2
+        prices_item2 = self.data.prices_item2
+
         # Number of promo codes available daily (fixed fraction of the daily number of customers)
         daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
 
         # Probability that a customer of a class buys the second item given that he bought the first and has a promo
         # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
-        prob_buy_item2 = self.data.conversion_rates_item21
+        # TODO create different conversion_rates_item21 matrices (not proportional changes)
+        prob_buy_item2 = np.array([self.data.conversion_rates_item21 + 0.1,
+                                   self.data.conversion_rates_item21,
+                                   self.data.conversion_rates_item21 - 0.1])
+        prob_buy_item2 = np.clip(prob_buy_item2, 0, 1)
 
-        # Linear optimization algorithm to find the best matching between promos and customer classes
-        return lp.matching_lp(self.item2.price, self.discounts, prob_buy_item2, daily_promos, daily_customers)
+        result = np.zeros((len(prices_item2), 4, 4))
+
+        for i in range(len(prices_item2)):
+            result[i] = lp.matching_lp(prices_item2[i], self.discounts, prob_buy_item2[i], daily_promos, daily_customers)[1]
+
+        return result, prices_item2
 
 ########################################################################################################################
 
@@ -93,6 +104,8 @@ class Simulator:
             ts_learner = TS_Learner_item1(n_arms, daily_customers, prices_item1, reward_item2)
 
             for t in range(time_horizon):
+                # TODO generate customer after customer (maybe in the environment) using various bernoulli (only item 1 and, inside, item 2 with different promos) incrementing rewad_item2 for each selling
+                #  Then, in the learner delete daily_customers and use the "reward" as the actual number of customer who bought item 2 (in TS we have 1-reward -> total customers - actual buyers)
                 # UCB1 Learner
                 pulled_arm = ucb1_learner.pull_arm()
                 reward = env.round(pulled_arm)

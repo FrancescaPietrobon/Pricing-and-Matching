@@ -31,7 +31,8 @@ class UCB_Matching(UCB):
             n_samples = len(self.rewards_per_arm[a])
             self.confidence[a] = (2 * np.log(self.t) / n_samples) ** 0.5 if n_samples > 0 else np.inf
         for pulled_arm, reward in zip(pulled_arm_flat, rewards):
-            self.update_observations(pulled_arm, reward)
+            self.rewards_per_arm[pulled_arm].append(reward)
+            self.collected_rewards = np.append(self.collected_rewards, reward)
             self.empirical_means[pulled_arm] = (self.empirical_means[pulled_arm]*(self.t-1) + reward)/self.t
 
     def set_price(self, price):

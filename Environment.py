@@ -18,18 +18,20 @@ class Environment_First:
 
 # Second case of Environment, in which the reward is obtained considering also the candidates
 class Environment_Second:
-    def __init__(self, n_arms, conversion_rates_item1, conversion_rates_item21, reward_item1, reward_item2):
+    def __init__(self, n_arms, conversion_rates_item1, customers):
         self.n_arms = n_arms
         self.conversion_rates_item1 = conversion_rates_item1
-        self.conversion_rates_item21 = conversion_rates_item21
-        self.reward_item1 = reward_item1
-        self.reward_item2 = reward_item2
+        self.customers = customers
 
     def round(self, pulled_arm):
-        bin_item1 = np.random.binomial(1, self.conversion_rates_item1[:, pulled_arm])
-        reward1 = np.sum(bin_item1 * self.reward_item1[:, pulled_arm])
-        reward2 = np.sum(bin_item1 * np.random.binomial(1, self.conversion_rates_item21[:, :, pulled_arm]) * self.reward_item2)
-        reward = (reward1 + reward2) / (np.sum(self.reward_item1) + np.sum(self.reward_item2))
+        reward = np.zeros(4)
+        for i in range(sum(self.customers)):
+            group = np.random.choice(4, p=[self.customers[0] / sum(self.customers),
+                                           self.customers[1] / sum(self.customers),
+                                           self.customers[2] / sum(self.customers),
+                                           self.customers[3] / sum(self.customers)])
+            reward[group] = reward[group] + np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
+        reward = reward / sum(reward)
         return reward
 
 
@@ -49,7 +51,7 @@ class Daily_Customers:
         self.sd = sd
 
     def sample(self):
-        return np.clip(np.random.normal(self.mean, self.sd), 0, 500)
+        return np.clip(np.random.normal(self.mean, self.sd), 0, 500).astype(int)
 
 
 class Non_Stationary_Environment_First:

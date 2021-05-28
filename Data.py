@@ -39,6 +39,53 @@ class Data:
                                      binomial(self.daily_customers[3], form.i21_param[3][3]) / self.daily_customers[3]]
                                 ])
 
+        self.conversion_rates_item21_low_price = np.array([
+            # Promo code P0 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[0][0]) + 20) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[0][1]) + 30) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[0][2]) + 5) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[0][3]) + 2) / self.daily_customers[3]],
+            # Promo code P1 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[1][0]) + 19) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[1][1]) + 21) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[1][2]) + 0) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[1][3]) + 0) / self.daily_customers[3]],
+            # Promo code P2 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[2][0]) + 7) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[2][1]) + 6) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[2][2]) + 1) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[2][3]) + 2) / self.daily_customers[3]],
+            # Promo code P3 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[3][0]) + 10) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[3][1]) + 17) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[3][2]) + 4) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[3][3]) + 0) / self.daily_customers[3]]
+        ])
+
+        self.conversion_rates_item21_high_price = np.array([
+            # Promo code P0 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[0][0]) - 15) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[0][1]) - 27) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[0][2]) - 1) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[0][3]) - 2) / self.daily_customers[3]],
+            # Promo code P1 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[1][0]) - 10) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[1][1]) - 23) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[1][2]) - 2) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[1][3]) - 5) / self.daily_customers[3]],
+            # Promo code P2 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[2][0]) - 14) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[2][1]) - 8) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[2][2]) - 3) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[2][3]) - 7) / self.daily_customers[3]],
+            # Promo code P3 - Class1, Class2, Class3, Class4
+            [(binomial(self.daily_customers[0], form.i21_param[3][0]) - 9) / self.daily_customers[0],
+             (binomial(self.daily_customers[1], form.i21_param[3][1]) - 7) / self.daily_customers[1],
+             (binomial(self.daily_customers[2], form.i21_param[3][2]) - 4) / self.daily_customers[2],
+             (binomial(self.daily_customers[3], form.i21_param[3][3]) - 0) / self.daily_customers[3]]
+        ])
+
+
         # Candidate prices for item 1
         # TODO: define item1 and item 2 in this class instead of simulator, to take the price (€300) from here
         self.prices_item1 = np.array([150, 200, 300, 400, 450])

@@ -14,6 +14,7 @@ class Data:
                                          int(normal(form.n[2], 16)),
                                          int(normal(form.n[3], 17))])
 
+        # TODO maybe merge these three matrices
         # Probability that a customer of a class buys the second item given that he bought the first and has a promo
         # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
         self.conversion_rates_item21 = np.array([
@@ -88,7 +89,8 @@ class Data:
 
         # Candidate prices for item 1
         # TODO: define item1 and item 2 in this class instead of simulator, to take the price (€300) from here
-        self.prices_item1 = np.array([150, 200, 300, 400, 450])
+        #self.prices_item1 = np.array([150, 200, 300, 400, 450])
+        self.prices_item1 = np.array([50, 75, 100, 125, 150])
 
         # Candidate conversion rates for item 1 (row: customer class; column: price item 1)
         #self.conversion_rates_item1 = np.array([[0.90, 0.84, 0.72, 0.59, form.i1_param[0], 0.42, 0.23, 0.13, 0.07],
@@ -101,16 +103,5 @@ class Data:
                                                 [0.62, 0.48, form.i1_param[2], 0.36, 0.17],
                                                 [0.59, 0.44, form.i1_param[3], 0.31, 0.15]])
 
-        self.prices_item2 = np.array([40, 50, 60])
-
-    def get_daily_customers(self):
-        return self.daily_customers
-
-    def get_conversion_rates_item21(self):
-        return self.conversion_rates_item21
-
-    def get_prices_item1(self):
-        return self.prices_item1
-
-    def get_conversion_rates_item1(self):
-        return self.conversion_rates_item1
+        #self.prices_item2 = np.array([40, 50, 60])
+        self.prices_item2 = np.array([15, 20, 25])

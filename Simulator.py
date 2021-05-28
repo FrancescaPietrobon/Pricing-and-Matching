@@ -22,8 +22,6 @@ np.random.seed(1234)
 
 class Simulator:
     def __init__(self):
-        self.item1 = Item(name="Apple Watch", price=300, margin=88)
-        self.item2 = Item(name="Personalized wristband", price=50, margin=16)
         self.discounts = np.array([0, 0.1, 0.2, 0.5])
         self.data = Data()
 
@@ -44,6 +42,7 @@ class Simulator:
 
         # Probability that a customer of a class buys the second item given that he bought the first and has a promo
         # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
+        # Each matrix corresponds to the conversion rates of the second item according to the different prices
         prob_buy_item2 = np.array([self.data.conversion_rates_item21_low_price,
                                    self.data.conversion_rates_item21,
                                    self.data.conversion_rates_item21_high_price])
@@ -52,22 +51,29 @@ class Simulator:
         # Conversion rates item 1
         conversion_rates_item1 = self.data.conversion_rates_item1
 
-        obj = np.zeros(len(prices_item2))
+        objective_item2 = np.zeros(len(prices_item2))
         result = np.zeros((len(prices_item2), 4, 4))
 
+        # Matching LP depending on the price and the conversion rates of item 2
         for i in range(len(prices_item2)):
-            obj[i], result[i] = lp.matching_lp(prices_item2[i], self.discounts, prob_buy_item2[i], daily_promos, daily_customers)
+            objective_item2[i], result[i] = lp.matching_lp(prices_item2[i], self.discounts, prob_buy_item2[i],
+                                                           daily_promos, daily_customers)
 
-        index_best_price_item2 = np.argmax(obj)
+        index_best_price_item2 = np.argmax(objective_item2)
+
+        # Computing the total objective, also considering the different prices of item 1
         weights = normalize(result[index_best_price_item2], norm='l1', axis=0)
-
-        objective = np.zeros(len(prices_item1))
+        total_objective = np.zeros(len(prices_item1))
         for i in range(len(prices_item1)):
-            objective[i] = sum(prices_item1[i] * daily_customers * conversion_rates_item1[:, i] +
-                               prices_item2[index_best_price_item2] * daily_customers * conversion_rates_item1[:, i] *
-                               (np.dot(1 - self.discounts, prob_buy_item2[index_best_price_item2] * weights)))
+            total_objective[i] = sum(prices_item1[i] * daily_customers * conversion_rates_item1[:, i] +
+                                     prices_item2[index_best_price_item2] * daily_customers * conversion_rates_item1[:, i] *
+                                     (np.dot(1 - self.discounts, prob_buy_item2[index_best_price_item2] * weights)))
 
-        return max(objective), prices_item1[np.argmax(objective)], prices_item2[index_best_price_item2], result[index_best_price_item2]
+        index_best_price_item1 = np.argmax(total_objective)
+
+        # Returning the maximum objective value obtained, along with the corresponding best price for item 1
+        # and for item 2, and the best matching matrix
+        return max(total_objective), prices_item1[index_best_price_item1], prices_item2[index_best_price_item2], result[index_best_price_item2]
 
 ########################################################################################################################
 
@@ -104,8 +110,8 @@ class Simulator:
             reward_item2[i] = sum(selected_price_item2 * (1-self.discounts) * conversion_rates_item2[:, i] * weights[:, i])
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
-        n_experiments = 1
-        time_horizon = 5000
+        n_experiments = 5
+        time_horizon = 365
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -130,7 +136,7 @@ class Simulator:
             ucb1_rewards_per_experiment.append(ucb1_learner.collected_rewards)
             ts_rewards_per_experiment.append(ts_learner.collected_rewards)
 
-        return [opt, ucb1_rewards_per_experiment, ts_rewards_per_experiment]
+        return [opt, ucb1_rewards_per_experiment, ts_rewards_per_experiment, time_horizon]
 
 ########################################################################################################################
 
@@ -162,8 +168,8 @@ class Simulator:
         weights = normalize(weights, norm='l1', axis=0)
 
         # Launching the experiments, using UCB1 and Thompson Sampling to learn the price of item 1
-        n_experiments = 1
-        time_horizon = 5000
+        n_experiments = 5
+        time_horizon = 365
         ucb1_rewards_per_experiment_item1 = []
         ts_rewards_per_experiment_item1 = []
 
@@ -201,7 +207,7 @@ class Simulator:
                 conversion_rates_item2_per_exp.append(conversion_rates_item2_sample)
                 reward_item2 = np.zeros(4)
                 for i in range(4):
-                    reward_item2[i] = sum(self.item2.price * (1 - self.discounts) * np.mean(conversion_rates_item2_per_exp, axis=0)[:, i] * weights[:, i])
+                    reward_item2[i] = sum(selected_price_item2 * (1 - self.discounts) * np.mean(conversion_rates_item2_per_exp, axis=0)[:, i] * weights[:, i])
                 ucb1_learner_item1.reward_item2 = reward_item2
                 ucb1_learner_item1.update(pulled_arm, reward)
 
@@ -211,14 +217,14 @@ class Simulator:
                 conversion_rates_item2_per_exp.append(conversion_rates_item2_sample)
                 reward_item2 = np.zeros(4)
                 for i in range(4):
-                    reward_item2[i] = sum(self.item2.price * (1 - self.discounts) * np.mean(conversion_rates_item2_per_exp, axis=0)[:, i] * weights[:, i])
+                    reward_item2[i] = sum(selected_price_item2 * (1 - self.discounts) * np.mean(conversion_rates_item2_per_exp, axis=0)[:, i] * weights[:, i])
                 ts_learner_item1.reward_item2 = reward_item2
                 ts_learner_item1.update(pulled_arm, reward)
 
             ucb1_rewards_per_experiment_item1.append(ucb1_learner_item1.collected_rewards)
             ts_rewards_per_experiment_item1.append(ts_learner_item1.collected_rewards)
 
-        return [opt, ucb1_rewards_per_experiment_item1, ts_rewards_per_experiment_item1]
+        return [opt, ucb1_rewards_per_experiment_item1, ts_rewards_per_experiment_item1, time_horizon]
 
 ########################################################################################################################
 
@@ -249,7 +255,7 @@ class Simulator:
 
         # Launching the experiments, using UCB1 to learn the matching
         n_experiments = 5
-        time_horizon = 1000
+        time_horizon = 365
         regret_ucb = np.zeros((n_experiments, time_horizon))
         reward_ucb = []
         for e in range(n_experiments):
@@ -294,17 +300,9 @@ class Simulator:
             regret_ucb[e, :] = np.cumsum(opt_rew) - np.cumsum(rew_UCB)
             reward_ucb.append(rew_UCB)
 
-        opt_temp = [objective[opt].sum()] * time_horizon
+        opt = [objective[opt].sum()] * time_horizon
 
-        plt.figure(0)
-        plt.xlabel('t')
-        plt.ylabel('Reward')
-        plt.plot(np.mean(reward_ucb, axis=0), "b")
-        plt.plot(opt_temp, '--k')
-        plt.legend(["UCB1", "OPT"], title="STEP 5 IN")
-        plt.show()
-
-        return [regret_ucb, reward_ucb]
+        return [regret_ucb, opt, reward_ucb]
 
 ########################################################################################################################
 

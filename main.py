@@ -37,28 +37,28 @@ def main():
         elif choice == 3:
             experiment_3_1 = Simulator().simulation_step_3(p_frac_exp1)
             plot_regret("STEP 3 - EXP 1", experiment_3_1[0], experiment_3_1[1], experiment_3_1[2])
-            plot_reward("STEP 3 - EXP 1", experiment_3_1[1], experiment_3_1[2])
+            plot_reward("STEP 3 - EXP 1", experiment_3_1[0], experiment_3_1[1], experiment_3_1[2], experiment_3_1[3])
             experiment_3_2 = Simulator().simulation_step_3(p_frac_exp2)
             plot_regret("STEP 3 - EXP 2", experiment_3_2[0], experiment_3_2[1], experiment_3_2[2])
-            plot_reward("STEP 3 - EXP 2", experiment_3_2[1], experiment_3_2[2])
+            plot_reward("STEP 3 - EXP 2", experiment_3_2[0], experiment_3_2[1], experiment_3_2[2], experiment_3_2[3])
             break
 
         elif choice == 4:
             experiment_4_1 = Simulator().simulation_step_4(p_frac_exp1)
             plot_regret("STEP 4 - EXP 1", experiment_4_1[0], experiment_4_1[1], experiment_4_1[2])
-            plot_reward("STEP 4 - EXP 1", experiment_4_1[1], experiment_4_1[2])
+            plot_reward("STEP 4 - EXP 1", experiment_4_1[0], experiment_4_1[1], experiment_4_1[2], experiment_4_1[3])
             experiment_4_2 = Simulator().simulation_step_4(p_frac_exp2)
             plot_regret("STEP 4 - EXP 2", experiment_4_2[0], experiment_4_2[1], experiment_4_2[2])
-            plot_reward("STEP 4 - EXP 2", experiment_4_2[1], experiment_4_2[2])
+            plot_reward("STEP 4 - EXP 2", experiment_4_2[0], experiment_4_2[1], experiment_4_2[2], experiment_4_1[3])
             break
 
         elif choice == 5:
             experiment_5_1 = Simulator().simulation_step_5(p_frac_exp1)
             plot_regret_matching("STEP 5 - EXP 1", experiment_5_1[0])
-            plot_reward_matching("STEP 5 - EXP 1", experiment_5_1[1])
+            plot_reward_matching("STEP 5 - EXP 1", experiment_5_1[1], experiment_5_1[2])
             experiment_5_2 = Simulator().simulation_step_5(p_frac_exp2)
             plot_regret_matching("STEP 5 - EXP 2", experiment_5_2[0])
-            plot_reward_matching("STEP 5 - EXP 2", experiment_5_2[1])
+            plot_reward_matching("STEP 5 - EXP 2", experiment_5_2[1], experiment_5_2[2])
             break
 
         elif choice == 6:
@@ -84,7 +84,7 @@ def main():
 
 
 ########################################################################################################################
-# TODO also plot optimal value
+
 
 def plot_regret(step, opt, ucb1_rewards_per_exp, ts_rewards_per_exp):
     plt.figure(0)
@@ -96,13 +96,15 @@ def plot_regret(step, opt, ucb1_rewards_per_exp, ts_rewards_per_exp):
     plt.show()
 
 
-def plot_reward(step, ucb1_rewards_per_exp, ts_rewards_per_exp):
+def plot_reward(step, opt, ucb1_rewards_per_exp, ts_rewards_per_exp, time_horizon):
     plt.figure(1)
     plt.xlabel("t")
     plt.ylabel("Reward")
     plt.plot(np.mean(ucb1_rewards_per_exp, axis=0), "b")
     plt.plot(np.mean(ts_rewards_per_exp, axis=0), "r")
-    plt.legend(["UCB1", "TS"], title=step)
+    opt = [opt] * time_horizon
+    plt.plot(opt, '--k')
+    plt.legend(["UCB1", "TS", "OPTIMAL"], title=step)
     plt.show()
 
 
@@ -115,12 +117,13 @@ def plot_regret_matching(step, ucb_matching_regret):
     plt.show()
 
 
-def plot_reward_matching(step, ucb_matching_reward):
+def plot_reward_matching(step, opt, ucb_matching_reward):
     plt.figure(1)
     plt.xlabel('t')
     plt.ylabel('Reward')
     plt.plot(np.mean(ucb_matching_reward, axis=0), "b")
-    plt.title(step)
+    plt.plot(opt, '--k')
+    plt.legend(["UCB1", "OPTIMAL"], title=step)
     plt.show()
 
 

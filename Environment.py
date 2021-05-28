@@ -12,14 +12,20 @@ class Environment_Step3:
 
     def round(self, pulled_arm):
         reward = np.zeros(4)
+        offer = np.zeros(4)
         for i in range(sum(self.customers)):
             group = np.random.choice(4, p=[self.customers[0] / sum(self.customers),
                                            self.customers[1] / sum(self.customers),
                                            self.customers[2] / sum(self.customers),
                                            self.customers[3] / sum(self.customers)])
+            offer[group] += 1
             reward[group] = reward[group] + np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
-        reward = reward / sum(reward)
-        return reward
+
+        result = np.zeros(4)
+        for i in range(4):
+            result[i] = reward[i] / offer[i] if offer[i] > 0 else 0
+
+        return result
 
 
 class Environment_Step4:
@@ -33,20 +39,31 @@ class Environment_Step4:
     def round(self, pulled_arm):
         reward1 = np.zeros(4)
         reward2 = np.zeros((4, 4))
+        offer1 = np.zeros(4)
+        offer2 = np.zeros((4, 4))
         for i in range(sum(self.customers)):
             group = np.random.choice(4, p=[self.customers[0] / sum(self.customers),
                                            self.customers[1] / sum(self.customers),
                                            self.customers[2] / sum(self.customers),
                                            self.customers[3] / sum(self.customers)])
             bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
+            offer1[group] += 1
             reward1[group] = reward1[group] + bin_item1
             if bin_item1 == 1:
                 promo = np.random.choice(4, p=self.weights[:, group])
+                offer2[promo, group] += 1
                 reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
 
-        reward1 = reward1 / sum(reward1)
-        reward2 = normalize(reward2, norm='l1', axis=0)
-        return reward1, reward2
+        result1 = np.zeros(4)
+        for i in range(4):
+            result1[i] = reward1[i] / offer1[i] if offer1[i] > 0 else 0
+
+        result2 = np.zeros((4, 4))
+        for i in range(4):
+            for j in range(4):
+                result2[i, j] = reward2[i, j] / offer2[i, j] if offer2[i, j] > 0 else 0
+
+        return result1, result2
 
 
 class Environment_Step5:

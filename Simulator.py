@@ -202,8 +202,10 @@ class Simulator:
         selected_margin_item2 = self.data.margins_item2[list(self.data.prices_item2).index(selected_price_item2)]
         daily_customers = self.data.daily_customers
 
-        # Objective matrix (row: promo; column: customer class) # TODO check this assumption below in the environment
+        # Objective matrix (row: promo; column: customer class)
         # Assumption: the number of promos of every type of promo is smaller than the number of customers of every class
+        # TODO: actually, since we simulate the arrival of customers, it could happen that the number of customers
+        #  of a class is lower than the number of promo codes of one type.
         objective = np.zeros((3, 4))
         for i in range(3):
             objective[i][:] = (selected_margin_item2 * daily_customers * conversion_rates_item2[i+1][:] *
@@ -242,7 +244,7 @@ class Simulator:
 
                 # Updating the daily customers in the learner and in the environment
                 ucb1_learner.daily_customers = daily_customers_empirical_means
-                env.customers = daily_customers_sample
+                env.daily_customers = daily_customers_sample
 
                 # Learning the matching using UCB1
                 pulled_arms = ucb1_learner.pull_arm()

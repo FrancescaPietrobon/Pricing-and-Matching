@@ -67,10 +67,10 @@ class Environment_Step4:
 
 
 class Environment_Step5:
-    def __init__(self, n_arms, conversion_rates_item2, customers, promo_fractions):
+    def __init__(self, n_arms, conversion_rates_item2, daily_customers, promo_fractions):
         self.n_arms = n_arms
         self.conversion_rates_item2 = conversion_rates_item2
-        self.customers = customers
+        self.daily_customers = daily_customers
         self.promo_fractions = promo_fractions
 
     def round(self, pulled_arms):
@@ -79,28 +79,26 @@ class Environment_Step5:
         # Notice that the "+1" on the rows is required since the matching did not consider promo P0
         weights = np.zeros((4, 4))
         for i in range(0, 3):
-            for j in range(0, 4):
-                if (self.promo_fractions[i + 1] * sum(self.customers)) <= self.customers[j]:
-                    weights[pulled_arms[0][i] + 1, pulled_arms[1][i]] = self.promo_fractions[i + 1] * sum(self.customers)
-                else:
-                    weights[pulled_arms[0][i] + 1, pulled_arms[1][i]] = self.customers[j]
+            if (self.promo_fractions[i+1] * sum(self.daily_customers)) <= self.daily_customers[pulled_arms[1][i]]:
+                weights[pulled_arms[0][i]+1, pulled_arms[1][i]] = self.promo_fractions[i+1] * sum(self.daily_customers)
+            else:
+                weights[pulled_arms[0][i]+1, pulled_arms[1][i]] = self.daily_customers[pulled_arms[1][i]]
 
         # Otherwise, as always, we give promo P0 to the remaining customers
         for j in range(0, 4):
-            weights[0, j] = self.customers[j] - sum(weights[:, j])
+            weights[0, j] = self.daily_customers[j] - sum(weights[:, j])
 
         # Normalizing the weights matrix to have proper values between 0 and 1
-        weights = np.clip(weights, 0, 500)                  # TODO check errors above instead of doing this
         weights = normalize(weights, 'l1', axis=0)
 
         # Simulating the arrival of customers (that buy item 2)
         reward2 = np.zeros((4, 4))
         offer = np.zeros((4, 4))
-        for i in range(sum(self.customers)):
-            group = np.random.choice(4, p=[self.customers[0] / sum(self.customers),
-                                           self.customers[1] / sum(self.customers),
-                                           self.customers[2] / sum(self.customers),
-                                           self.customers[3] / sum(self.customers)])
+        for i in range(sum(self.daily_customers)):
+            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
+                                           self.daily_customers[1] / sum(self.daily_customers),
+                                           self.daily_customers[2] / sum(self.daily_customers),
+                                           self.daily_customers[3] / sum(self.daily_customers)])
             promo = np.random.choice(4, p=weights[:, group])
             offer[promo, group] += 1
             reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])

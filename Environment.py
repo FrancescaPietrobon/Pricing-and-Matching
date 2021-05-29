@@ -5,19 +5,19 @@ np.random.seed(1234)
 
 
 class Environment_Step3:
-    def __init__(self, n_arms, conversion_rates_item1, customers):
+    def __init__(self, n_arms, conversion_rates_item1, daily_customers):
         self.n_arms = n_arms
         self.conversion_rates_item1 = conversion_rates_item1
-        self.customers = customers
+        self.daily_customers = daily_customers
 
     def round(self, pulled_arm):
         reward = np.zeros(4)
         offer = np.zeros(4)
-        for i in range(sum(self.customers)):
-            group = np.random.choice(4, p=[self.customers[0] / sum(self.customers),
-                                           self.customers[1] / sum(self.customers),
-                                           self.customers[2] / sum(self.customers),
-                                           self.customers[3] / sum(self.customers)])
+        for i in range(sum(self.daily_customers)):
+            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
+                                           self.daily_customers[1] / sum(self.daily_customers),
+                                           self.daily_customers[2] / sum(self.daily_customers),
+                                           self.daily_customers[3] / sum(self.daily_customers)])
             offer[group] += 1
             reward[group] = reward[group] + np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
 
@@ -29,23 +29,23 @@ class Environment_Step3:
 
 
 class Environment_Step4:
-    def __init__(self, n_arms, conversion_rates_item1, conversion_rates_item2, weights, customers):
+    def __init__(self, n_arms, conversion_rates_item1, conversion_rates_item2, weights, daily_customers):
         self.n_arms = n_arms
         self.conversion_rates_item1 = conversion_rates_item1
         self.conversion_rates_item2 = conversion_rates_item2
         self.weights = weights
-        self.customers = customers
+        self.daily_customers = daily_customers
 
     def round(self, pulled_arm):
         reward1 = np.zeros(4)
         reward2 = np.zeros((4, 4))
         offer1 = np.zeros(4)
         offer2 = np.zeros((4, 4))
-        for i in range(sum(self.customers)):
-            group = np.random.choice(4, p=[self.customers[0] / sum(self.customers),
-                                           self.customers[1] / sum(self.customers),
-                                           self.customers[2] / sum(self.customers),
-                                           self.customers[3] / sum(self.customers)])
+        for i in range(sum(self.daily_customers)):
+            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
+                                           self.daily_customers[1] / sum(self.daily_customers),
+                                           self.daily_customers[2] / sum(self.daily_customers),
+                                           self.daily_customers[3] / sum(self.daily_customers)])
             bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
             offer1[group] += 1
             reward1[group] = reward1[group] + bin_item1
@@ -167,4 +167,3 @@ class Non_Stationary_Environment_Third:
         reward = np.random.binomial(1, p)
         self.time += 1
         return reward
-

@@ -5,8 +5,8 @@ np.random.seed(1234)
 
 
 class CUMSUM_UCB1_item1(UCB1_item1):
-    def __init__(self, n_arms, daily_customers, prices, reward_item2, M=100, eps=0.05, h=20, alpha=0.01):
-        super().__init__(n_arms, daily_customers, prices, reward_item2)
+    def __init__(self, n_arms, daily_customers, margins, reward_item2, M=100, eps=0.05, h=20, alpha=0.01):
+        super().__init__(n_arms, daily_customers, margins, reward_item2)
         self.change_detection = [CUMSUM(M, eps, h) for _ in range(n_arms)]
         self.valid_rewards_per_arms = [[] for _ in range(n_arms)]
         self.detections = [[] for _ in range(n_arms)]
@@ -17,7 +17,7 @@ class CUMSUM_UCB1_item1(UCB1_item1):
             arm = self.t
         else:
             if np.random.binomial(1, 1 - self.alpha):
-                upper_bound = (self.prices * np.dot(self.daily_customers, (self.empirical_means + self.confidence))) + np.dot(self.daily_customers * self.reward_item2, (self.empirical_means + self.confidence))
+                upper_bound = (self.margins * np.dot(self.daily_customers, (self.empirical_means + self.confidence))) + np.dot(self.daily_customers * self.reward_item2, (self.empirical_means + self.confidence))
                 arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
             else:
                 arm = np.random.randint(0, self.n_arms)
@@ -39,4 +39,4 @@ class CUMSUM_UCB1_item1(UCB1_item1):
     def update_observations(self, pulled_arm, reward):
         self.rewards_per_arm[pulled_arm].append(reward)
         self.valid_rewards_per_arms[pulled_arm].append(reward)
-        self.collected_rewards = np.append(self.collected_rewards, np.sum((self.prices[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
+        self.collected_rewards = np.append(self.collected_rewards, np.sum((self.margins[pulled_arm] + self.reward_item2) * self.daily_customers * reward))

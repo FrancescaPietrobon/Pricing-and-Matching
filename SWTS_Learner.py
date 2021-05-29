@@ -3,8 +3,8 @@ from TS_Learner_item2 import *
 
 
 class SWTS_Learner(TS_Learner_item1):
-    def __init__(self, n_arms, daily_customers, prices, reward_item2, window_size):
-        super().__init__(n_arms, daily_customers, prices, reward_item2)
+    def __init__(self, n_arms, daily_customers, margins, reward_item2, window_size):
+        super().__init__(n_arms, daily_customers, margins, reward_item2)
         self.window_size = window_size
         self.pull_arms = np.array([])
 
@@ -24,7 +24,7 @@ class SWTS_Learner(TS_Learner_item1):
     def update(self, pulled_arm, reward):
         self.t += 1
         self.rewards_per_arm[pulled_arm].append(reward)
-        self.collected_rewards = np.append(self.collected_rewards, np.sum((self.prices[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
+        self.collected_rewards = np.append(self.collected_rewards, np.sum((self.margins[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
         cum_rew = np.sum(self.rewards_per_arm[pulled_arm][-self.window_size:], axis=0)
         n_rounds_arm = len(self.rewards_per_arm[pulled_arm][-self.window_size:])
 

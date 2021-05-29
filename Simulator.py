@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from numpy.random import normal
 from scipy import stats
+import itertools
 from sklearn.preprocessing import normalize
 
 from CUMSUM_UCB1_item1 import CUMSUM_UCB1_item1
@@ -14,7 +15,9 @@ from SWTS_Learner import *
 from SWTS_Learner_item2 import *
 from UCB1_item1 import *
 from UCB1_item2 import *
+from UCB1_items import *
 from UCB_matching import *
+
 
 np.random.seed(1234)
 
@@ -265,42 +268,29 @@ class Simulator:
 ########################################################################################################################
 
     def simulation_step_6(self, promo_fractions):
-        # Number of arms for pricing item 1
-        n_arms = 9
+        # Candidate margins for item 1 and item 2 (one per arm)
+        margins_item1 = self.data.margins_item1
+        margins_item2 = self.data.margins_item2
 
-        # Candidate prices for item 1 and item 2 (one per arm)
-        prices_item1 = self.data.margins_item1
-        prices_item2 = self.data.margins_item2
+        # Number of arms
+        n_arms = len(list(itertools.product(margins_item1, margins_item2)))
 
-        # Conversion rates for item 1 (one per arm)
+        # Conversion rates for item 1
         conversion_rates_item1 = self.data.conversion_rates_item1
 
         # Conversion rates for item 2 (one 4x4 matrix per arm)
-        conversion_rates_item2 = np.array([self.data.conversion_rates_item21 + 0.1,
-                                           self.data.conversion_rates_item21,
-                                           self.data.conversion_rates_item21 - 0.1])
-        conversion_rates_item2 = np.clip(conversion_rates_item2, 0, 1)
+        conversion_rates_item2 = self.data.conversion_rates_item2
 
         # Number of daily customers per class
         daily_customers = self.data.daily_customers
 
-        # Promo assigment weights (one matrix for each candidate price for item 2; row: promo; column: customer class)
-        daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
-        weights = np.zeros((3, 4, 4))
-        for k in range(3):
-            weights[k] = normalize(lp.matching_lp(prices_item2[k], self.discounts, conversion_rates_item2[k],
-                                                  daily_promos, daily_customers)[1], 'l1', axis=0)
+        opt, selected_price_item1, selected_price_item2, weights = self.simulation_step_1(promo_fractions)
 
-        # Objective array (one element for every combination of candidate prices for item 1 and item 2)
-        objective = np.zeros((n_arms, 3))
-        for i in range(n_arms):
-            for k in range(3):
-                objective[i, k] = sum(prices_item1[i] * daily_customers * conversion_rates_item1[:, i] +
-                                      prices_item2[k] * daily_customers * conversion_rates_item1[:, i] *
-                                      (np.dot(1 - self.discounts, conversion_rates_item2[k] * weights[k])))
+        optimal_conversion_rates_item2 = self.data.conversion_rates_item2[
+            list(self.data.prices_item2).index(selected_price_item2)]
+        selected_margin_item2 = self.data.margins_item2[list(self.data.prices_item2).index(selected_price_item2)]
 
-        # Storing the optimal objective value to compute the regret later
-        opt = np.max(objective)
+        weights = normalize(weights, norm='l1', axis=0)
 
         # Launching the experiments
         n_experiments = 20
@@ -317,26 +307,18 @@ class Simulator:
             learner_daily_customers = Learner_Customers()
             daily_customers_empirical_means = np.zeros(4)
 
-            # Environments and learners for the conversion rates of item 2 (one per customer class)
-            envs_item2 = np.array([Environment_Step5(n_arms=12, probabilities=conversion_rates_item2[:, :, 0].flatten()),
-                                   Environment_Step5(n_arms=12, probabilities=conversion_rates_item2[:, :, 1].flatten()),
-                                   Environment_Step5(n_arms=12, probabilities=conversion_rates_item2[:, :, 2].flatten()),
-                                   Environment_Step5(n_arms=12, probabilities=conversion_rates_item2[:, :, 3].flatten())])
-
-            ucb1_learners_item2 = np.array([UCB1_item2(n_arms=12),
-                                            UCB1_item2(n_arms=12),
-                                            UCB1_item2(n_arms=12),
-                                            UCB1_item2(n_arms=12)])
-
             # Environment and learner for the matching between promos and customer classes
             probabilities = np.zeros((3, 4))
-            ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0,daily_customers=daily_customers, discounts=1-self.discounts, p_frac=promo_fractions)
+            ucb1_learner_matching = UCB_Matching(probabilities.size, *probabilities.shape, price=0,
+                                                 daily_customers=daily_customers, discounts=1-self.discounts, p_frac=promo_fractions)
             env_matching = Environment_Step5(probabilities.size, probabilities)
 
             # Environment and learner for the price of item 1
-            env_item1 = Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1)
-            ucb1_learner_item1 = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
-            ts_learner_item1 = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
+            env_pricing = Environment_Step6(n_arms=n_arms, conversion_rates_item1 = conversion_rates_item1,
+                                          conversion_rates_item2 = conversion_rates_item2, margins_item1 = margins_item1,
+                                          margins_item2 = margins_item2)
+            ucb1_learner = UCB1_items(n_arms=n_arms, daily_customers=daily_customers, margins_items1=margins_item1, margins_item2 = margins_item2)
+            ts_learner = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
 
 
             for t in range(time_horizon):
@@ -344,28 +326,6 @@ class Simulator:
                 daily_customers_sample = env_daily_customers.sample()
                 daily_customers_empirical_means = learner_daily_customers.update_daily_customers(
                     empirical_means=daily_customers_empirical_means, sample=daily_customers_sample)
-
-                # Learning the conversion rates for item 2
-                for learner, env in zip(ucb1_learners_item2, envs_item2):
-                    pulled_arm = learner.pull_arm()
-                    reward = env.round(pulled_arm)
-                    learner.update(pulled_arm, reward)
-
-                # Taking the best price for item 2 for each class
-                # Each "empirical_means" is reshaped into a 3x4 matrix (3 prices for item 2, 4 conversion rates)
-                indices_best_price_item2 = np.zeros(4)
-                for i in range(4):
-                    indices_best_price_item2[i] = np.argmax(
-                        np.dot(ucb1_learners_item2[i].empirical_means.reshape(3, 4), (1 - self.discounts)) * prices_item2,
-                        axis=0)
-
-                # Computing the most common price selected, since we want the same price for all the customer classes
-                best_price_item2 = stats.mode(indices_best_price_item2)[0][0].astype(int)
-
-                # Constructing the usual 4x4 matrix of conversion rates for item 2
-                conversion_rates_item2_em = np.zeros((4, 4))
-                for i in range(4):
-                    conversion_rates_item2_em[:, i] = ucb1_learners_item2[i].empirical_means.reshape(3, 4)[best_price_item2]
 
                 # Updating the probabilities vector in the environment used by UCB_matching
                 # as well as the best price for item 2 that has been selected, and the number of customers learned
@@ -394,30 +354,24 @@ class Simulator:
                 # Normalizing the weights matrix to have proper values between 0 and 1
                 weights = normalize(weights, 'l1', axis=0)
 
-                # Computing the reward obtained when buying item 2 (one element per customer class)
-                reward_item2 = np.zeros(4)
-                for i in range(4):
-                    reward_item2[i] = sum(prices_item2[best_price_item2] * (1 - self.discounts) *
-                                          conversion_rates_item2_em[:, i] * weights[:, i])
 
-                # Updating the number of customers and the reward given by item 2 in the learners for price of item 1
-                ucb1_learner_item1.reward_item2 = reward_item2
-                ucb1_learner_item1.daily_customers = daily_customers_empirical_means
-                ts_learner_item1.reward_item2 = reward_item2
-                ts_learner_item1.daily_customers = daily_customers_empirical_means
+                # Updating the number of customers and the weights
+                ucb1_learner.daily_customers = daily_customers_empirical_means
+                env_pricing.weights = weights
+                ts_learner.daily_customers = daily_customers_empirical_means
 
-                # Learning the best price for item 1 (UCB1)
-                pulled_arm = ucb1_learner_item1.pull_arm()
-                reward = env_item1.round(pulled_arm)
-                ucb1_learner_item1.update(pulled_arm, reward)
+                # Learning the best prices(UCB1)
+                pulled_arm = ucb1_learner.pull_arm()
+                reward = env_pricing.round(pulled_arm)
+                ucb1_learner.update(pulled_arm, reward)
 
-                # Learning the best price for item 1 (Thompson Sampling)
-                pulled_arm = ts_learner_item1.pull_arm()
-                reward = env_item1.round(pulled_arm)
-                ts_learner_item1.update(pulled_arm, reward)
+                # Learning the best prices (Thompson Sampling)
+                pulled_arm = ts_learner.pull_arm()
+                reward = env_pricing.round(pulled_arm)
+                ts_learner.update(pulled_arm, reward)
 
-            ucb1_rewards_per_experiment_item1.append(ucb1_learner_item1.collected_rewards)
-            ts_rewards_per_experiment_item1.append(ts_learner_item1.collected_rewards)
+            ucb1_rewards_per_experiment_item1.append(ucb1_learner.collected_rewards)
+            ts_rewards_per_experiment_item1.append(ts_learner.collected_rewards)
 
         return [opt, ucb1_rewards_per_experiment_item1, ts_rewards_per_experiment_item1]
 

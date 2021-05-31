@@ -63,11 +63,11 @@ def main():
 
         elif choice == 6:
             experiment_6_1 = Simulator().simulation_step_6(p_frac_exp1)
-            plot_regret("STEP 6 - EXP 1", experiment_6_1[0], experiment_6_1[1], experiment_6_1[2])
-            plot_reward("STEP 6 - EXP 1", experiment_6_1[1], experiment_6_1[2])
+            plot_regret_matching("STEP 6 - EXP 1", experiment_6_1[0])
+            plot_reward_matching("STEP 6 - EXP 1", experiment_6_1[1], experiment_6_1[2])
             experiment_6_2 = Simulator().simulation_step_6(p_frac_exp2)
-            plot_regret("STEP 6 - EXP 1", experiment_6_2[0], experiment_6_2[1], experiment_6_2[2])
-            plot_reward("STEP 6 - EXP 1", experiment_6_2[1], experiment_6_2[2])
+            plot_regret_matching("STEP 6 - EXP 2", experiment_6_2[0])
+            plot_reward_matching("STEP 6 - EXP 2", experiment_6_2[1], experiment_6_2[2])
             break
 
         elif choice == 7:

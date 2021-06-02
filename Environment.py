@@ -89,6 +89,7 @@ class Environment_Step5:
         for j in range(0, 4):
             weights[0, j] = self.daily_customers[j] - sum(weights[:, j])
 
+        weights_int = weights
         # Normalizing the weights matrix to have proper values between 0 and 1
         weights = normalize(weights, 'l1', axis=0)
 
@@ -109,10 +110,10 @@ class Environment_Step5:
             for j in range(4):
                 result[i, j] = reward2[i, j] / offer[i, j] if offer[i, j] > 0 else 0
 
-        result = result[1:]
-        result = np.sum(result, axis=1)
+        result_sum = result[1:]
+        result_sum = np.sum(result_sum, axis=1)
 
-        return result
+        return result_sum, weights_int, result[0]
 
 
 class Environment_Step6:
@@ -128,14 +129,13 @@ class Environment_Step6:
 
     def round(self, pulled_arm):
 
-        idx_price_item1 = list(self.margins_item1).index(pulled_arm[0][0])
-        idx_price_item2 = list(self.margins_item2).index(pulled_arm[0][1])
+        #idx_price_item1 = list(self.margins_item1).index(pulled_arm[0][0])
+        #idx_price_item2 = list(self.margins_item2).index(pulled_arm[0][1])
 
         weights = np.zeros((4, 4))
         for i in range(0, 3):
             if (self.promo_fractions[i + 1] * sum(self.daily_customers)) <= self.daily_customers[pulled_arm[2][i]]:
-                weights[pulled_arm[1][i] + 1, pulled_arm[2][i]] = self.promo_fractions[i + 1] * sum(
-                    self.daily_customers)
+                weights[pulled_arm[1][i] + 1, pulled_arm[2][i]] = self.promo_fractions[i + 1] * sum(self.daily_customers)
             else:
                 weights[pulled_arm[1][i] + 1, pulled_arm[2][i]] = self.daily_customers[pulled_arm[2][i]]
 
@@ -143,6 +143,7 @@ class Environment_Step6:
         for j in range(0, 4):
             weights[0, j] = self.daily_customers[j] - sum(weights[:, j])
 
+        weights_int = weights
         # Normalizing the weights matrix to have proper values between 0 and 1
         weights = normalize(weights, 'l1', axis=0)
 
@@ -156,14 +157,13 @@ class Environment_Step6:
                                            self.daily_customers[1] / sum(self.daily_customers),
                                            self.daily_customers[2] / sum(self.daily_customers),
                                            self.daily_customers[3] / sum(self.daily_customers)])
-            bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, idx_price_item1])
+            bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm[0][0]])
             offer1[group] += 1
             reward1[group] = reward1[group] + bin_item1
             if bin_item1 == 1:
                 promo = np.random.choice(4, p=weights[:, group])
                 offer2[promo, group] += 1
-                reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[idx_price_item2,
-                    promo, group])
+                reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[pulled_arm[0][1], promo, group])
 
         result1 = np.zeros(4)
         for i in range(4):
@@ -175,8 +175,9 @@ class Environment_Step6:
                 result2[i, j] = reward2[i, j] / offer2[i, j] if offer2[i, j] > 0 else 0
 
         result3 = result2[1:]
+        result3 = np.sum(result3, axis=1)
 
-        return [result1, result2, result3]
+        return [result1, result2, result3, weights_int]
 
 ########################################################################################################################
 class Daily_Customers:

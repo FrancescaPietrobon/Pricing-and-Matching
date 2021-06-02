@@ -209,12 +209,17 @@ class Simulator:
         # Assumption: the number of promos of every type of promo is smaller than the number of customers of every class
         # TODO: actually, since we simulate the arrival of customers, it could happen that the number of customers
         #  of a class is lower than the number of promo codes of one type.
+        '''
         objective = np.zeros((3, 4))
         for i in range(3):
             objective[i][:] = (selected_margin_item2 * daily_customers * conversion_rates_item2[i+1][:] *
                                (1-self.discounts[i+1]) * promo_fractions[i+1])
 
         opt = linear_sum_assignment(-objective)
+        '''
+        daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
+        opt, matching = lp.matching_lp(selected_margin_item2, self.discounts, conversion_rates_item2,
+                                       daily_promos, daily_customers)
 
         # Launching the experiments, using UCB1 to learn the promo-customer class matching
         n_experiments = 5
@@ -251,18 +256,20 @@ class Simulator:
 
                 # Learning the matching using UCB1
                 pulled_arms = ucb1_learner.pull_arm()
-                rewards = env.round(pulled_arms)
+                rewards, weights, conversion_rates_item2_promo0 = env.round(pulled_arms)
                 ucb1_learner.update(pulled_arms, rewards)
 
                 #TODO empirical means
-                rew_ucb_per_exp.append((selected_margin_item2 * (1-self.discounts[1:]) * promo_fractions[1:] * rewards *
-                                        daily_customers_sample[pulled_arms[1]]).sum())
-                opt_rew_per_exp.append(objective[opt].sum())
+                rew_ucb_per_exp.append((selected_margin_item2 * (1-self.discounts[1:]) * np.sum(weights[1:], axis=1) * rewards).sum() +
+                                       (selected_margin_item2 * weights[0] * conversion_rates_item2_promo0).sum())
+                #opt_rew_per_exp.append(objective[opt].sum())
+                opt_rew_per_exp.append(opt)
 
             regret_ucb[e, :] = np.cumsum(opt_rew_per_exp) - np.cumsum(rew_ucb_per_exp)
             reward_ucb.append(rew_ucb_per_exp)
 
-        opt = [objective[opt].sum()] * time_horizon
+        #opt = [objective[opt].sum()] * time_horizon
+        opt = [opt] * time_horizon
 
         return [regret_ucb, opt, reward_ucb]
 
@@ -328,16 +335,16 @@ class Simulator:
 
                 # Learning the best prices and matching
                 pulled_arm = ucb_learner.pull_arm()
-                cross = cross_margins[pulled_arm[0]]
-                reward = env.round([cross, pulled_arm[1], pulled_arm[2]])
+                #cross = cross_margins[pulled_arm[0]]
+                #reward = env.round([cross, pulled_arm[1], pulled_arm[2]])
+                reward = env.round(pulled_arm)
                 ucb_learner.update(pulled_arm, reward)
 
-                # Daily promos = daily customers, since we give P0 to customers without P1, P2 or P3
-                daily_customers_per_promo = (promo_fractions * sum(daily_customers)).astype(int)
-                test = np.sum(reward[2], axis=1)
-                rew_ucb_per_exp.append((cross[0] * reward[0] * daily_customers_sample).sum() +
-                                       (cross[1] * reward[0][pulled_arm[2]] * np.sum(reward[2], axis=1) * (1-self.discounts[1:]) * daily_customers_per_promo[1:]).sum() +
-                                       (cross[1] * reward[0][0] * reward[1][0] * daily_customers_per_promo[0]).sum())
+                pulled_margin_item1 = margins_item1[pulled_arm[0][0]]
+                pulled_margin_item2 = margins_item2[pulled_arm[0][1]]
+                rew_ucb_per_exp.append((pulled_margin_item1 * reward[0] * daily_customers_sample).sum() +
+                                       (pulled_margin_item2 * reward[0][pulled_arm[2]] * reward[2] * (1-self.discounts[1:]) * np.sum(reward[3][1:], axis=1)).sum() +
+                                       (pulled_margin_item2 * reward[0] * reward[1][0] * reward[3][0]).sum())
 
                 '''
                 # This is the old code, which does not consider customers that buy item 2 with P0

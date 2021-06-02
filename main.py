@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def main():
-    p_frac_exp1 = np.array([0.7, 0.2, 0.07, 0.03])
+    p_frac_exp1 = np.array([0.99, 0.005, 0.004, 0.001])
     p_frac_exp2 = np.array([0.6, 0.25, 0.1, 0.05])
 
     print("\t\tData Intelligence Applications - A.Y. 2020/2021")

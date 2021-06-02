@@ -332,18 +332,20 @@ class Simulator:
                 reward = env.round([cross, pulled_arm[1], pulled_arm[2]])
                 ucb_learner.update(pulled_arm, reward)
 
+                # Daily promos = daily customers, since we give P0 to customers without P1, P2 or P3
+                daily_customers_per_promo = (promo_fractions * sum(daily_customers)).astype(int)
+                test = np.sum(reward[2], axis=1)
+                rew_ucb_per_exp.append((cross[0] * reward[0] * daily_customers_sample).sum() +
+                                       (cross[1] * reward[0][pulled_arm[2]] * np.sum(reward[2], axis=1) * (1-self.discounts[1:]) * daily_customers_per_promo[1:]).sum() +
+                                       (cross[1] * reward[0][0] * reward[1][0] * daily_customers_per_promo[0]).sum())
+
+                '''
+                # This is the old code, which does not consider customers that buy item 2 with P0
                 rew_ucb_per_exp.append((cross[0] * reward[0] * daily_customers_sample).sum() +
                                        (cross[1] * reward[0][pulled_arm[2]] * np.sum(reward[2], axis=1) *
-                                        (1 - self.discounts[1:]) * promo_fractions[1:] *
-                                        daily_customers_sample[pulled_arm[2]]).sum())
-
-                '''rew_ucb_per_exp.append(sum(cross[0] * reward[0] * daily_customers_sample) +
-                                        sum(cross[1] * (1 - self.discounts[1:]) * promo_fractions[1:] * np.sum(
-                                            reward[2], axis=1) *
-                                            daily_customers_sample[pulled_arm[2]]) +
-                                        cross[1] * promo_fractions[0] * reward[1][0] * (
-                                                    sum(daily_customers_sample) - sum(
-                                                promo_fractions[1:] * daily_customers_sample[pulled_arm[2]]))).sum())'''
+                                        (1 - self.discounts[1:]) *
+                                        (promo_fractions[1:] * daily_customers_per_promo[1:]).sum())
+                '''
 
                 opt_rew_per_exp.append(opt)
 

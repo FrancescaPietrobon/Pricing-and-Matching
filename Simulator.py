@@ -287,7 +287,7 @@ class Simulator:
 
         opt, selected_price_item1, selected_price_item2, weights = self.simulation_step_1(promo_fractions)
 
-        self.margins = list(itertools.product(margins_item1, margins_item2))
+        cross_margins = list(itertools.product(margins_item1, margins_item2))
 
         # Launching the experiments
         n_experiments = 1
@@ -307,10 +307,10 @@ class Simulator:
             # Environment and learner for the price of item 1
             env = Environment_Step6(n_arms=n_arms, conversion_rates_item1=conversion_rates_item1,
                                     conversion_rates_item2=conversion_rates_item2, daily_customers=daily_customers,
-                                    promo_fractions = promo_fractions, margins_item1=margins_item1, margins_item2= margins_item2)
+                                    promo_fractions=promo_fractions, margins_item1=margins_item1, margins_item2=margins_item2)
 
             ucb_learner = UCB1_items_matching(n_arms=n_arms, n_rows=3, n_cols=4, daily_customers=daily_customers,
-                                              margins_item1=margins_item1, margins_item2 = margins_item2,
+                                              margins_item1=margins_item1, margins_item2=margins_item2,
                                               discounts=1-self.discounts, p_frac=promo_fractions)
             rew_ucb_per_exp = []
             opt_rew_per_exp = []
@@ -328,16 +328,16 @@ class Simulator:
 
                 # Learning the best prices and matching
                 pulled_arm = ucb_learner.pull_arm()
-                cross = self.margins[pulled_arm[0]]
+                cross = cross_margins[pulled_arm[0]]
                 reward = env.round([cross, pulled_arm[1], pulled_arm[2]])
                 ucb_learner.update(pulled_arm, reward)
 
+                rew_ucb_per_exp.append((cross[0] * reward[0] * daily_customers_sample).sum() +
+                                       (cross[1] * reward[0][pulled_arm[2]] * np.sum(reward[2], axis=1) *
+                                        (1 - self.discounts[1:]) * promo_fractions[1:] *
+                                        daily_customers_sample[pulled_arm[2]]).sum())
 
-                rew_ucb_per_exp.append((sum(cross[0] * reward[0] * daily_customers_sample) +
-                                        cross[1] * (1 - self.discounts[1:]) * promo_fractions[1:] * np.sum(reward[2],axis=1) *
-                                        daily_customers_sample[pulled_arm[2]] * reward[0][pulled_arm[2]]).sum())
-
-                '''rew_ucb_per_exp.append((sum(cross[0] * reward[0] * daily_customers_sample) +
+                '''rew_ucb_per_exp.append(sum(cross[0] * reward[0] * daily_customers_sample) +
                                         sum(cross[1] * (1 - self.discounts[1:]) * promo_fractions[1:] * np.sum(
                                             reward[2], axis=1) *
                                             daily_customers_sample[pulled_arm[2]]) +
@@ -350,7 +350,7 @@ class Simulator:
             regret_ucb[e, :] = np.cumsum(opt_rew_per_exp) - np.cumsum(rew_ucb_per_exp)
             reward_ucb.append(rew_ucb_per_exp)
 
-        opt = [opt]* time_horizon
+        opt = [opt] * time_horizon
 
         return [regret_ucb, opt, reward_ucb]
 

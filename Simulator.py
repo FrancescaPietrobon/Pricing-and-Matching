@@ -10,6 +10,7 @@ from CUMSUM_UCB_Matching import CUMSUM_UCB_Matching
 from Data import *
 from Environment import *
 import matching_lp as lp
+from Matching import *
 from Learner_Customers import *
 from SWTS_Learner import *
 from SWTS_Learner_item2 import *
@@ -138,7 +139,7 @@ class Simulator:
         ts_rewards_per_experiment = []
 
         for e in range(n_experiments):
-            print("Experiment ", e+1, "/", n_experiments)
+            print("Experiment ", e + 1, "/", n_experiments)
 
             # Environment and learner for the number of daily customers
             env_daily_customers = Daily_Customers(mean=daily_customers, sd=25)
@@ -150,7 +151,7 @@ class Simulator:
             ucb1_learner = UCB1_item1(n_arms, daily_customers, margins_item1, reward_item2=np.zeros(4))
             ts_learner = TS_Learner_item1(n_arms, daily_customers, margins_item1, reward_item2=np.zeros(4))
 
-            conversion_rates_item2_per_exp = []
+            conversion_rates_item2_per_exp = [[[] for _ in range(4)] for _ in range(4)]
 
             for t in range(time_horizon):
                 # Learning the number of customers
@@ -169,11 +170,24 @@ class Simulator:
                 pulled_arm = ucb1_learner.pull_arm()
                 reward, conversion_rates_item2_sample = env.round(pulled_arm)
 
-                conversion_rates_item2_per_exp.append(conversion_rates_item2_sample)
+                # Appending the conversion rates to the list per experiment
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        if conversion_rates_item2_sample[promo_type][class_type] != 0:
+                            conversion_rates_item2_per_exp[promo_type][class_type].append(conversion_rates_item2_sample[promo_type][class_type])
+
+                # Computing the mean of the list per experiment
+                conversion_rates_item2_means = np.zeros((4, 4))
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        if len(conversion_rates_item2_per_exp[promo_type][class_type]) > 0:
+                            conversion_rates_item2_means[promo_type][class_type] = np.mean(conversion_rates_item2_per_exp[promo_type][class_type])
+                        else:
+                            conversion_rates_item2_means[promo_type][class_type] = 0
+
                 reward_item2 = np.zeros(4)
                 for i in range(4):
-                    reward_item2[i] = sum(selected_margin_item2 * (1-self.discounts) *
-                                          np.mean(conversion_rates_item2_per_exp, axis=0)[:, i] * weights[:, i])
+                    reward_item2[i] = sum(selected_margin_item2 * (1-self.discounts) * conversion_rates_item2_means[:, i] * weights[:, i])
                 ucb1_learner.reward_item2 = reward_item2
 
                 ucb1_learner.update(pulled_arm, reward)
@@ -182,11 +196,24 @@ class Simulator:
                 pulled_arm = ts_learner.pull_arm()
                 reward, conversion_rates_item2_sample = env.round(pulled_arm)
 
-                conversion_rates_item2_per_exp.append(conversion_rates_item2_sample)
+                # Appending the conversion rates to the list per experiment
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        if conversion_rates_item2_sample[promo_type][class_type] != 0:
+                            conversion_rates_item2_per_exp[promo_type][class_type].append(conversion_rates_item2_sample[promo_type][class_type])
+
+                # Computing the mean of the list per experiment
+                conversion_rates_item2_means = np.zeros((4, 4))
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        if len(conversion_rates_item2_per_exp[promo_type][class_type]) > 0:
+                            conversion_rates_item2_means[promo_type][class_type] = np.mean(conversion_rates_item2_per_exp[promo_type][class_type])
+                        else:
+                            conversion_rates_item2_means[promo_type][class_type] = 0
+
                 reward_item2 = np.zeros(4)
                 for i in range(4):
-                    reward_item2[i] = sum(selected_margin_item2 * (1 - self.discounts) *
-                                          np.mean(conversion_rates_item2_per_exp, axis=0)[:, i] * weights[:, i])
+                    reward_item2[i] = sum(selected_margin_item2 * (1-self.discounts) * conversion_rates_item2_means[:, i] * weights[:, i])
                 ts_learner.reward_item2 = reward_item2
 
                 ts_learner.update(pulled_arm, reward)
@@ -206,72 +233,84 @@ class Simulator:
         daily_customers = self.data.daily_customers
 
         # Objective matrix (row: promo; column: customer class)
-        # Assumption: the number of promos of every type of promo is smaller than the number of customers of every class
-        # TODO: actually, since we simulate the arrival of customers, it could happen that the number of customers
-        #  of a class is lower than the number of promo codes of one type.
-        '''
-        objective = np.zeros((3, 4))
-        for i in range(3):
-            objective[i][:] = (selected_margin_item2 * daily_customers * conversion_rates_item2[i+1][:] *
-                               (1-self.discounts[i+1]) * promo_fractions[i+1])
-
-        opt = linear_sum_assignment(-objective)
-        '''
         daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
-        opt, matching = lp.matching_lp(selected_margin_item2, self.discounts, conversion_rates_item2,
-                                       daily_promos, daily_customers)
+        opt, _ = lp.matching_lp(selected_margin_item2, self.discounts, conversion_rates_item2, daily_promos, daily_customers)
 
         # Launching the experiments, using UCB1 to learn the promo-customer class matching
         n_experiments = 5
         time_horizon = 365
-        regret_ucb = np.zeros((n_experiments, time_horizon))
-        reward_ucb = []
+        regret_matching = np.zeros((n_experiments, time_horizon))
+        reward_matching = []
 
         for e in range(n_experiments):
             print("Experiment ", e+1, "/", n_experiments)
 
             # Environment and learner for the number of daily customers
-            env_daily_customers = Daily_Customers(mean=daily_customers, sd=25)
+            env_daily_customers = Daily_Customers(mean=daily_customers, sd=3)
             learner_daily_customers = Learner_Customers()
             daily_customers_empirical_means = np.zeros(4)
 
             # Environment and learner for the matching between promos and customer classes
-            probabilities = np.zeros((3, 4))
-            env = Environment_Step5(probabilities.size, conversion_rates_item2, daily_customers, promo_fractions)
-            ucb1_learner = UCB_Matching(probabilities.size, *probabilities.shape, selected_margin_item2,
-                                        daily_customers, 1-self.discounts, promo_fractions)
+            env = Environment_Step5(conversion_rates_item2, daily_customers)
+            matching_learner = Matching(selected_margin_item2, np.full((4, 4), 0.1), daily_customers, self.discounts, promo_fractions)
 
-            rew_ucb_per_exp = []
-            opt_rew_per_exp = []
+            rew_matching_per_exp = []
+            opt_matching_per_exp = []
+            conversion_rates_item2_per_exp = [[[] for _ in range(4)] for _ in range(4)]
 
             for t in range(time_horizon):
+                print(t)
                 # Learning the number of customers
                 daily_customers_sample = env_daily_customers.sample()
                 daily_customers_empirical_means = learner_daily_customers.update_daily_customers(
                     empirical_means=daily_customers_empirical_means, sample=daily_customers_sample)
 
                 # Updating the daily customers in the learner and in the environment
-                ucb1_learner.daily_customers = daily_customers_empirical_means
+                matching_learner.daily_customers = daily_customers_empirical_means
                 env.daily_customers = daily_customers_sample
 
-                # Learning the matching using UCB1
-                pulled_arms = ucb1_learner.pull_arm()
-                rewards, weights, conversion_rates_item2_promo0 = env.round(pulled_arms)
-                ucb1_learner.update(pulled_arms, rewards)
+                # Computing the weights matrix (normalized)
+                # At the first round, we initialize the weights uniformly for each line
+                weights = matching_learner.optimize()
 
-                #TODO empirical means
-                rew_ucb_per_exp.append((selected_margin_item2 * (1-self.discounts[1:]) * np.sum(weights[1:], axis=1) * rewards).sum() +
-                                       (selected_margin_item2 * weights[0] * conversion_rates_item2_promo0).sum())
-                #opt_rew_per_exp.append(objective[opt].sum())
-                opt_rew_per_exp.append(opt)
+                # Getting the conversion rates of item 2 from the environment
+                conversion_rates_item2_sample = env.round(weights)
 
-            regret_ucb[e, :] = np.cumsum(opt_rew_per_exp) - np.cumsum(rew_ucb_per_exp)
-            reward_ucb.append(rew_ucb_per_exp)
+                # Appending the conversion rates to the list per experiment
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        if conversion_rates_item2_sample[promo_type][class_type] != 0:
+                            conversion_rates_item2_per_exp[promo_type][class_type].append(conversion_rates_item2_sample[promo_type][class_type])
 
-        #opt = [objective[opt].sum()] * time_horizon
+                # Computing the mean of the list per experiment
+                conversion_rates_item2_means = np.zeros((4, 4))
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        if len(conversion_rates_item2_per_exp[promo_type][class_type]) > 0:
+                            conversion_rates_item2_means[promo_type][class_type] = np.mean(conversion_rates_item2_per_exp[promo_type][class_type])
+                        else:
+                            conversion_rates_item2_means[promo_type][class_type] = 0
+
+                matching_learner.conversion_rates_item2 = conversion_rates_item2_means
+
+                rew = 0
+                for promo_type in range(4):
+                    for class_type in range(4):
+                        rew = rew + (selected_margin_item2 * (1-self.discounts[promo_type]) * daily_customers_sample[class_type] *
+                                     weights[promo_type][class_type] * conversion_rates_item2_sample[promo_type][class_type])
+
+                rew_matching_per_exp.append(rew)
+
+                #daily_promos_per_round = (promo_fractions * sum(daily_customers_sample)).astype(int)
+                #opt_per_round = lp.matching_lp(selected_margin_item2, self.discounts, conversion_rates_item2, daily_promos_per_round, daily_customers_sample)[0]
+                opt_matching_per_exp.append(opt)
+
+            regret_matching[e, :] = np.cumsum(opt_matching_per_exp) - np.cumsum(rew_matching_per_exp)
+            reward_matching.append(rew_matching_per_exp)
+
         opt = [opt] * time_horizon
 
-        return [regret_ucb, opt, reward_ucb]
+        return [regret_matching, opt, reward_matching]
 
 ########################################################################################################################
 

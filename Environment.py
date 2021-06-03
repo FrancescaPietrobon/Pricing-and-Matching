@@ -68,31 +68,11 @@ class Environment_Step4:
 
 
 class Environment_Step5:
-    def __init__(self, n_arms, conversion_rates_item2, daily_customers, promo_fractions):
-        self.n_arms = n_arms
+    def __init__(self, conversion_rates_item2, daily_customers):
         self.conversion_rates_item2 = conversion_rates_item2
         self.daily_customers = daily_customers
-        self.promo_fractions = promo_fractions
 
-    def round(self, pulled_arms):
-        # Given the resulting pulled arms [[x, y, z], [a, b, c]], we reconstruct the usual 4x4 matrix
-        # In the cells selected by the matching above, we give the promo (as a fraction of the customers)
-        # Notice that the "+1" on the rows is required since the matching did not consider promo P0
-        weights = np.zeros((4, 4))
-        for i in range(0, 3):
-            if (self.promo_fractions[i+1] * sum(self.daily_customers)) <= self.daily_customers[pulled_arms[1][i]]:
-                weights[pulled_arms[0][i]+1, pulled_arms[1][i]] = self.promo_fractions[i+1] * sum(self.daily_customers)
-            else:
-                weights[pulled_arms[0][i]+1, pulled_arms[1][i]] = self.daily_customers[pulled_arms[1][i]]
-
-        # Otherwise, as always, we give promo P0 to the remaining customers
-        for j in range(0, 4):
-            weights[0, j] = self.daily_customers[j] - sum(weights[:, j])
-
-        weights_int = weights
-        # Normalizing the weights matrix to have proper values between 0 and 1
-        weights = normalize(weights, 'l1', axis=0)
-
+    def round(self, weights):
         # Simulating the arrival of customers (that buy item 2)
         reward2 = np.zeros((4, 4))
         offer = np.zeros((4, 4))
@@ -110,10 +90,7 @@ class Environment_Step5:
             for j in range(4):
                 result[i, j] = reward2[i, j] / offer[i, j] if offer[i, j] > 0 else 0
 
-        result_sum = result[1:]
-        result_sum = np.sum(result_sum, axis=1)
-
-        return result_sum, weights_int, result[0]
+        return result
 
 
 class Environment_Step6:

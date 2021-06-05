@@ -1,11 +1,9 @@
-import numpy as np
-np.random.seed(1234)
-
-
 class Learner_Customers:
-    def __init__(self):
+    def __init__(self, initial_empirical_means):
         self.t = 0
+        self.empirical_means = initial_empirical_means
 
-    def update_daily_customers(self, empirical_means, sample):
+    def update_daily_customers(self, sample):
         self.t += 1
-        return (empirical_means * (self.t - 1) + sample) / self.t
+        self.empirical_means = (self.empirical_means * (self.t - 1) + sample) / self.t
+        return self.empirical_means

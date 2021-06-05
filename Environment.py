@@ -6,8 +6,7 @@ np.random.seed(1234)
 
 
 class Environment_Step3:
-    def __init__(self, n_arms, conversion_rates_item1, daily_customers):
-        self.n_arms = n_arms
+    def __init__(self, conversion_rates_item1, daily_customers):
         self.conversion_rates_item1 = conversion_rates_item1
         self.daily_customers = daily_customers
 
@@ -30,8 +29,7 @@ class Environment_Step3:
 
 
 class Environment_Step4:
-    def __init__(self, n_arms, conversion_rates_item1, conversion_rates_item2, weights, daily_customers):
-        self.n_arms = n_arms
+    def __init__(self, conversion_rates_item1, conversion_rates_item2, weights, daily_customers):
         self.conversion_rates_item1 = conversion_rates_item1
         self.conversion_rates_item2 = conversion_rates_item2
         self.weights = weights

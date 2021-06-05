@@ -1,25 +1,25 @@
 from scipy.optimize import linprog
 
 
-def matching_lp(price_item2, discounts, prob_buy_item21, daily_promos, daily_customers):
+def matching_lp(margin_item2, discounts, conversion_rates_item2, daily_promos, daily_customers):
 
     # Objective Function
-    c = [price_item2 * prob_buy_item21[0][0] * (1-discounts[0]),            # P0 - Class1
-         price_item2 * prob_buy_item21[0][1] * (1-discounts[0]),            # P0 - Class2
-         price_item2 * prob_buy_item21[0][2] * (1-discounts[0]),            # P0 - Class3
-         price_item2 * prob_buy_item21[0][3] * (1-discounts[0]),            # P0 - Class4
-         price_item2 * prob_buy_item21[1][0] * (1-discounts[1]),            # P1 - Class1
-         price_item2 * prob_buy_item21[1][1] * (1-discounts[1]),            # P1 - Class2
-         price_item2 * prob_buy_item21[1][2] * (1-discounts[1]),            # P1 - Class3
-         price_item2 * prob_buy_item21[1][3] * (1-discounts[1]),            # P1 - Class4
-         price_item2 * prob_buy_item21[2][0] * (1-discounts[2]),            # P2 - Class1
-         price_item2 * prob_buy_item21[2][1] * (1-discounts[2]),            # P2 - Class2
-         price_item2 * prob_buy_item21[2][2] * (1-discounts[2]),            # P2 - Class3
-         price_item2 * prob_buy_item21[2][3] * (1-discounts[2]),            # P2 - Class4
-         price_item2 * prob_buy_item21[3][0] * (1-discounts[3]),            # P3 - Class1
-         price_item2 * prob_buy_item21[3][1] * (1-discounts[3]),            # P3 - Class2
-         price_item2 * prob_buy_item21[3][2] * (1-discounts[3]),            # P3 - Class3
-         price_item2 * prob_buy_item21[3][3] * (1-discounts[3])]            # P3 - Class4
+    c = [margin_item2 * conversion_rates_item2[0][0] * (1 - discounts[0]),  # P0 - Class1
+         margin_item2 * conversion_rates_item2[0][1] * (1 - discounts[0]),  # P0 - Class2
+         margin_item2 * conversion_rates_item2[0][2] * (1 - discounts[0]),  # P0 - Class3
+         margin_item2 * conversion_rates_item2[0][3] * (1 - discounts[0]),  # P0 - Class4
+         margin_item2 * conversion_rates_item2[1][0] * (1 - discounts[1]),  # P1 - Class1
+         margin_item2 * conversion_rates_item2[1][1] * (1 - discounts[1]),  # P1 - Class2
+         margin_item2 * conversion_rates_item2[1][2] * (1 - discounts[1]),  # P1 - Class3
+         margin_item2 * conversion_rates_item2[1][3] * (1 - discounts[1]),  # P1 - Class4
+         margin_item2 * conversion_rates_item2[2][0] * (1 - discounts[2]),  # P2 - Class1
+         margin_item2 * conversion_rates_item2[2][1] * (1 - discounts[2]),  # P2 - Class2
+         margin_item2 * conversion_rates_item2[2][2] * (1 - discounts[2]),  # P2 - Class3
+         margin_item2 * conversion_rates_item2[2][3] * (1 - discounts[2]),  # P2 - Class4
+         margin_item2 * conversion_rates_item2[3][0] * (1 - discounts[3]),  # P3 - Class1
+         margin_item2 * conversion_rates_item2[3][1] * (1 - discounts[3]),  # P3 - Class2
+         margin_item2 * conversion_rates_item2[3][2] * (1 - discounts[3]),  # P3 - Class3
+         margin_item2 * conversion_rates_item2[3][3] * (1 - discounts[3])]            # P3 - Class4
 
     # Inequality constraints: the sum of promo codes given to a class does not exceed the customers of that class
     a_inequality = [[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],       # Class1

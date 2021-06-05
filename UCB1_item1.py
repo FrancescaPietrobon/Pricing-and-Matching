@@ -23,10 +23,9 @@ class UCB1_item1():
             arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
         return arm
 
-    def update(self, pulled_arm, reward):
+    def update(self, pulled_arm, reward, revenue):
         self.t += 1
-        self.collected_rewards = np.append(self.collected_rewards, np.sum(
-            (self.margins[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
+        self.collected_rewards = np.append(self.collected_rewards, revenue)
         self.empirical_means[:, pulled_arm] = (self.empirical_means[:, pulled_arm] * (self.t-1) + reward) / self.t
         for a in range(self.n_arms):
             number_pulled = max(1, len(self.rewards_per_arm[a]))

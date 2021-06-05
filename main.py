@@ -90,17 +90,17 @@ def plot_regret(step, opt, ucb1_rewards_per_exp, ts_rewards_per_exp):
     plt.figure()
     plt.xlabel("t")
     plt.ylabel("Regret")
-    x = np.arange(len(ucb1_rewards_per_exp[0]), dtype=float)
+    #x = np.arange(len(ucb1_rewards_per_exp[0]), dtype=float)
 
     y_ucb = np.cumsum(np.mean(opt - ucb1_rewards_per_exp, axis=0))
-    conf_int_ucb = 1.960 * np.std(y_ucb) / np.mean(y_ucb)
+    #conf_int_ucb = 1.960 * np.std(y_ucb) / np.mean(y_ucb)
     plt.plot(y_ucb, "b")
-    plt.fill_between(x, (y_ucb - conf_int_ucb), (y_ucb + conf_int_ucb), color='b', alpha=.3)
+    #plt.fill_between(x, (y_ucb - conf_int_ucb), (y_ucb + conf_int_ucb), color='b', alpha=.3)
 
     y_ts = np.cumsum(np.mean(opt - ts_rewards_per_exp, axis=0))
-    conf_int_ts = 1.960 * np.std(y_ts) / np.mean(y_ts)
+    #conf_int_ts = 1.960 * np.std(y_ts) / np.mean(y_ts)
     plt.plot(y_ts, "r")
-    plt.fill_between(x, (y_ts - conf_int_ts), (y_ts + conf_int_ts), color='r', alpha=.3)
+    #plt.fill_between(x, (y_ts - conf_int_ts), (y_ts + conf_int_ts), color='r', alpha=.3)
 
     plt.legend(["UCB1", "TS"], title=step)
     plt.show()

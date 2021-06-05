@@ -12,7 +12,7 @@ class Matching:
 
     def optimize(self):
         daily_promos = (self.promo_fractions * sum(self.daily_customers)).astype(int)
-        matching = lp.matching_lp(self.margin_item2, self.discounts, self.conversion_rates_item2,
-                                  daily_promos, self.daily_customers)
+        _, matching = lp.matching_lp(self.margin_item2, self.discounts, self.conversion_rates_item2,
+                                     daily_promos, self.daily_customers)
 
-        return normalize(matching[1], 'l1', axis=0)
+        return normalize(matching, 'l1', axis=0)

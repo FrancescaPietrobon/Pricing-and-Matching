@@ -5,154 +5,135 @@ import itertools
 np.random.seed(1234)
 
 
-class Environment_Step3:
-    def __init__(self, conversion_rates_item1, daily_customers):
-        self.conversion_rates_item1 = conversion_rates_item1
-        self.daily_customers = daily_customers
-
-    def round(self, pulled_arm):
-        reward = np.zeros(4)
-        offer = np.zeros(4)
-        for i in range(sum(self.daily_customers)):
-            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
-                                           self.daily_customers[1] / sum(self.daily_customers),
-                                           self.daily_customers[2] / sum(self.daily_customers),
-                                           self.daily_customers[3] / sum(self.daily_customers)])
-            offer[group] += 1
-            reward[group] = reward[group] + np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
-
-        result = np.zeros(4)
-        for i in range(4):
-            result[i] = reward[i] / offer[i] if offer[i] > 0 else 0
-
-        return result
-
-
-class Environment_Step4:
-    def __init__(self, conversion_rates_item1, conversion_rates_item2, weights, daily_customers):
+class Environment_Single_Price:
+    def __init__(self, margins_item1, margin_item2, conversion_rates_item1, conversion_rates_item2, weights, daily_customers, discounts):
+        self.margins_item1 = margins_item1
+        self.margin_item2 = margin_item2
         self.conversion_rates_item1 = conversion_rates_item1
         self.conversion_rates_item2 = conversion_rates_item2
         self.weights = weights
         self.daily_customers = daily_customers
+        self.discounts = discounts
 
     def round(self, pulled_arm):
-        reward1 = np.zeros(4)
-        reward2 = np.zeros((4, 4))
-        offer1 = np.zeros(4)
-        offer2 = np.zeros((4, 4))
-        for i in range(sum(self.daily_customers)):
-            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
-                                           self.daily_customers[1] / sum(self.daily_customers),
-                                           self.daily_customers[2] / sum(self.daily_customers),
-                                           self.daily_customers[3] / sum(self.daily_customers)])
-            bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
-            offer1[group] += 1
-            reward1[group] = reward1[group] + bin_item1
-            if bin_item1 == 1:
-                promo = np.random.choice(4, p=self.weights[:, group])
-                offer2[promo, group] += 1
-                reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
+        buyers_item1 = np.zeros(4)
+        buyers_item2 = np.zeros((4, 4))
+        offer_item1 = np.zeros(4)
+        offer_item2 = np.zeros((4, 4))
+        for group in range(4):
+            for _ in range(self.daily_customers[group]):
+                bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm])
+                offer_item1[group] += 1
+                buyers_item1[group] = buyers_item1[group] + bin_item1
+                if bin_item1 == 1:
+                    promo = np.random.choice(4, p=self.weights[:, group])
+                    offer_item2[promo, group] += 1
+                    buyers_item2[promo, group] = buyers_item2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
 
-        result1 = np.zeros(4)
+        conversion_rates_item1_round = np.zeros(4)
         for i in range(4):
-            result1[i] = reward1[i] / offer1[i] if offer1[i] > 0 else 0
+            conversion_rates_item1_round[i] = buyers_item1[i] / offer_item1[i] if offer_item1[i] > 0 else 0
 
-        result2 = np.zeros((4, 4))
+        conversion_rates_item2_round = np.zeros((4, 4))
         for i in range(4):
             for j in range(4):
-                result2[i, j] = reward2[i, j] / offer2[i, j] if offer2[i, j] > 0 else 0
+                conversion_rates_item2_round[i, j] = buyers_item2[i, j] / offer_item2[i, j] if offer_item2[i, j] > 0 else 0
 
-        return result1, result2
+        selected_margin_item1 = self.margins_item1[pulled_arm]
+        revenue_item1 = 0
+        revenue_item1 = revenue_item1 + buyers_item1.sum() * selected_margin_item1
+
+        revenue_item2 = 0
+        for promo_type in range(4):
+            revenue_item2 = revenue_item2 + (buyers_item2[promo_type]).sum() * self.margin_item2 * (1-self.discounts[promo_type])
+
+        revenue = revenue_item1 + revenue_item2
+
+        return conversion_rates_item1_round, conversion_rates_item2_round, revenue
 
 
 class Environment_Step5:
-    def __init__(self, conversion_rates_item2, daily_customers):
+    def __init__(self, margin_item2, conversion_rates_item2, daily_customers, discounts):
+        self.margin_item2 = margin_item2
         self.conversion_rates_item2 = conversion_rates_item2
         self.daily_customers = daily_customers
+        self.discounts = discounts
 
     def round(self, weights):
         # Simulating the arrival of customers (that buy item 2)
-        reward2 = np.zeros((4, 4))
-        offer = np.zeros((4, 4))
-        for i in range(sum(self.daily_customers)):
-            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
-                                           self.daily_customers[1] / sum(self.daily_customers),
-                                           self.daily_customers[2] / sum(self.daily_customers),
-                                           self.daily_customers[3] / sum(self.daily_customers)])
-            promo = np.random.choice(4, p=weights[:, group])
-            offer[promo, group] += 1
-            reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
+        buyers_item2 = np.zeros((4, 4))
+        offer_item2 = np.zeros((4, 4))
+        for group in range(4):
+            for _ in range(self.daily_customers[group]):
+                promo = np.random.choice(4, p=weights[:, group])
+                offer_item2[promo, group] += 1
+                buyers_item2[promo, group] = buyers_item2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
 
-        result = np.zeros((4, 4))
+        conversion_rates_item2_round = np.zeros((4, 4))
         for i in range(4):
             for j in range(4):
-                result[i, j] = reward2[i, j] / offer[i, j] if offer[i, j] > 0 else 0
+                conversion_rates_item2_round[i, j] = buyers_item2[i, j] / offer_item2[i, j] if offer_item2[i, j] > 0 else 0
 
-        return result
+        revenue_item2 = 0
+        for promo_type in range(4):
+            revenue_item2 = revenue_item2 + (buyers_item2[promo_type]).sum() * self.margin_item2 * (1-self.discounts[promo_type])
+
+        return conversion_rates_item2_round, revenue_item2
 
 
 class Environment_Step6:
-    def __init__(self, n_arms, conversion_rates_item1, conversion_rates_item2,
-                 daily_customers, promo_fractions, margins_item1, margins_item2):
-        self.n_arms = n_arms
+    def __init__(self, conversion_rates_item1, conversion_rates_item2,
+                 daily_customers, promo_fractions, margins_item1, margins_item2, discounts):
         self.conversion_rates_item1 = conversion_rates_item1
         self.conversion_rates_item2 = conversion_rates_item2
         self.daily_customers = daily_customers
         self.promo_fractions = promo_fractions
         self.margins_item1 = margins_item1
         self.margins_item2 = margins_item2
+        self.discounts = discounts
 
     def round(self, pulled_arm):
-
-        #idx_price_item1 = list(self.margins_item1).index(pulled_arm[0][0])
-        #idx_price_item2 = list(self.margins_item2).index(pulled_arm[0][1])
-
-        weights = np.zeros((4, 4))
-        for i in range(0, 3):
-            if (self.promo_fractions[i + 1] * sum(self.daily_customers)) <= self.daily_customers[pulled_arm[2][i]]:
-                weights[pulled_arm[1][i] + 1, pulled_arm[2][i]] = self.promo_fractions[i + 1] * sum(self.daily_customers)
-            else:
-                weights[pulled_arm[1][i] + 1, pulled_arm[2][i]] = self.daily_customers[pulled_arm[2][i]]
-
-        # Otherwise, as always, we give promo P0 to the remaining customers
-        for j in range(0, 4):
-            weights[0, j] = self.daily_customers[j] - sum(weights[:, j])
-
-        weights_int = weights
         # Normalizing the weights matrix to have proper values between 0 and 1
-        weights = normalize(weights, 'l1', axis=0)
+        weights = np.zeros((4, 4))
+        for class_type in range(4):
+            weights[:, class_type] = pulled_arm[1][:, class_type] / pulled_arm[1][:, class_type].sum()
 
         # Simulating the arrival of customers
-        reward1 = np.zeros(4)
-        reward2 = np.zeros((4, 4))
-        offer1 = np.zeros(4)
-        offer2 = np.zeros((4, 4))
-        for i in range(sum(self.daily_customers)):
-            group = np.random.choice(4, p=[self.daily_customers[0] / sum(self.daily_customers),
-                                           self.daily_customers[1] / sum(self.daily_customers),
-                                           self.daily_customers[2] / sum(self.daily_customers),
-                                           self.daily_customers[3] / sum(self.daily_customers)])
-            bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm[0][0]])
-            offer1[group] += 1
-            reward1[group] = reward1[group] + bin_item1
-            if bin_item1 == 1:
-                promo = np.random.choice(4, p=weights[:, group])
-                offer2[promo, group] += 1
-                reward2[promo, group] = reward2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[pulled_arm[0][1], promo, group])
+        buyers_item1 = np.zeros(4)
+        buyers_item2 = np.zeros((4, 4))
+        offer_item1 = np.zeros(4)
+        offer_item2 = np.zeros((4, 4))
+        for group in range(4):
+            for _ in range(self.daily_customers[group]):
+                bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group, pulled_arm[0][0]])
+                offer_item1[group] += 1
+                buyers_item1[group] = buyers_item1[group] + bin_item1
+                if bin_item1 == 1:
+                    promo = np.random.choice(4, p=weights[:, group])
+                    offer_item2[promo, group] += 1
+                    buyers_item2[promo, group] = buyers_item2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[pulled_arm[0][1], promo, group])
 
-        result1 = np.zeros(4)
+        conversion_rates_item1_round = np.zeros(4)
         for i in range(4):
-            result1[i] = reward1[i] / offer1[i] if offer1[i] > 0 else 0
+            conversion_rates_item1_round[i] = buyers_item1[i] / offer_item1[i] if offer_item1[i] > 0 else 0
 
-        result2 = np.zeros((4, 4))
+        conversion_rates_item2_round = np.zeros((4, 4))
         for i in range(4):
             for j in range(4):
-                result2[i, j] = reward2[i, j] / offer2[i, j] if offer2[i, j] > 0 else 0
+                conversion_rates_item2_round[i, j] = buyers_item2[i, j] / offer_item2[i, j] if offer_item2[i, j] > 0 else 0
 
-        result3 = result2[1:]
-        result3 = np.sum(result3, axis=1)
+        selected_margin_item1 = self.margins_item1[pulled_arm[0][0]]
+        revenue_item1 = 0
+        revenue_item1 = revenue_item1 + buyers_item1.sum() * selected_margin_item1
 
-        return [result1, result2, result3, weights_int]
+        selected_margin_item2 = self.margins_item2[pulled_arm[0][1]]
+        revenue_item2 = 0
+        for promo_type in range(4):
+            revenue_item2 = revenue_item2 + (buyers_item2[promo_type]).sum() * selected_margin_item2 * (1-self.discounts[promo_type])
+
+        revenue = revenue_item1 + revenue_item2
+
+        return conversion_rates_item1_round, conversion_rates_item2_round, revenue
 
 ########################################################################################################################
 class Daily_Customers:

@@ -19,9 +19,8 @@ class TS_Learner_item1():
         arm = np.random.choice(np.where(value == value.max())[0])
         return arm
 
-    def update(self, pulled_arm, reward):
+    def update(self, pulled_arm, reward, revenue):
         self.t += 1
-        self.collected_rewards = np.append(self.collected_rewards, np.sum(
-            (self.margins[pulled_arm] + self.reward_item2) * self.daily_customers * reward))
+        self.collected_rewards = np.append(self.collected_rewards, revenue)
         self.beta_parameters[:, pulled_arm, 0] = self.beta_parameters[:, pulled_arm, 0] + reward
         self.beta_parameters[:, pulled_arm, 1] = self.beta_parameters[:, pulled_arm, 1] + 1.0 - reward

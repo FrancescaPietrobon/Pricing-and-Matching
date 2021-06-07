@@ -292,8 +292,8 @@ class Simulator:
             # Environment and learner for the price of item 1
             env = Environment_Step6(conversion_rates_item1, conversion_rates_item2, daily_customers, promo_fractions,
                                     margins_item1, margins_item2, self.discounts)
-
             ucb_learner = UCB1_items_matching(daily_customers, margins_item1, margins_item2, self.discounts, promo_fractions)
+
             rew_ucb_per_exp = []
             opt_rew_per_exp = []
 
@@ -323,7 +323,7 @@ class Simulator:
         return [regret_ucb, opt, reward_ucb]
 
 ########################################################################################################################
-    # TODO clean code
+    # TODO adapt according to step 6
     def simulation_step_7(self, promo_fractions):
         # Number of arms for pricing item 1
         n_arms = 9
@@ -667,7 +667,7 @@ class Simulator:
         plt.show()
 
 ########################################################################################################################
-
+    # TODO adapt according to step 6
     def simulation_step_8(self, promo_fractions):
         # Number of arms for pricing item 1
         n_arms = 9

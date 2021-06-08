@@ -11,7 +11,8 @@ from CUMSUM_UCB_Matching import CUMSUM_UCB_Matching
 from Data import *
 from Environment import *
 import matching_lp as lp
-from Matching import *
+from Learner_Conversion_Rates_Item1 import *
+from Learner_Matching import *
 from Learner_Customers import *
 from SWTS_Learner import *
 from SWTS_Learner_item2 import *
@@ -84,7 +85,7 @@ class Simulator:
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         n_experiments = 5
-        time_horizon = 365
+        time_horizon = 1000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -129,7 +130,7 @@ class Simulator:
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         # This time, the number of customers and the conversion rates for item 2 are not known
         n_experiments = 5
-        time_horizon = 365
+        time_horizon = 1000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -195,22 +196,20 @@ class Simulator:
 ########################################################################################################################
 
     def simulation_step_5(self, promo_fractions):
-        _, _, selected_price_item2, _ = self.simulation_step_1(promo_fractions)
+        opt, selected_price_item1, selected_price_item2, _ = self.simulation_step_1(promo_fractions)
+
+        conversion_rates_item1 = self.data.conversion_rates_item1[:, list(self.data.prices_item1).index(selected_price_item1)]
+        selected_margin_item1 = self.data.margins_item1[list(self.data.prices_item1).index(selected_price_item1)]
 
         conversion_rates_item2 = self.data.conversion_rates_item2[list(self.data.prices_item2).index(selected_price_item2)]
         selected_margin_item2 = self.data.margins_item2[list(self.data.prices_item2).index(selected_price_item2)]
-        daily_customers = self.data.daily_customers
 
-        # Objective matrix (row: promo; column: customer class)
-        daily_promos = (promo_fractions * sum(daily_customers)).astype(int)
-        opt, _ = lp.matching_lp(selected_margin_item2, self.discounts, conversion_rates_item2, daily_promos, daily_customers)
+        daily_customers = self.data.daily_customers
 
         # Launching the experiments, using UCB1 to learn the promo-customer class matching
         n_experiments = 1
-        time_horizon = 1000
-        regret_matching = np.zeros((n_experiments, time_horizon))
+        time_horizon = 5000
         reward_matching = []
-        opt_matching = []
 
         for e in range(n_experiments):
             print("Experiment ", e+1, "/", n_experiments)
@@ -219,18 +218,19 @@ class Simulator:
             env_daily_customers = Daily_Customers(mean=daily_customers, sd=25)
             learner_daily_customers = Learner_Customers(np.zeros(4))
 
+            # Learner for the mean of the conversion rates of item 1
+            learner_conversion_rates_item1 = Learner_Conversion_Rates_item1()
+
             # Learner for the mean of the conversion rates of item 2
             learner_conversion_rates_item2 = Learner_Conversion_Rates_item2()
 
             # Environment and learner for the matching between promos and customer classes
-            env = Environment_Step5(selected_margin_item2, conversion_rates_item2, daily_customers, self.discounts)
-            matching_learner = Matching(selected_margin_item2, np.full((4, 4), 0.1), daily_customers, self.discounts, promo_fractions)
+            env = Environment_Step5(selected_margin_item1, selected_margin_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, self.discounts)
+            matching_learner = Matching(selected_margin_item2, np.full(4, 0.1), np.full((4, 4), 0.1), daily_customers, self.discounts, promo_fractions)
 
             rew_matching_per_exp = []
-            opt_matching_per_exp = []
 
             for t in range(time_horizon):
-                print(t)
                 # Learning the number of customers
                 daily_customers_sample = env_daily_customers.sample()
                 daily_customers_empirical_means = learner_daily_customers.update_daily_customers(daily_customers_sample)
@@ -240,27 +240,18 @@ class Simulator:
                 env.daily_customers = daily_customers_sample
 
                 # Computing the weights matrix (normalized)
-                # At the first round, we initialize the weights uniformly for each line
-                weights = matching_learner.optimize()
+                weights = matching_learner.optimize(t)
 
-                # Getting the conversion rates of item 2 from the environment
-                conversion_rates_item2_sample, revenue_item2 = env.round(weights)
+                # Getting the conversion rates from the environment and updating the learner with them
+                conversion_rates_item1_sample, conversion_rates_item2_sample, revenue = env.round(weights)
+                matching_learner.conversion_rates_item1 = learner_conversion_rates_item1.update_conversion_rates(conversion_rates_item1_sample)
                 matching_learner.conversion_rates_item2 = learner_conversion_rates_item2.update_conversion_rates(conversion_rates_item2_sample)
 
-                rew_matching_per_exp.append(revenue_item2)
+                rew_matching_per_exp.append(revenue)
 
-                daily_promos_per_round = (promo_fractions * sum(daily_customers_empirical_means)).astype(int)
-                opt_per_round, _ = lp.matching_lp(selected_margin_item2, self.discounts, conversion_rates_item2, daily_promos_per_round, daily_customers_empirical_means)
-                opt_matching_per_exp.append(opt_per_round)
-
-            regret_matching[e, :] = np.cumsum(opt_matching_per_exp) - np.cumsum(rew_matching_per_exp)
             reward_matching.append(rew_matching_per_exp)
-            opt_matching.append(opt_matching_per_exp)
 
-        #opt = [opt] * time_horizon
-        opt = np.mean(opt_matching, axis=0)
-
-        return [regret_matching, opt, reward_matching]
+        return opt, reward_matching, time_horizon
 
 ########################################################################################################################
 
@@ -276,10 +267,9 @@ class Simulator:
         opt, _, _, _ = self.simulation_step_1(promo_fractions)
 
         # Launching the experiments
-        n_experiments = 1
-        time_horizon = 5000
+        n_experiments = 3
+        time_horizon = 1000
 
-        regret_ucb = np.zeros((n_experiments, time_horizon))
         reward_ucb = []
 
         for e in range(n_experiments):
@@ -289,16 +279,14 @@ class Simulator:
             env_daily_customers = Daily_Customers(mean=daily_customers, sd=25)
             learner_daily_customers = Learner_Customers(np.zeros(4))
 
-            # Environment and learner for the price of item 1
+            # Environment and learner for the prices of the two items and the matching
             env = Environment_Step6(conversion_rates_item1, conversion_rates_item2, daily_customers, promo_fractions,
                                     margins_item1, margins_item2, self.discounts)
             ucb_learner = UCB1_items_matching(daily_customers, margins_item1, margins_item2, self.discounts, promo_fractions)
 
             rew_ucb_per_exp = []
-            opt_rew_per_exp = []
 
             for t in range(time_horizon):
-                print(t)
                 # Learning the number of customers
                 daily_customers_sample = env_daily_customers.sample()
                 daily_customers_empirical_means = learner_daily_customers.update_daily_customers(daily_customers_sample)
@@ -313,14 +301,10 @@ class Simulator:
                 ucb_learner.update(pulled_arm[0], reward)
 
                 rew_ucb_per_exp.append(reward[2])
-                opt_rew_per_exp.append(opt)
 
-            regret_ucb[e, :] = np.cumsum(opt_rew_per_exp) - np.cumsum(rew_ucb_per_exp)
             reward_ucb.append(rew_ucb_per_exp)
 
-        opt = [opt] * time_horizon
-
-        return [regret_ucb, opt, reward_ucb]
+        return opt, reward_ucb, time_horizon
 
 ########################################################################################################################
     # TODO adapt according to step 6

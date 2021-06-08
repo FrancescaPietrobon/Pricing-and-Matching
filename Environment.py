@@ -53,32 +53,48 @@ class Environment_Single_Price:
 
 
 class Environment_Step5:
-    def __init__(self, margin_item2, conversion_rates_item2, daily_customers, discounts):
+    def __init__(self, margin_item1, margin_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, discounts):
+        self.margin_item1 = margin_item1
         self.margin_item2 = margin_item2
+        self.conversion_rates_item1 = conversion_rates_item1
         self.conversion_rates_item2 = conversion_rates_item2
         self.daily_customers = daily_customers
         self.discounts = discounts
 
     def round(self, weights):
-        # Simulating the arrival of customers (that buy item 2)
+        buyers_item1 = np.zeros(4)
         buyers_item2 = np.zeros((4, 4))
+        offer_item1 = np.zeros(4)
         offer_item2 = np.zeros((4, 4))
         for group in range(4):
             for _ in range(self.daily_customers[group]):
-                promo = np.random.choice(4, p=weights[:, group])
-                offer_item2[promo, group] += 1
-                buyers_item2[promo, group] = buyers_item2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
+                bin_item1 = np.random.binomial(1, self.conversion_rates_item1[group])
+                offer_item1[group] += 1
+                buyers_item1[group] = buyers_item1[group] + bin_item1
+                if bin_item1 == 1:
+                    promo = np.random.choice(4, p=weights[:, group])
+                    offer_item2[promo, group] += 1
+                    buyers_item2[promo, group] = buyers_item2[promo, group] + np.random.binomial(1, self.conversion_rates_item2[promo, group])
+
+        conversion_rates_item1_round = np.zeros(4)
+        for i in range(4):
+            conversion_rates_item1_round[i] = buyers_item1[i] / offer_item1[i] if offer_item1[i] > 0 else 0
 
         conversion_rates_item2_round = np.zeros((4, 4))
         for i in range(4):
             for j in range(4):
                 conversion_rates_item2_round[i, j] = buyers_item2[i, j] / offer_item2[i, j] if offer_item2[i, j] > 0 else 0
 
+        revenue_item1 = 0
+        revenue_item1 = revenue_item1 + buyers_item1.sum() * self.margin_item1
+
         revenue_item2 = 0
         for promo_type in range(4):
             revenue_item2 = revenue_item2 + (buyers_item2[promo_type]).sum() * self.margin_item2 * (1-self.discounts[promo_type])
 
-        return conversion_rates_item2_round, revenue_item2
+        revenue = revenue_item1 + revenue_item2
+
+        return conversion_rates_item1_round, conversion_rates_item2_round, revenue
 
 
 class Environment_Step6:

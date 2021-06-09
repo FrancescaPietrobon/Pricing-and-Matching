@@ -1,8 +1,8 @@
-from Learner import *
+import numpy as np
 np.random.seed(1234)
 
 
-class TS_Learner_item1():
+class TS_Learner_Item1():
     def __init__(self, n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, discounts):
         self.n_arms = n_arms
         self.t = 0

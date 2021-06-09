@@ -1,10 +1,10 @@
-from UCB1_item1 import UCB1_item1
+from Learners.UCB1_Item1 import UCB1_Item1
 from Cumsum import CUMSUM
 import numpy as np
 np.random.seed(1234)
 
 
-class CUMSUM_UCB1_item1(UCB1_item1):
+class CUMSUM_UCB1_item1(UCB1_Item1):
     def __init__(self, n_arms, daily_customers, margins, reward_item2, M=100, eps=0.05, h=20, alpha=0.01):
         super().__init__(n_arms, daily_customers, margins, reward_item2)
         self.change_detection = [CUMSUM(M, eps, h) for _ in range(n_arms)]

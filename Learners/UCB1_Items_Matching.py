@@ -4,7 +4,7 @@ import matching_lp as lp
 np.random.seed(1234)
 
 
-class UCB1_items_matching():
+class UCB1_Items_Matching():
     def __init__(self, margins_item1, margins_item2, daily_customers, discounts, promo_fractions):
         self.t = 0
         self.collected_rewards = np.array([])

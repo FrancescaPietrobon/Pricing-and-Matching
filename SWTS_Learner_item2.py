@@ -1,10 +1,12 @@
-from Learner import *
-from TS_Learner_item2 import *
+import numpy as np
 
 
-class SWTS_Learner_item2(Learner):
+class SWTS_Learner_item2():
     def __init__(self, n_arms, window_size):
-        super().__init__(n_arms)
+        self.n_arms = n_arms
+        self.t = 0
+        self.rewards_per_arm = [[] for _ in range(n_arms)]
+        self.collected_rewards = np.array([])
         self.beta_parameters = np.ones((n_arms, 2))
         self.empirical_means = np.zeros(n_arms)
         self.window_size = window_size
@@ -23,7 +25,8 @@ class SWTS_Learner_item2(Learner):
 
     def update(self, pulled_arm, reward):
         self.t += 1
-        self.update_observations(pulled_arm, reward)
+        self.rewards_per_arm[pulled_arm].append(reward)
+        self.collected_rewards = np.append(self.collected_rewards, reward)
         cum_rew = np.sum(self.rewards_per_arm[pulled_arm][-self.window_size:])
         n_rounds_arm = len(self.rewards_per_arm[pulled_arm][-self.window_size:])
 

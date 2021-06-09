@@ -2,14 +2,14 @@ import numpy as np
 np.random.seed(1234)
 
 
-class UCB1_item1():
+class UCB1_Item1():
     def __init__(self, n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, discounts):
         self.n_arms = n_arms
         self.t = 0
         self.rewards_per_arm = [[] for _ in range(n_arms)]
         self.collected_rewards = np.array([])
         self.empirical_means = np.zeros((4, n_arms))
-        self.confidence = np.zeros(n_arms)
+        self.confidence = np.full(n_arms, np.inf)
 
         self.margins_item1 = margins_item1
         self.margin_item2 = selected_margin_item2

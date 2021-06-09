@@ -1,8 +1,7 @@
-from TS_Learner_item1 import *
-from TS_Learner_item2 import *
+from Learners.TS_Learner_Item1 import *
 
 
-class SWTS_Learner(TS_Learner_item1):
+class SWTS_Learner(TS_Learner_Item1):
     def __init__(self, n_arms, daily_customers, margins, reward_item2, window_size):
         super().__init__(n_arms, daily_customers, margins, reward_item2)
         self.window_size = window_size

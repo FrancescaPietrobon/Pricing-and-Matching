@@ -1,26 +1,19 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from numpy.random import normal
 from scipy import stats
-import itertools
-from sklearn.preprocessing import normalize
 
-from CUMSUM_UCB1_item1 import CUMSUM_UCB1_item1
-from CUMSUM_UCB1_item2 import CUMSUM_UCB1_item2
-from CUMSUM_UCB_Matching import CUMSUM_UCB_Matching
 from Data import *
 from Environment import *
-import matching_lp as lp
-from Learner_Conversion_Rates_Item1 import *
-from Learner_Matching import *
-from Learner_Customers import *
+from Learners.Learner_Customers import *
+from Learners.Learner_Conversion_Rates_Item1 import *
+from Learners.Learner_Conversion_Rates_Item2 import *
+from Learners.Learner_Matching import *
+from Learners.UCB1_Item1 import *
+from Learners.UCB1_Items_Matching import *
 from SWTS_Learner import *
 from SWTS_Learner_item2 import *
-from UCB1_item1 import *
-from UCB1_item2 import *
-from UCB1_items_matching import *
-from UCB_matching import *
-from Learner_Conversion_Rates_Item2 import *
+from CUMSUM_UCB1_item1 import CUMSUM_UCB1_item1
+from CUMSUM_UCB_Matching import CUMSUM_UCB_Matching
 
 
 np.random.seed(1234)
@@ -87,8 +80,8 @@ class Simulator:
             print("Experiment {}/{} with {} rounds".format(e+1, n_experiments, time_horizon))
 
             env = Environment_Single_Price(margins_item1, selected_margin_item2, conversion_rates_item1, conversion_rates_item2, weights, daily_customers, self.discounts)
-            ucb1_learner = UCB1_item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
-            ts_learner = TS_Learner_item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
+            ucb1_learner = UCB1_Item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
+            ts_learner = TS_Learner_Item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
 
             for t in range(time_horizon):
                 # UCB1 Learner
@@ -141,8 +134,8 @@ class Simulator:
 
             # Environment and learners (UCB1 and Thompson Sampling) for the price of item 1
             env = Environment_Single_Price(margins_item1, selected_margin_item2, conversion_rates_item1, conversion_rates_item2, weights, daily_customers, self.discounts)
-            ucb1_learner = UCB1_item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
-            ts_learner = TS_Learner_item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
+            ucb1_learner = UCB1_Item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
+            ts_learner = TS_Learner_Item1(n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, self.discounts)
 
             for t in range(time_horizon):
                 # Learning the number of customers
@@ -263,7 +256,7 @@ class Simulator:
 
             # Environment and learner for the prices of the two items and the matching
             env = Environment_Double_Prices_Matching(margins_item1, margins_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, self.discounts, promo_fractions)
-            ucb_learner = UCB1_items_matching(margins_item1, margins_item2, daily_customers, self.discounts, promo_fractions)
+            ucb_learner = UCB1_Items_Matching(margins_item1, margins_item2, daily_customers, self.discounts, promo_fractions)
 
             rew_ucb_per_exp = []
 
@@ -403,8 +396,8 @@ class Simulator:
             env_item1 = Non_Stationary_Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1_NS, horizon=time_horizon)
             env_item1_NS = Non_Stationary_Environment_Third(n_arms=n_arms, probabilities=conversion_rates_item1_NS, horizon=time_horizon)
 
-            ucb1_learner_item1 = UCB1_item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
-            ts_learner_item1 = TS_Learner_item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
+            ucb1_learner_item1 = UCB1_Item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
+            ts_learner_item1 = TS_Learner_Item1(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4))
 
             ts_learner_item1_NS = SWTS_Learner(n_arms=n_arms, daily_customers=daily_customers, margins=prices_item1, reward_item2=np.zeros(4), window_size=window_size)
 

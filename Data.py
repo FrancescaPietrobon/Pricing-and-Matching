@@ -1,5 +1,5 @@
 from numpy.random import normal, binomial
-from Form import *
+from Form.Form import *
 
 np.random.seed(1234)
 
@@ -29,10 +29,11 @@ class Data:
         self.prices_item2 = np.array([40, 50, 60])
         self.margins_item2 = np.array([15, 20, 25])
 
+        # TODO Maybe avoid all these binomials and use directly the form conversion rates instead
         # Probability that a customer of a class buys the second item given that he bought the first and has a promo
         # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
         # Each one of these matrix corresponds to a candidate price for item 2
-        conversion_rates_item21_low_price = np.array([
+        conversion_rates_item2_low_price = np.array([
                             # Promo code P0 - Class1, Class2, Class3, Class4
                             [(binomial(self.daily_customers[0], form.i21_param[0][0]) + 20) / self.daily_customers[0],
                              (binomial(self.daily_customers[1], form.i21_param[0][1]) + 30) / self.daily_customers[1],
@@ -55,7 +56,7 @@ class Data:
                              (binomial(self.daily_customers[3], form.i21_param[3][3]) + 0) / self.daily_customers[3]]
                         ])
 
-        conversion_rates_item21_middle_price = np.array([
+        conversion_rates_item2_middle_price = np.array([
                                     # Promo code P0 - Class1, Class2, Class3, Class4
                                     [binomial(self.daily_customers[0], form.i21_param[0][0]) / self.daily_customers[0],
                                      binomial(self.daily_customers[1], form.i21_param[0][1]) / self.daily_customers[1],
@@ -78,7 +79,7 @@ class Data:
                                      binomial(self.daily_customers[3], form.i21_param[3][3]) / self.daily_customers[3]]
                                 ])
 
-        conversion_rates_item21_high_price = np.array([
+        conversion_rates_item2_high_price = np.array([
                             # Promo code P0 - Class1, Class2, Class3, Class4
                             [(binomial(self.daily_customers[0], form.i21_param[0][0]) - 15) / self.daily_customers[0],
                              (binomial(self.daily_customers[1], form.i21_param[0][1]) - 27) / self.daily_customers[1],
@@ -101,7 +102,7 @@ class Data:
                              (binomial(self.daily_customers[3], form.i21_param[3][3]) - 0) / self.daily_customers[3]]
                         ])
 
-        self.conversion_rates_item2 = np.array([conversion_rates_item21_low_price,
-                                                conversion_rates_item21_middle_price,
-                                                conversion_rates_item21_high_price])
+        self.conversion_rates_item2 = np.array([conversion_rates_item2_low_price,
+                                                conversion_rates_item2_middle_price,
+                                                conversion_rates_item2_high_price])
         self.conversion_rates_item2 = np.clip(self.conversion_rates_item2, 0, 1)

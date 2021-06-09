@@ -5,7 +5,7 @@ import numpy as np
 class Form:
     def __init__(self):
         # Importing the csv containing the form results
-        csv = pd.read_csv('DIA_Form.csv')
+        csv = pd.read_csv('./Form/DIA_Form.csv')
         csv.columns = ['Date', 'Age', 'Sex', 'AW', 'WS0', 'WS10', 'WS20', 'WS50']
 
         # Classes of customers

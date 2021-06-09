@@ -1,10 +1,9 @@
-from UCB_matching import UCB_Matching
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 from Cumsum import CUMSUM
 
 
-class CUMSUM_UCB_Matching(UCB_Matching):
+class CUMSUM_UCB_Matching():
     def __init__(self, n_arms, n_rows, n_cols, price, daily_customers, discounts, p_frac, M=100, eps=0.05, h=20, alpha=0.01):
         super().__init__(n_arms, n_rows, n_cols, price, daily_customers, discounts, p_frac)
         self.change_detection = [CUMSUM(M, eps, h) for _ in range(n_arms)]

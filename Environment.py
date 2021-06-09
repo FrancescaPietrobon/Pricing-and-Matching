@@ -1,7 +1,5 @@
 import numpy as np
 import math
-from sklearn.preprocessing import normalize
-import itertools
 np.random.seed(1234)
 
 

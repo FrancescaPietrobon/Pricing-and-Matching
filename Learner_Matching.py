@@ -4,10 +4,10 @@ import numpy as np
 np.random.seed(1234)
 
 class Matching:
-    def __init__(self, margin_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, discounts, promo_fractions):
+    def __init__(self, margin_item2, daily_customers, discounts, promo_fractions):
         self.margin_item2 = margin_item2
-        self.conversion_rates_item1 = conversion_rates_item1
-        self.conversion_rates_item2 = conversion_rates_item2
+        self.conversion_rates_item1 = np.array(4)
+        self.conversion_rates_item2 = np.array((4, 4))
         self.daily_customers = daily_customers
         self.discounts = discounts
         self.promo_fractions = promo_fractions

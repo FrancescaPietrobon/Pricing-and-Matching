@@ -52,7 +52,7 @@ class Environment_Single_Price:
         return conversion_rates_item1_round, conversion_rates_item2_round, revenue
 
 
-class Environment_Step5:
+class Environment_Matching:
     def __init__(self, margin_item1, margin_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, discounts):
         self.margin_item1 = margin_item1
         self.margin_item2 = margin_item2
@@ -97,16 +97,15 @@ class Environment_Step5:
         return conversion_rates_item1_round, conversion_rates_item2_round, revenue
 
 
-class Environment_Step6:
-    def __init__(self, conversion_rates_item1, conversion_rates_item2,
-                 daily_customers, promo_fractions, margins_item1, margins_item2, discounts):
+class Environment_Double_Prices_Matching:
+    def __init__(self, margins_item1, margins_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, discounts, promo_fractions):
+        self.margins_item1 = margins_item1
+        self.margins_item2 = margins_item2
         self.conversion_rates_item1 = conversion_rates_item1
         self.conversion_rates_item2 = conversion_rates_item2
         self.daily_customers = daily_customers
-        self.promo_fractions = promo_fractions
-        self.margins_item1 = margins_item1
-        self.margins_item2 = margins_item2
         self.discounts = discounts
+        self.promo_fractions = promo_fractions
 
     def round(self, pulled_arm):
         # Normalizing the weights matrix to have proper values between 0 and 1

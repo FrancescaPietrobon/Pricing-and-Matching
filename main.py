@@ -37,39 +37,39 @@ def main():
 
         elif choice == 3:
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_3(promo_fractions_exp1)
-            plot_regret("STEP 3 - EXP 1", opt, ucb_rew, ts_rew)
-            plot_reward("STEP 3 - EXP 1", opt, ucb_rew, ts_rew, time_horizon)
+            plot_regret("STEP 3 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_reward("STEP 3 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_3(promo_fractions_exp2)
-            plot_regret("STEP 3 - EXP 2", opt, ucb_rew, ts_rew)
-            plot_reward("STEP 3 - EXP 2", opt, ucb_rew, ts_rew, time_horizon)
+            plot_regret("STEP 3 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_reward("STEP 3 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             break
 
         elif choice == 4:
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_4(promo_fractions_exp1)
-            plot_regret("STEP 4 - EXP 1", opt, ucb_rew, ts_rew)
-            plot_reward("STEP 4 - EXP 1", opt, ucb_rew, ts_rew, time_horizon)
+            plot_regret("STEP 4 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_reward("STEP 4 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_4(promo_fractions_exp2)
-            plot_regret("STEP 4 - EXP 2",opt, ucb_rew, ts_rew)
-            plot_reward("STEP 4 - EXP 2", opt, ucb_rew, ts_rew, time_horizon)
+            plot_regret("STEP 4 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_reward("STEP 4 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             break
 
         elif choice == 5:
             # TODO Do not print regret since it is useless in this problem
-            opt, ucb_rew, time_horizon = Simulator().simulation_step_5(promo_fractions_exp1)
-            #plot_regret_single_learner("LP", "STEP 5 - EXP 1", opt, ucb_rew)
-            plot_reward_single_learner("LP", "STEP 5 - EXP 1", opt, ucb_rew, time_horizon)
-            opt, ucb_rew, time_horizon = Simulator().simulation_step_5(promo_fractions_exp2)
-            #plot_regret_single_learner("LP", "STEP 5 - EXP 2", opt, ucb_rew)
-            plot_reward_single_learner("LP", "STEP 5 - EXP 2", opt, ucb_rew, time_horizon)
+            opt, lp_rew, time_horizon = Simulator().simulation_step_5(promo_fractions_exp1)
+            # plot_regret("STEP 5 - EXP 1", ["Linear Program"], opt, [ucb_rew])
+            plot_reward("STEP 5 - EXP 1", ["Linear Program"], opt, [lp_rew], time_horizon)
+            opt, lp_rew, time_horizon = Simulator().simulation_step_5(promo_fractions_exp2)
+            # plot_regret("STEP 5 - EXP 2", ["Linear Program"], opt, [ucb_rew])
+            plot_reward("STEP 5 - EXP 2", ["Linear Program"], opt, [lp_rew], time_horizon)
             break
 
         elif choice == 6:
             opt, ucb_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp1)
-            plot_regret_single_learner("UCB1", "STEP 6 - EXP 1", opt, ucb_rew)
-            plot_reward_single_learner("UCB1", "STEP 6 - EXP 1", opt, ucb_rew, time_horizon)
+            plot_regret("STEP 6 - EXP 1", ["UCB1"], opt, [ucb_rew])
+            plot_reward("STEP 6 - EXP 1", ["UCB1"], opt, [ucb_rew], time_horizon)
             opt, ucb_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp2)
-            plot_regret_single_learner("UCB1", "STEP 6 - EXP 2", opt, ucb_rew)
-            plot_reward_single_learner("UCB1", "STEP 6 - EXP 2", opt, ucb_rew, time_horizon)
+            plot_regret("STEP 6 - EXP 2", ["UCB1"], opt, [ucb_rew])
+            plot_reward("STEP 6 - EXP 2", ["UCB1"], opt, [ucb_rew], time_horizon)
             break
 
         elif choice == 7:
@@ -88,72 +88,41 @@ def main():
 ########################################################################################################################
 
 
-def plot_regret(step, opt, ucb1_rewards_per_exp, ts_rewards_per_exp):
+def plot_regret(step, learners, opt, rewards_per_exp):
     plt.figure()
     plt.xlabel("t")
     plt.ylabel("Regret")
-    x = np.arange(len(ucb1_rewards_per_exp[0]), dtype=float)
 
-    y_ucb = np.cumsum(np.mean(opt - ucb1_rewards_per_exp, axis=0))
-    y_ucb_std = np.std(opt - ucb1_rewards_per_exp, axis=0)
-    plt.plot(y_ucb, "b")
-    plt.fill(np.concatenate([x, x[::-1]]),
-             np.concatenate([uniform_filter1d(y_ucb - 60 * y_ucb_std, size=30),
-                             uniform_filter1d((y_ucb + 60 * y_ucb_std)[::-1], size=30)]),
-             alpha=.3, fc='b')
+    x = np.arange(len(rewards_per_exp[0][0]), dtype=float)
+    colours = ['b', 'r']
 
-    y_ts = np.cumsum(np.mean(opt - ts_rewards_per_exp, axis=0))
-    y_ts_std = np.std(ts_rewards_per_exp, axis=0)
-    plt.plot(y_ts, "r")
-    plt.fill(np.concatenate([x, x[::-1]]),
-             np.concatenate([uniform_filter1d(y_ts - 60 * y_ts_std, size=30),
-                             uniform_filter1d((y_ts + 60 * y_ts_std)[::-1], size=30)]),
-             alpha=.3, fc='r')
+    for learner in range(len(learners)):
+        y = np.cumsum(np.mean(opt - rewards_per_exp[learner], axis=0))
+        y_std = np.std(opt - rewards_per_exp[learner], axis=0)
+        plt.plot(y, colours[learner])
+        plt.fill(np.concatenate([x, x[::-1]]),
+                 np.concatenate([uniform_filter1d(y - 60 * y_std, size=30),
+                                 uniform_filter1d((y + 60 * y_std)[::-1], size=30)]),
+                 alpha=.3, fc=colours[learner])
 
     plt.ylim(bottom=0.)
-    plt.legend(["UCB1", "TS"], title=step)
+    plt.legend(learners, title=step)
     plt.show()
 
 
-def plot_reward(step, opt, ucb1_rewards_per_exp, ts_rewards_per_exp, time_horizon):
-    plt.figure(1)
-    plt.xlabel("t")
-    plt.ylabel("Reward")
-    plt.plot(np.mean(ucb1_rewards_per_exp, axis=0), "b")
-    plt.plot(np.mean(ts_rewards_per_exp, axis=0), "r")
-    opt = [opt] * time_horizon
-    plt.plot(opt, '--k')
-    plt.legend(["UCB1", "TS", "OPTIMAL"], title=step)
-    plt.show()
-
-
-def plot_regret_single_learner(learner, step, opt, ucb1_rewards_per_exp):
-    plt.figure()
-    plt.xlabel("t")
-    plt.ylabel("Regret")
-    x = np.arange(len(ucb1_rewards_per_exp[0]), dtype=float)
-
-    y_ucb = np.cumsum(np.mean(opt - ucb1_rewards_per_exp, axis=0))
-    y_ucb_std = np.std(opt - ucb1_rewards_per_exp, axis=0)
-    plt.plot(y_ucb, "b")
-    plt.fill(np.concatenate([x, x[::-1]]),
-             np.concatenate([uniform_filter1d(y_ucb - 60 * y_ucb_std, size=30),
-                             uniform_filter1d((y_ucb + 60 * y_ucb_std)[::-1], size=30)]),
-             alpha=.3, fc='b')
-
-    plt.ylim(bottom=0.)
-    plt.legend([learner], title=step)
-    plt.show()
-
-
-def plot_reward_single_learner(learner, step, opt, ucb1_rewards_per_exp, time_horizon):
+def plot_reward(step, learners, opt, rewards_per_exp, time_horizon):
     plt.figure()
     plt.xlabel("t")
     plt.ylabel("Reward")
-    plt.plot(np.mean(ucb1_rewards_per_exp, axis=0), "b")
+    colours = ['b', 'r']
+
+    for learner in range(len(learners)):
+        plt.plot(np.mean(rewards_per_exp[learner], axis=0), colours[learner])
+
     opt = [opt] * time_horizon
     plt.plot(opt, '--k')
-    plt.legend([learner, "OPTIMAL"], title=step)
+    learners.append("OPTIMAL")
+    plt.legend(learners, title=step)
     plt.show()
 
 

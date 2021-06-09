@@ -3,23 +3,34 @@ np.random.seed(1234)
 
 
 class UCB1_item1():
-    def __init__(self, n_arms, daily_customers, margins, reward_item2):
+    def __init__(self, n_arms, margins_item1, selected_margin_item2, conversion_rates_item2, weights, daily_customers, discounts):
         self.n_arms = n_arms
         self.t = 0
         self.rewards_per_arm = [[] for _ in range(n_arms)]
         self.collected_rewards = np.array([])
         self.empirical_means = np.zeros((4, n_arms))
         self.confidence = np.zeros(n_arms)
+
+        self.margins_item1 = margins_item1
+        self.margin_item2 = selected_margin_item2
+        self.conversion_rates_item2 = conversion_rates_item2
+        self.weights = weights
         self.daily_customers = daily_customers
-        self.margins = margins
-        self.reward_item2 = reward_item2
+        self.discounts = discounts
 
     def pull_arm(self):
         if self.t < self.n_arms:
             arm = self.t
         else:
-            upper_bound = (self.margins * np.dot(self.daily_customers, (self.empirical_means + self.confidence))) + \
-                          np.dot(self.daily_customers * self.reward_item2, (self.empirical_means + self.confidence))
+            reward_item1 = self.margins_item1 * np.dot(self.daily_customers, (self.empirical_means + self.confidence))
+
+            reward_item2 = np.zeros(4)
+            for class_type in range(4):
+                reward_item2[class_type] = self.margin_item2 * self.daily_customers[class_type] * ((1 - self.discounts) *
+                                           self.conversion_rates_item2[:, class_type] * self.weights[:, class_type]).sum()
+            reward_item2 = np.dot(reward_item2, (self.empirical_means + self.confidence))
+
+            upper_bound = reward_item1 + reward_item2
             arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
         return arm
 

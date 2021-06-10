@@ -148,7 +148,23 @@ class Environment_Double_Prices_Matching:
 
         return conversion_rates_item1_round, conversion_rates_item2_round, revenue
 
-########################################################################################################################
+
+class Non_Stationary_Environment(Environment_Double_Prices_Matching):
+    def __init__(self, margins_item1, margins_item2, conversion_rates_item1_NS, conversion_rates_item2_NS, daily_customers, discounts, promo_fractions, phases_len):
+        super().__init__(margins_item1, margins_item2, conversion_rates_item1_NS, conversion_rates_item2_NS, daily_customers, discounts, promo_fractions)
+        self.t = 0
+        self.conversion_rates_item1_NS = conversion_rates_item1_NS
+        self.conversion_rates_item2_NS = conversion_rates_item2_NS
+        self.phases_len = phases_len
+
+    def round(self, pulled_arm):
+        current_phase = int(self.t / self.phases_len)
+        self.conversion_rates_item1 = self.conversion_rates_item1_NS[current_phase]
+        self.conversion_rates_item2 = self.conversion_rates_item2_NS[current_phase]
+        self.t += 1
+        return super().round(pulled_arm)
+
+
 class Daily_Customers:
     def __init__(self, mean, sd):
         self.mean = mean
@@ -156,6 +172,8 @@ class Daily_Customers:
 
     def sample(self):
         return np.clip(np.random.normal(self.mean, self.sd), 0, 500).astype(int)
+
+########################################################################################################################
 
 
 class Non_Stationary_Environment_First:

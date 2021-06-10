@@ -77,8 +77,12 @@ def main():
             break
 
         elif choice == 8:
-            experiment_8_1 = Simulator().simulation_step_8(promo_fractions_exp1)
-            experiment_8_2 = Simulator().simulation_step_8(promo_fractions_exp2)
+            opt, ucb_rew, time_horizon = Simulator().simulation_step_8(promo_fractions_exp1)
+            plot_regret("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew])
+            plot_reward("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
+            opt, ucb_rew, time_horizon = Simulator().simulation_step_8(promo_fractions_exp1)
+            plot_regret("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew])
+            plot_reward("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             break
 
         else:
@@ -119,7 +123,8 @@ def plot_reward(step, learners, opt, rewards_per_exp, time_horizon):
     for learner in range(len(learners)):
         plt.plot(np.mean(rewards_per_exp[learner], axis=0), colours[learner])
 
-    opt = [opt] * time_horizon
+    if ("STEP 7" or "STEP 8") not in step:
+        opt = [opt] * time_horizon
     plt.plot(opt, '--k')
     learners.append("OPTIMAL")
     plt.legend(learners, title=step)

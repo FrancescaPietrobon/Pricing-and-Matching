@@ -13,7 +13,7 @@ class UCB1_Items_Matching():
 
         self.margins = list(itertools.product(margins_item1, margins_item2))
         self.empirical_means_item1 = np.zeros((len(margins_item1), 4))
-        self.confidence_item1 = np.full((len(margins_item1), 4), np.inf)     # TODO put np.inf also in the other bandits
+        self.confidence_item1 = np.full((len(margins_item1), 4), np.inf)
         self.empirical_means_item2 = np.zeros((len(margins_item2), 4, 4))
         self.confidence_item2 = np.full((len(margins_item2), 4, 4), np.inf)
 
@@ -50,17 +50,17 @@ class UCB1_Items_Matching():
         self.t += 1
 
         # Confidence item 1
-        for price1 in range(len(self.margins_item1)):
+        for margin1 in range(len(self.margins_item1)):
             for class_type in range(4):
-                number_pulled = max(1, len(self.rewards_per_arm_item1[price1][class_type]))
-                self.confidence_item1[price1][class_type] = (2*np.log(self.t) / number_pulled)**0.5
+                number_pulled = max(1, len(self.rewards_per_arm_item1[margin1][class_type]))
+                self.confidence_item1[margin1][class_type] = (2*np.log(self.t) / number_pulled)**0.5
 
         # Confidence item 2
-        for price2 in range(len(self.margins_item2)):
+        for margin2 in range(len(self.margins_item2)):
             for promo_type in range(4):
                 for class_type in range(4):
-                    number_pulled = max(1, len(self.rewards_per_arm_item2[price2][promo_type][class_type]))
-                    self.confidence_item2[price2][promo_type][class_type] = (2*np.log(self.t) / number_pulled)**0.5
+                    number_pulled = max(1, len(self.rewards_per_arm_item2[margin2][promo_type][class_type]))
+                    self.confidence_item2[margin2][promo_type][class_type] = (2*np.log(self.t) / number_pulled)**0.5
 
         # Empirical means item 1
         self.empirical_means_item1[pulled_arm[0]] = (self.empirical_means_item1[pulled_arm[0]] * (self.t-1) + reward[0]) / self.t

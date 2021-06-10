@@ -708,5 +708,6 @@ class Simulator:
         for i in range(0, n_phases):
             t_index = range(i * int(phases_len), (i + 1) * int(phases_len))
             optimum_per_round[t_index] = opt[i]
+        optimum_per_round[-1] = optimum_per_round[-2]          # To correctly set the last element due to approximations
 
         return optimum_per_round, reward_ucb_per_exp, time_horizon

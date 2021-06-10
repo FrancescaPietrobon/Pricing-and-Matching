@@ -91,7 +91,7 @@ def main():
 
 ########################################################################################################################
 
-
+# TODO maybe look if the "rescaling" (60*y_std) could be done in a better way and try different window sizes
 def plot_regret(step, learners, opt, rewards_per_exp):
     plt.figure()
     plt.xlabel("t")
@@ -123,7 +123,8 @@ def plot_reward(step, learners, opt, rewards_per_exp, time_horizon):
     for learner in range(len(learners)):
         plt.plot(np.mean(rewards_per_exp[learner], axis=0), colours[learner])
 
-    if ("STEP 7" or "STEP 8") not in step:
+    ns_steps = ["STEP 7", "STEP 8"]
+    if not any(x in step for x in ns_steps):
         opt = [opt] * time_horizon
     plt.plot(opt, '--k')
     learners.append("OPTIMAL")

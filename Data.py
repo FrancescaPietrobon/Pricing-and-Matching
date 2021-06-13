@@ -8,7 +8,7 @@ class Data:
     def __init__(self):
         form = Form()
 
-        # Daily number of customers per class (array of length 4) TODO: are sigmas correct? Or remove sigmas
+        # Daily number of customers per class (array of length 4)
         self.daily_customers = np.array([int(normal(form.n[0], 12)),
                                          int(normal(form.n[1], 14)),
                                          int(normal(form.n[2], 16)),
@@ -29,7 +29,6 @@ class Data:
         self.prices_item2 = np.array([40, 50, 60])
         self.margins_item2 = np.array([15, 20, 25])
 
-        # TODO Maybe avoid all these binomials and use directly the form conversion rates instead
         # Probability that a customer of a class buys the second item given that he bought the first and has a promo
         # 4x4 matrix -> rows: promo (P0, P1, P2, P3); columns: customer class (class1, class2, class3, class4)
         # Each one of these matrix corresponds to a candidate price for item 2

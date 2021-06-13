@@ -86,12 +86,3 @@ class Form:
                                    [c1_i21_p1_param, c2_i21_p1_param, c3_i21_p1_param, c4_i21_p1_param],
                                    [c1_i21_p2_param, c2_i21_p2_param, c3_i21_p2_param, c4_i21_p2_param],
                                    [c1_i21_p3_param, c2_i21_p3_param, c3_i21_p3_param, c4_i21_p3_param]])
-
-    # TODO:
-    #  generate the number of customers that buy item 1 (in general, and of course with a promo since they get one after buying item 1)
-    #  give promo: step 1 uniform; step 2 uniform first day, then use optimization data
-    #  then, probability to buy also item 2 after receiving a promo (also P0)
-    #  P(buy item 2 given P0) + P(not buy item 2 given P0) = 1 (for each class)
-    #  P(buy item 2 given P1) + P(not buy item 2 given P1) = 1 (for each class)
-    #  P(buy item 2 given P2) + P(not buy item 2 given P2) = 1 (for each class)
-    #  P(buy item 2 given P3) + P(not buy item 2 given P3) = 1 (for each class)

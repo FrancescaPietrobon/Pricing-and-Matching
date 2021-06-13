@@ -71,8 +71,8 @@ class Simulator:
         weights = normalize(matching, norm='l1', axis=0)
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
-        n_experiments = 5
-        time_horizon = 1000
+        n_experiments = 10
+        time_horizon = 5000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -116,8 +116,8 @@ class Simulator:
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         # This time, the number of customers and the conversion rates for item 2 are not known
-        n_experiments = 5
-        time_horizon = 1000
+        n_experiments = 10
+        time_horizon = 5000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -182,7 +182,7 @@ class Simulator:
         daily_customers = self.data.daily_customers
 
         # Launching the experiments, using UCB1 to learn the promo-customer class matching
-        n_experiments = 1
+        n_experiments = 10
         time_horizon = 5000
         reward_matching_per_exp = []
 
@@ -242,8 +242,8 @@ class Simulator:
         opt, _, _, _ = self.simulation_step_1(promo_fractions)
 
         # Launching the experiments
-        n_experiments = 3
-        time_horizon = 1000
+        n_experiments = 10
+        time_horizon = 5000
 
         reward_ucb_per_exp = []
 

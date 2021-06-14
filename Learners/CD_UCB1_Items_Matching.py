@@ -5,13 +5,13 @@ class CD_UCB1_Items_Matching(UCB1_Items_Matching):
     def __init__(self, margins_item1, margins_item2, daily_customers, discounts, promo_fractions, M, eps, h, alpha):
         super().__init__(margins_item1, margins_item2, daily_customers, discounts, promo_fractions)
 
-        self.change_detection_item1 = [CUMSUM(M, eps, h) for _ in range(len(margins_item1))]
+        self.change_detection_item1 = [[CUMSUM(M, eps, h) for _ in range(4)] for _ in range(len(margins_item1))]
         self.valid_rewards_per_arms_item1 = [[[] for _ in range(4)] for _ in range(len(margins_item1))]
-        self.detections_item1 = [[] for _ in range(len(margins_item1))]
+        self.detections_item1 = [[[] for _ in range(4)] for _ in range(len(margins_item1))]
 
-        self.change_detection_item2 = [CUMSUM(M, eps, h) for _ in range(len(margins_item2))]
+        self.change_detection_item2 = [[[CUMSUM(M, eps, h) for _ in range(4)] for _ in range(4)] for _ in range(len(margins_item2))]
         self.valid_rewards_per_arms_item2 = [[[[] for _ in range(4)] for _ in range(4)] for _ in range(len(margins_item2))]
-        self.detections_item2 = [[] for _ in range(len(margins_item2))]
+        self.detections_item2 = [[[[] for _ in range(4)] for _ in range(4)] for _ in range(len(margins_item2))]
 
         self.alpha = alpha
 
@@ -45,56 +45,46 @@ class CD_UCB1_Items_Matching(UCB1_Items_Matching):
     def update(self, pulled_arm, reward):
         self.t += 1
 
-        # Change Detection Item 1
-        if self.change_detection_item1[pulled_arm[0]].update(reward[0]):
-            self.detections_item1[pulled_arm[0]].append(self.t)
-            for class_type in range(4):
-                self.valid_rewards_per_arms_item1[pulled_arm[0]][class_type] = []
-            self.change_detection_item1[pulled_arm[0]].reset()
-
+        # Change detection and empirical means item 1
         for class_type in range(4):
+            if self.change_detection_item1[pulled_arm[0]][class_type].update(reward[0][class_type]):
+                self.detections_item1[pulled_arm[0]][class_type].append(self.t)
+                self.valid_rewards_per_arms_item1[pulled_arm[0]][class_type] = []
+                self.change_detection_item1[pulled_arm[0]][class_type].reset()
             self.valid_rewards_per_arms_item1[pulled_arm[0]][class_type].append(reward[0][class_type])
+            self.empirical_means_item1[pulled_arm[0]][class_type] = np.mean(self.valid_rewards_per_arms_item1[pulled_arm[0]][class_type])
 
         # Confidence item 1
         total_valid_samples = 0
         for margin1 in range(len(self.margins_item1)):
             for class_type in range(4):
-                total_valid_samples = total_valid_samples + len(self.valid_rewards_per_arms_item1[margin1][class_type])
+                total_valid_samples += len(self.valid_rewards_per_arms_item1[margin1][class_type])
         for margin1 in range(len(self.margins_item1)):
             for class_type in range(4):
                 number_pulled = max(1, len(self.valid_rewards_per_arms_item1[margin1][class_type]))
                 self.confidence_item1[margin1][class_type] = (2 * np.log(total_valid_samples) / number_pulled) ** 0.5
 
-        # Change Detection Item 2
-        if self.change_detection_item2[pulled_arm[1]].update(reward[1]):
-            self.detections_item2[pulled_arm[1]].append(self.t)
-            for margin2 in range(len(self.margins_item2)):
-                for promo_type in range(4):
-                    for class_type in range(4):
-                        self.valid_rewards_per_arms_item2[pulled_arm[1]][promo_type][class_type] = []
-            self.change_detection_item2[pulled_arm[1]].reset()
-
+        # Change detection and empirical means item 2
         for promo_type in range(4):
             for class_type in range(4):
+                if self.change_detection_item2[pulled_arm[1]][promo_type][class_type].update(reward[1][promo_type][class_type]):
+                    self.detections_item2[pulled_arm[1]][promo_type][class_type].append(self.t)
+                    self.valid_rewards_per_arms_item2[pulled_arm[1]][promo_type][class_type] = []
+                    self.change_detection_item2[pulled_arm[1]][promo_type][class_type].reset()
                 self.valid_rewards_per_arms_item2[pulled_arm[1]][promo_type][class_type].append(reward[1][promo_type][class_type])
+                self.empirical_means_item2[pulled_arm[1]][promo_type][class_type] = np.mean(self.valid_rewards_per_arms_item2[pulled_arm[1]][promo_type][class_type])
 
         # Confidence item 2
         total_valid_samples = 0
         for margin2 in range(len(self.margins_item2)):
             for promo_type in range(4):
                 for class_type in range(4):
-                    total_valid_samples = total_valid_samples + len(self.valid_rewards_per_arms_item2[margin2][promo_type][class_type])
+                    total_valid_samples += len(self.valid_rewards_per_arms_item2[margin2][promo_type][class_type])
         for margin2 in range(len(self.margins_item2)):
             for promo_type in range(4):
                 for class_type in range(4):
                     number_pulled = max(1, len(self.valid_rewards_per_arms_item2[margin2][promo_type][class_type]))
                     self.confidence_item2[margin2][promo_type][class_type] = (2 * np.log(total_valid_samples) / number_pulled) ** 0.5
-
-        # Empirical means item 1
-        self.empirical_means_item1[pulled_arm[0]] = (self.empirical_means_item1[pulled_arm[0]] * (self.t - 1) + reward[0]) / self.t
-
-        # Empirical means item 2
-        self.empirical_means_item2[pulled_arm[1]] = (self.empirical_means_item2[pulled_arm[1]] * (self.t - 1) + reward[1]) / self.t
 
 
 class CUMSUM:

@@ -372,12 +372,12 @@ class Simulator:
 
         conversion_rates_item1_NS = np.array([self.data.conversion_rates_item1 + 0.2,
                                               self.data.conversion_rates_item1,
-                                              self.data.conversion_rates_item1 - 0.2])
+                                              self.data.conversion_rates_item1 - 0.1])
         conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
 
         conversion_rates_item2_NS = np.array([self.data.conversion_rates_item2 + 0.2,
                                               self.data.conversion_rates_item2,
-                                              self.data.conversion_rates_item2 - 0.2])
+                                              self.data.conversion_rates_item2 - 0.1])
         conversion_rates_item2_NS = np.clip(conversion_rates_item2_NS, 0, 1)
 
         daily_customers = self.data.daily_customers

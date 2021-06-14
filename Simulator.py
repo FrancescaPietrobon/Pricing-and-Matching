@@ -370,22 +370,21 @@ class Simulator:
         margins_item1 = self.data.margins_item1
         margins_item2 = self.data.margins_item2
 
-        # TODO create these matrices in Data.py in a non-proportional way (same approach of the non-stationary ones)
-        # dim (2,4,5): 2 phases - 4 customers classes - 5 prices
         conversion_rates_item1_NS = np.array([self.data.conversion_rates_item1 + 0.2,
+                                              self.data.conversion_rates_item1,
                                               self.data.conversion_rates_item1 - 0.2])
         conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
 
-        # dim (2,3,4,4): 2 phases - 3 full prices (40€-50€-60€) - 4 promos - 4 customers classes
         conversion_rates_item2_NS = np.array([self.data.conversion_rates_item2 + 0.2,
+                                              self.data.conversion_rates_item2,
                                               self.data.conversion_rates_item2 - 0.2])
         conversion_rates_item2_NS = np.clip(conversion_rates_item2_NS, 0, 1)
 
         daily_customers = self.data.daily_customers
 
         # Parameters for the experiments
-        n_experiments = 1
-        time_horizon = 365
+        n_experiments = 10
+        time_horizon = 5000
         n_phases = len(conversion_rates_item1_NS)
         phases_len = time_horizon / n_phases
 
@@ -402,8 +401,7 @@ class Simulator:
         opt = np.amax(np.amax(objective, axis=2), axis=1)
 
         # Launching the experiments, using UCB1 with change detection
-        # TODO check these parameters and maybe try different ones
-        M = 600
+        M = 2000
         eps = 0.1
         h = np.log(time_horizon) * 2
         alpha = 0.01

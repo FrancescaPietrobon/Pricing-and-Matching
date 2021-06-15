@@ -76,7 +76,7 @@ def main():
             opt, swts_rew, time_horizon = Simulator().simulation_step_7(promo_fractions_exp1)
             plot_regret("STEP 7 - EXP 1", ["Sliding-Window TS"], opt, [swts_rew])
             plot_reward("STEP 7 - EXP 1", ["Sliding-Window TS"], opt, [swts_rew], time_horizon)
-            opt, swts_rew, time_horizon = Simulator().simulation_step_7(promo_fractions_exp1)
+            opt, swts_rew, time_horizon = Simulator().simulation_step_7(promo_fractions_exp2)
             plot_regret("STEP 7 - EXP 2", ["Sliding-Window TS"], opt, [swts_rew])
             plot_reward("STEP 7 - EXP 2", ["Sliding-Window TS"], opt, [swts_rew], time_horizon)
             break

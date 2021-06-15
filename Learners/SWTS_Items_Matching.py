@@ -53,29 +53,29 @@ class SWTS_Items_Matching():
         # Item 1
         for class_type in range(4):
             self.rewards_per_arm_item1[pulled_arm[0]][class_type].append(reward[0][class_type])
-            A = self.rewards_per_arm_item1[pulled_arm[0]][class_type]
-            B = self.rewards_per_arm_item1[pulled_arm[0]][class_type][-self.window_size:]
             cum_rew_item1 = np.sum(self.rewards_per_arm_item1[pulled_arm[0]][class_type][-self.window_size:])
             n_rounds_arm_item1 = len(self.rewards_per_arm_item1[pulled_arm[0]][class_type][-self.window_size:])
             self.beta_parameters_item1[pulled_arm[0], class_type, 0] = cum_rew_item1 + 1.0
             self.beta_parameters_item1[pulled_arm[0], class_type, 1] = n_rounds_arm_item1 - cum_rew_item1 + 1.0
-            sample = np.random.beta(self.beta_parameters_item1[pulled_arm[0], class_type, 0],
-                                    self.beta_parameters_item1[pulled_arm[0], class_type, 1])
-            self.empirical_means_item1[pulled_arm[0], class_type] = (self.empirical_means_item1[pulled_arm[0], class_type] *
-                                                                                 (self.t - 1) + sample) / self.t
+            #sample = np.random.beta(self.beta_parameters_item1[pulled_arm[0], class_type, 0],
+            #                        self.beta_parameters_item1[pulled_arm[0], class_type, 1])
+            #self.empirical_means_item1[pulled_arm[0], class_type] = (self.empirical_means_item1[pulled_arm[0], class_type] *
+            #                                                         (self.t - 1) + sample) / self.t
+            self.empirical_means_item1[pulled_arm[0], class_type] = self.beta_parameters_item1[pulled_arm[0], class_type, 0] /\
+                                                                    (self.beta_parameters_item1[pulled_arm[0], class_type, 0] + self.beta_parameters_item1[pulled_arm[0], class_type, 1])
 
         # Item 2
         for promo_type in range(4):
             for class_type in range(4):
                 self.rewards_per_arm_item2[pulled_arm[1]][promo_type][class_type].append(reward[1][promo_type][class_type])
-                A = self.rewards_per_arm_item2[pulled_arm[1]][promo_type][class_type]
-                B = self.rewards_per_arm_item2[pulled_arm[1]][promo_type][class_type][-self.window_size:]
                 cum_rew_item2 = np.sum(self.rewards_per_arm_item2[pulled_arm[1]][promo_type][class_type][-self.window_size:])
                 n_rounds_arm_item2 = len(self.rewards_per_arm_item2[pulled_arm[1]][promo_type][class_type][-self.window_size:])
                 self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 0] = cum_rew_item2 + 1.0
                 self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 1] = n_rounds_arm_item2 - cum_rew_item2 + 1.0
-                sample = np.random.beta(self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 0],
-                                        self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 1])
-                self.empirical_means_item2[pulled_arm[1], promo_type, class_type] = (self.empirical_means_item2[pulled_arm[1], promo_type, class_type] *
-                                                                                     (self.t - 1) + sample) / self.t
+                #sample = np.random.beta(self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 0],
+                #                        self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 1])
+                #self.empirical_means_item2[pulled_arm[1], promo_type, class_type] = (self.empirical_means_item2[pulled_arm[1], promo_type, class_type] *
+                #                                                                     (self.t - 1) + sample) / self.t
+                self.empirical_means_item2[pulled_arm[1], promo_type, class_type] = self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 0] / \
+                                                                        (self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 0] + self.beta_parameters_item2[pulled_arm[1], promo_type, class_type, 1])
 

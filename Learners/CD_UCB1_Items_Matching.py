@@ -22,20 +22,18 @@ class CD_UCB1_Items_Matching(UCB1_Items_Matching):
         else:
             if np.random.binomial(1, 1-self.alpha):
                 upper_conf = np.zeros((len(self.margins_item1), len(self.margins_item2)))
+                matching = np.zeros((len(self.margins_item1), len(self.margins_item2), 4, 4))
+
                 for margin1 in range(len(self.margins_item1)):
                     for margin2 in range(len(self.margins_item2)):
                         daily_promos = (self.promo_fractions * sum(self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1]))).astype(int)
-                        upper_conf[margin1][margin2] = self.margins_item1[margin1] * (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).sum() + \
-                                                       lp.matching_lp(self.margins_item2[margin2], self.discounts, (self.empirical_means_item2[margin2] + self.confidence_item2[margin2]),
-                                                                      daily_promos, (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).astype(int))[0]
+                        reward_item2, matching[margin1][margin2] = lp.matching_lp(self.margins_item2[margin2], self.discounts, (self.empirical_means_item2[margin2] + self.confidence_item2[margin2]),
+                                                                                  daily_promos, (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).astype(int))
+                        upper_conf[margin1][margin2] = self.margins_item1[margin1] * (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).sum() + reward_item2
 
                 arm_flat = np.argmax(np.random.random(upper_conf.shape) * (upper_conf == np.amax(upper_conf, None, keepdims=True)), None)
                 arm = np.unravel_index(arm_flat, upper_conf.shape)
-
-                selected_margin_item2 = self.margins_item2[arm[1]]
-                daily_promos = (self.promo_fractions * sum(self.daily_customers * (self.empirical_means_item1[arm[0]] + self.confidence_item1[arm[0]]))).astype(int)
-                _, matching = lp.matching_lp(selected_margin_item2, self.discounts, (self.empirical_means_item2[arm[1]] + self.confidence_item2[arm[1]]),
-                                             daily_promos, (self.daily_customers * (self.empirical_means_item1[arm[0]] + self.confidence_item1[arm[0]])).astype(int))
+                matching = matching[arm[0]][arm[1]]
             else:
                 arm = [np.random.randint(0, len(self.margins_item1)), np.random.randint(0, len(self.margins_item2))]
                 matching = np.random.rand(4, 4)

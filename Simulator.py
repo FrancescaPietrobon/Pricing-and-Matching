@@ -244,8 +244,8 @@ class Simulator:
         opt, _, _, _ = self.simulation_step_1(promo_fractions)
 
         # Launching the experiments
-        n_experiments = 10
-        time_horizon = 5000
+        n_experiments = 2
+        time_horizon = 365
 
         reward_ucb_per_exp = []
         reward_ts_per_exp = []

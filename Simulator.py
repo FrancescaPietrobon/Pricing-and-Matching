@@ -8,6 +8,7 @@ from Learners.Learner_Customers import *
 from Learners.Learner_Conversion_Rates_Item1 import *
 from Learners.Learner_Conversion_Rates_Item2 import *
 from Learners.Learner_Matching import *
+from Learners.TS_Items_Matching import TS_Items_Matching
 from Learners.UCB1_Item1 import *
 from Learners.UCB1_Items_Matching import *
 from Learners.CD_UCB1_Items_Matching import CD_UCB1_Items_Matching
@@ -244,9 +245,10 @@ class Simulator:
 
         # Launching the experiments
         n_experiments = 10
-        time_horizon = 365
+        time_horizon = 5000
 
         reward_ucb_per_exp = []
+        reward_ts_per_exp = []
 
         for e in range(n_experiments):
             print("Experiment {}/{} with {} rounds".format(e+1, n_experiments, time_horizon))
@@ -258,8 +260,10 @@ class Simulator:
             # Environment and learner for the prices of the two items and the matching
             env = Environment_Double_Prices_Matching(margins_item1, margins_item2, conversion_rates_item1, conversion_rates_item2, daily_customers, self.discounts, promo_fractions)
             ucb_learner = UCB1_Items_Matching(margins_item1, margins_item2, daily_customers, self.discounts, promo_fractions)
+            ts_learner = TS_Items_Matching(margins_item1, margins_item2, daily_customers, self.discounts, promo_fractions)
 
             reward_ucb_per_round = []
+            reward_ts_per_round = []
 
             for t in range(time_horizon):
                 # Learning the number of customers
@@ -268,18 +272,27 @@ class Simulator:
 
                 # Updating the number of customers
                 ucb_learner.daily_customers = daily_customers_empirical_means
+                ts_learner.daily_customers = daily_customers_empirical_means
                 env.daily_customers = daily_customers_sample
 
-                # Learning the best prices and matching
+                # Learning the best prices and matching (UCB1)
                 pulled_arm = ucb_learner.pull_arm()
                 reward = env.round(pulled_arm)
                 ucb_learner.update(pulled_arm[0], reward)
 
                 reward_ucb_per_round.append(reward[2])
 
-            reward_ucb_per_exp.append(reward_ucb_per_round)
+                # Learning the best prices and matching (Thompson Sampling)
+                pulled_arm = ts_learner.pull_arm()
+                reward = env.round(pulled_arm)
+                ts_learner.update(pulled_arm[0], reward)
 
-        return opt, reward_ucb_per_exp, time_horizon
+                reward_ts_per_round.append(reward[2])
+
+            reward_ucb_per_exp.append(reward_ucb_per_round)
+            reward_ts_per_exp.append(reward_ts_per_round)
+
+        return opt, reward_ucb_per_exp, reward_ts_per_exp, time_horizon
 
 ########################################################################################################################
 

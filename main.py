@@ -64,12 +64,12 @@ def main():
             break
 
         elif choice == 6:
-            opt, ucb_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp1)
-            plot_regret("STEP 6 - EXP 1", ["UCB1"], opt, [ucb_rew])
-            plot_reward("STEP 6 - EXP 1", ["UCB1"], opt, [ucb_rew], time_horizon)
-            opt, ucb_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp2)
-            plot_regret("STEP 6 - EXP 2", ["UCB1"], opt, [ucb_rew])
-            plot_reward("STEP 6 - EXP 2", ["UCB1"], opt, [ucb_rew], time_horizon)
+            opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp1)
+            plot_regret("STEP 6 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_reward("STEP 6 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
+            opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp2)
+            plot_regret("STEP 6 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_reward("STEP 6 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             break
 
         elif choice == 7:

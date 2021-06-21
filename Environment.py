@@ -109,7 +109,7 @@ class Environment_Double_Prices_Matching:
         # Normalizing the weights matrix to have proper values between 0 and 1
         weights = np.zeros((4, 4))
         for class_type in range(4):
-            weights[:, class_type] = pulled_arm[1][:, class_type] / pulled_arm[1][:, class_type].sum()
+            weights[:, class_type] = pulled_arm[1][:, class_type] / pulled_arm[1][:, class_type].sum() if np.any(weights[:, class_type]) else np.full(4, 0.25)
 
         # Simulating the arrival of customers
         buyers_item1 = np.zeros(4)

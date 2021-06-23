@@ -1,5 +1,6 @@
 from Simulator import *
 import pandas as pd
+import matplotlib.pyplot as plt
 from scipy.ndimage.filters import uniform_filter1d
 
 

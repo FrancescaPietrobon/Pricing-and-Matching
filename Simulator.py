@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 from numpy.random import normal
-from scipy import stats
 
 from Data import *
 from Environment import *
@@ -8,14 +6,10 @@ from Learners.Learner_Customers import *
 from Learners.Learner_Conversion_Rates_Item1 import *
 from Learners.Learner_Conversion_Rates_Item2 import *
 from Learners.Learner_Matching import *
-from Learners.TS_Items_Matching import TS_Items_Matching
 from Learners.UCB1_Item1 import *
-from Learners.UCB1_Items_Matching import *
-from Learners.CD_UCB1_Items_Matching import CD_UCB1_Items_Matching
+from Learners.CD_UCB1_Items_Matching import *
 from Learners.TS_Item1 import *
 from Learners.SWTS_Items_Matching import *
-from SWTS_Learner import *
-from SWTS_Learner_item2 import *
 
 
 np.random.seed(1234)
@@ -299,17 +293,8 @@ class Simulator:
     def simulation_step_7(self, promo_fractions):
         margins_item1 = self.data.margins_item1
         margins_item2 = self.data.margins_item2
-
-        conversion_rates_item1_NS = np.array([self.data.conversion_rates_item1 + 0.2,
-                                              self.data.conversion_rates_item1,
-                                              self.data.conversion_rates_item1 - 0.1])
-        conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
-
-        conversion_rates_item2_NS = np.array([self.data.conversion_rates_item2 + 0.2,
-                                              self.data.conversion_rates_item2,
-                                              self.data.conversion_rates_item2 - 0.1])
-        conversion_rates_item2_NS = np.clip(conversion_rates_item2_NS, 0, 1)
-
+        conversion_rates_item1_NS = self.data.conversion_rates_item1_NS
+        conversion_rates_item2_NS = self.data.conversion_rates_item2_NS
         daily_customers = self.data.daily_customers
 
         # Parameters for the experiments
@@ -381,22 +366,13 @@ class Simulator:
     def simulation_step_8(self, promo_fractions):
         margins_item1 = self.data.margins_item1
         margins_item2 = self.data.margins_item2
-
-        conversion_rates_item1_NS = np.array([self.data.conversion_rates_item1 + 0.2,
-                                              self.data.conversion_rates_item1,
-                                              self.data.conversion_rates_item1 - 0.1])
-        conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
-
-        conversion_rates_item2_NS = np.array([self.data.conversion_rates_item2 + 0.2,
-                                              self.data.conversion_rates_item2,
-                                              self.data.conversion_rates_item2 - 0.1])
-        conversion_rates_item2_NS = np.clip(conversion_rates_item2_NS, 0, 1)
-
+        conversion_rates_item1_NS = self.data.conversion_rates_item1_NS
+        conversion_rates_item2_NS = self.data.conversion_rates_item2_NS
         daily_customers = self.data.daily_customers
 
         # Parameters for the experiments
         n_experiments = 10
-        time_horizon = 5000
+        time_horizon = 365
         n_phases = len(conversion_rates_item1_NS)
         phases_len = time_horizon / n_phases
 

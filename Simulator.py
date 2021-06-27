@@ -238,7 +238,7 @@ class Simulator:
         opt, _, _, _ = self.simulation_step_1(promo_fractions)
 
         # Launching the experiments
-        n_experiments = 2
+        n_experiments = 10
         time_horizon = 365
 
         reward_ucb_per_exp = []
@@ -298,9 +298,9 @@ class Simulator:
         daily_customers = self.data.daily_customers
 
         # Parameters for the experiments
-        n_experiments = 10
-        time_horizon = 365 * 3
         n_phases = len(conversion_rates_item1_NS)
+        n_experiments = 10
+        time_horizon = 365 * n_phases
         phases_len = time_horizon / n_phases
         window_size = int(np.sqrt(time_horizon))
 
@@ -371,9 +371,9 @@ class Simulator:
         daily_customers = self.data.daily_customers
 
         # Parameters for the experiments
-        n_experiments = 10
-        time_horizon = 365 * 3
         n_phases = len(conversion_rates_item1_NS)
+        n_experiments = 10
+        time_horizon = 365 * n_phases
         phases_len = time_horizon / n_phases
 
         # Objective function (in the end, we extract one optimal value per phase)

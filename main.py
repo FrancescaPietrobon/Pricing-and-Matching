@@ -5,8 +5,8 @@ from scipy.ndimage.filters import uniform_filter1d
 
 
 def main():
-    promo_fractions_exp1 = np.array([0.7, 0.2, 0.07, 0.03])
-    promo_fractions_exp2 = np.array([0.6, 0.25, 0.1, 0.05])
+    promo_fractions_exp1 = np.array([0.70, 0.20, 0.07, 0.03])
+    promo_fractions_exp2 = np.array([0.30, 0.40, 0.20, 0.10])
 
     print("\t\tData Intelligence Applications - A.Y. 2020/2021")
     print("\t\t\t\tPricing and Matching project\n")
@@ -38,56 +38,53 @@ def main():
 
         elif choice == 3:
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_3(promo_fractions_exp1)
-            plot_regret("STEP 3 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_regret("STEP 3 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             plot_reward("STEP 3 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_3(promo_fractions_exp2)
-            plot_regret("STEP 3 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_regret("STEP 3 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             plot_reward("STEP 3 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             break
 
         elif choice == 4:
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_4(promo_fractions_exp1)
-            plot_regret("STEP 4 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_regret("STEP 4 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             plot_reward("STEP 4 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_4(promo_fractions_exp2)
-            plot_regret("STEP 4 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_regret("STEP 4 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             plot_reward("STEP 4 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             break
 
         elif choice == 5:
-            # TODO Do not print regret since it is useless in this problem
             opt, lp_rew, time_horizon = Simulator().simulation_step_5(promo_fractions_exp1)
-            # plot_regret("STEP 5 - EXP 1", ["Linear Program"], opt, [ucb_rew])
             plot_reward("STEP 5 - EXP 1", ["Linear Program"], opt, [lp_rew], time_horizon)
             opt, lp_rew, time_horizon = Simulator().simulation_step_5(promo_fractions_exp2)
-            # plot_regret("STEP 5 - EXP 2", ["Linear Program"], opt, [ucb_rew])
             plot_reward("STEP 5 - EXP 2", ["Linear Program"], opt, [lp_rew], time_horizon)
             break
 
         elif choice == 6:
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp1)
-            plot_regret("STEP 6 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_regret("STEP 6 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             plot_reward("STEP 6 - EXP 1", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             opt, ucb_rew, ts_rew, time_horizon = Simulator().simulation_step_6(promo_fractions_exp2)
-            plot_regret("STEP 6 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew])
+            plot_regret("STEP 6 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             plot_reward("STEP 6 - EXP 2", ["UCB1", "TS"], opt, [ucb_rew, ts_rew], time_horizon)
             break
 
         elif choice == 7:
             opt, swts_rew, time_horizon = Simulator().simulation_step_7(promo_fractions_exp1)
-            plot_regret("STEP 7 - EXP 1", ["Sliding-Window TS"], opt, [swts_rew])
+            plot_regret("STEP 7 - EXP 1", ["Sliding-Window TS"], opt, [swts_rew], time_horizon)
             plot_reward("STEP 7 - EXP 1", ["Sliding-Window TS"], opt, [swts_rew], time_horizon)
             opt, swts_rew, time_horizon = Simulator().simulation_step_7(promo_fractions_exp2)
-            plot_regret("STEP 7 - EXP 2", ["Sliding-Window TS"], opt, [swts_rew])
+            plot_regret("STEP 7 - EXP 2", ["Sliding-Window TS"], opt, [swts_rew], time_horizon)
             plot_reward("STEP 7 - EXP 2", ["Sliding-Window TS"], opt, [swts_rew], time_horizon)
             break
 
         elif choice == 8:
             opt, ucb_rew, time_horizon = Simulator().simulation_step_8(promo_fractions_exp1)
-            plot_regret("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew])
+            plot_regret("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             plot_reward("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             opt, ucb_rew, time_horizon = Simulator().simulation_step_8(promo_fractions_exp1)
-            plot_regret("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew])
+            plot_regret("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             plot_reward("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             break
 
@@ -97,8 +94,8 @@ def main():
 
 ########################################################################################################################
 
-# TODO maybe look if the "rescaling" (60*y_std) could be done in a better way and try different window sizes
-def plot_regret(step, learners, opt, rewards_per_exp):
+
+def plot_regret(step, learners, opt, rewards_per_exp, time_horizon):
     plt.figure()
     plt.xlabel("t")
     plt.ylabel("Regret")
@@ -110,10 +107,16 @@ def plot_regret(step, learners, opt, rewards_per_exp):
         y = np.cumsum(np.mean(opt - rewards_per_exp[learner], axis=0))
         y_std = np.std(opt - rewards_per_exp[learner], axis=0)
         plt.plot(y, colours[learner])
-        plt.fill(np.concatenate([x, x[::-1]]),
-                 np.concatenate([uniform_filter1d(y - 60 * y_std, size=30),
-                                 uniform_filter1d((y + 60 * y_std)[::-1], size=30)]),
-                 alpha=.3, fc=colours[learner])
+        if time_horizon == 365:
+            plt.fill(np.concatenate([x, x[::-1]]),
+                     np.concatenate([uniform_filter1d(y - 30 * y_std, size=30),
+                                     uniform_filter1d((y + 30 * y_std)[::-1], size=30)]),
+                     alpha=.3, fc=colours[learner])
+        elif time_horizon == 5000:
+            plt.fill(np.concatenate([x, x[::-1]]),
+                     np.concatenate([uniform_filter1d(y - 150 * y_std, size=60),
+                                     uniform_filter1d((y + 150 * y_std)[::-1], size=60)]),
+                     alpha=.3, fc=colours[learner])
 
     plt.ylim(bottom=0.)
     plt.legend(learners, title=step)

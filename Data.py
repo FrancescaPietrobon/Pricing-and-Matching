@@ -3,8 +3,6 @@ from Form.Form import *
 
 np.random.seed(1234)
 
-# TODO maybe put "+0.1" in the non-stationary conversion rates (slightly better plots and coherence with "-0.1")
-
 
 class Data:
     def __init__(self):
@@ -28,7 +26,7 @@ class Data:
                                                 [0.59, 0.44, form.i1_param[3], 0.31, 0.15]])
 
         # Conversion rates for the first item in the non-stationary case
-        conversion_rates_item1_NS = np.array([self.conversion_rates_item1 + 0.2,
+        conversion_rates_item1_NS = np.array([self.conversion_rates_item1 + 0.1,
                                               self.conversion_rates_item1,
                                               self.conversion_rates_item1 - 0.1])
         self.conversion_rates_item1_NS = np.clip(conversion_rates_item1_NS, 0, 1)
@@ -115,7 +113,7 @@ class Data:
         self.conversion_rates_item2 = np.clip(conversion_rates_item2, 0, 1)
 
         # Conversion rates for the second item in the non-stationary case
-        conversion_rates_item2_NS = np.array([self.conversion_rates_item2 + 0.2,
+        conversion_rates_item2_NS = np.array([self.conversion_rates_item2 + 0.1,
                                               self.conversion_rates_item2,
                                               self.conversion_rates_item2 - 0.1])
         self.conversion_rates_item2_NS = np.clip(conversion_rates_item2_NS, 0, 1)

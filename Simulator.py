@@ -299,7 +299,7 @@ class Simulator:
 
         # Parameters for the experiments
         n_experiments = 10
-        time_horizon = 365
+        time_horizon = 365 * 3
         n_phases = len(conversion_rates_item1_NS)
         phases_len = time_horizon / n_phases
         window_size = int(np.sqrt(time_horizon))
@@ -372,7 +372,7 @@ class Simulator:
 
         # Parameters for the experiments
         n_experiments = 10
-        time_horizon = 365
+        time_horizon = 365 * 3
         n_phases = len(conversion_rates_item1_NS)
         phases_len = time_horizon / n_phases
 
@@ -389,7 +389,7 @@ class Simulator:
         opt = np.amax(np.amax(objective, axis=2), axis=1)
 
         # Launching the experiments, using UCB1 with change detection
-        M = 2000
+        M = int(time_horizon / 3)
         eps = 0.1
         h = np.log(time_horizon) * 2
         alpha = 0.01

@@ -22,18 +22,22 @@ class UCB1_Item1():
         if self.t < self.n_arms:
             arm = self.t
         else:
-            reward_item1 = self.margins_item1 * np.dot(self.daily_customers, (self.empirical_means + self.confidence))
-
-            reward_item2 = np.zeros(4)
+            # Computing the upper bound as the total revenue obtained during the round (day).
+            # Note that the conversion rates for the first item are the learned ones (empirical means plus confidence).
+            revenue_item1 = self.margins_item1 * np.dot(self.daily_customers, (self.empirical_means + self.confidence))
+            revenue_item2 = np.zeros(4)
             for class_type in range(4):
-                reward_item2[class_type] = self.margin_item2 * self.daily_customers[class_type] * ((1 - self.discounts) *
-                                           self.conversion_rates_item2[:, class_type] * self.weights[:, class_type]).sum()
-            reward_item2 = np.dot(reward_item2, (self.empirical_means + self.confidence))
+                revenue_item2[class_type] = self.margin_item2 * self.daily_customers[class_type] * ((1 - self.discounts) *
+                                            self.conversion_rates_item2[:, class_type] * self.weights[:, class_type]).sum()
+            revenue_item2 = np.dot(revenue_item2, (self.empirical_means + self.confidence))
 
-            upper_bound = reward_item1 + reward_item2
+            upper_bound = revenue_item1 + revenue_item2
             arm = np.random.choice(np.where(upper_bound == upper_bound.max())[0])
         return arm
 
+    # Pulled_arm is the arm pulled in the above method.
+    # Reward is the array of conversion rates for the first item, obtained from the environment.
+    # Revenue is the total revenue for the day, obtained from the environment.
     def update(self, pulled_arm, reward, revenue):
         self.t += 1
         self.collected_rewards = np.append(self.collected_rewards, revenue)

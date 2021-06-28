@@ -20,17 +20,22 @@ class TS_Item1():
     def pull_arm(self):
         beta = np.random.beta(self.beta_parameters[:, :, 0], self.beta_parameters[:, :, 1])
 
-        reward_item1 = (self.margins_item1 * np.dot(self.daily_customers, beta))
-        reward_item2 = np.zeros(4)
+        # Computing the total revenue obtained during the round (day).
+        # Note that the conversion rates for the first item are the learned ones (extracted from the Beta distribution).
+        revenue_item1 = (self.margins_item1 * np.dot(self.daily_customers, beta))
+        revenue_item2 = np.zeros(4)
         for class_type in range(4):
-            reward_item2[class_type] = self.margin_item2 * self.daily_customers[class_type] * ((1 - self.discounts) *
+            revenue_item2[class_type] = self.margin_item2 * self.daily_customers[class_type] * ((1 - self.discounts) *
                                        self.conversion_rates_item2[:, class_type] * self.weights[:, class_type]).sum()
-        reward_item2 = np.dot(reward_item2, beta)
+        revenue_item2 = np.dot(revenue_item2, beta)
 
-        value = reward_item1 + reward_item2
+        value = revenue_item1 + revenue_item2
         arm = np.random.choice(np.where(value == value.max())[0])
         return arm
 
+    # Pulled_arm is the arm pulled in the above method.
+    # Reward is the array of conversion rates for the first item, obtained from the environment.
+    # Revenue is the total revenue for the day, obtained from the environment.
     def update(self, pulled_arm, reward, revenue):
         self.t += 1
         self.collected_rewards = np.append(self.collected_rewards, revenue)

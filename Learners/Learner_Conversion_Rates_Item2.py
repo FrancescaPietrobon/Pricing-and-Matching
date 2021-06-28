@@ -7,7 +7,7 @@ class Learner_Conversion_Rates_item2:
         self.collected_samples = [[[] for _ in range(4)] for _ in range(4)]
 
     def update_conversion_rates(self, sample):
-        # Appending the new non-zero conversion rates of the new sample to the list
+        # Appending the new non-zero conversion rates of the new sample (obtained from the environment) to the list
         for promo_type in range(4):
             for class_type in range(4):
                 if sample[promo_type][class_type] != 0:

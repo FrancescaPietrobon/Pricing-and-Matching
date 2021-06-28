@@ -114,7 +114,7 @@ def main():
 
 ########################################################################################################################
 
-
+# Function to plot the regret of the algorithms. It also plots the variance using a rolling-window approach
 def plot_regret(step, learners, opt, rewards_per_exp, time_horizon):
     plt.figure()
     plt.xlabel("t")
@@ -143,6 +143,7 @@ def plot_regret(step, learners, opt, rewards_per_exp, time_horizon):
     plt.show()
 
 
+# Function to plot the reward of the algorithms. It also plots a dotted line for the optimal value(s)
 def plot_reward(step, learners, opt, rewards_per_exp, time_horizon):
     plt.figure()
     plt.xlabel("t")

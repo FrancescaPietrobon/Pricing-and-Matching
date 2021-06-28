@@ -28,22 +28,29 @@ class UCB1_Items_Matching():
             arm = np.unravel_index(self.t, (len(self.margins_item1), len(self.margins_item2)))
             matching = np.random.rand(4, 4)
         else:
+            # Computing the upper_conf for each pair of margins, along with the corresponding matching matrix.
+            # Note that the conversion rates for the two items are the learned ones (empirical means plus confidence)
             upper_conf = np.zeros((len(self.margins_item1), len(self.margins_item2)))
             matching = np.zeros((len(self.margins_item1), len(self.margins_item2), 4, 4))
 
             for margin1 in range(len(self.margins_item1)):
                 for margin2 in range(len(self.margins_item2)):
                     daily_promos = (self.promo_fractions * sum(self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1]))).astype(int)
-                    reward_item2, matching[margin1][margin2] = lp.matching_lp(self.margins_item2[margin2], self.discounts, (self.empirical_means_item2[margin2] + self.confidence_item2[margin2]),
-                                                                              daily_promos, (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).astype(int))
-                    upper_conf[margin1][margin2] = self.margins_item1[margin1] * (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).sum() + reward_item2
+                    revenue_item2, matching[margin1][margin2] = lp.matching_lp(self.margins_item2[margin2], self.discounts, (self.empirical_means_item2[margin2] + self.confidence_item2[margin2]),
+                                                                               daily_promos, (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).astype(int))
+                    upper_conf[margin1][margin2] = self.margins_item1[margin1] * (self.daily_customers * (self.empirical_means_item1[margin1] + self.confidence_item1[margin1])).sum() + revenue_item2
 
+            # Selecting the indices of the maximum of the upper_conf matrix (breaking ties randomly)
+            # and the corresponding matching matrix
             arm_flat = np.argmax(np.random.random(upper_conf.shape) * (upper_conf == np.amax(upper_conf, None, keepdims=True)), None)
             arm = np.unravel_index(arm_flat, upper_conf.shape)
             matching = matching[arm[0]][arm[1]]
 
         return arm, matching
 
+    # Pulled_arm contains the indices of the two pulled arms (pulled_arm[0] and pulled_arm[1]).
+    # Reward contains the array of conversion rates for the first item (reward[0]), the matrix of conversion rates for
+    # the second item (reward[1]) obtained from the environment.
     def update(self, pulled_arm, reward):
         self.t += 1
 

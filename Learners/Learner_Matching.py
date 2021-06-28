@@ -12,6 +12,7 @@ class Matching:
         self.discounts = discounts
         self.promo_fractions = promo_fractions
 
+    # At the first round, the matching is done randomly. Then, it is the result of the linear program used in Step 1.
     def optimize(self, t):
         if t == 0:
             matching = np.random.rand(4, 4)

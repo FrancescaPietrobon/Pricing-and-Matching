@@ -16,6 +16,8 @@ class TS_Items_Matching():
         self.promo_fractions = promo_fractions
 
     def pull_arm(self):
+        # Computing the upper_conf total revenue for each pair of margins, along with the corresponding matching matrix.
+        # Note that the conversion rates for the two items are the learned ones (extracted from the Beta distributions)
         value = np.zeros((len(self.margins_item1), len(self.margins_item2)))
         matching = np.zeros((len(self.margins_item1), len(self.margins_item2), 4, 4))
 
@@ -27,11 +29,16 @@ class TS_Items_Matching():
                 reward_item2, matching[margin1][margin2] = lp.matching_lp(self.margins_item2[margin2], self.discounts, beta_item2, daily_promos, (self.daily_customers * beta_item1).astype(int))
                 value[margin1][margin2] = self.margins_item1[margin1] * (self.daily_customers * beta_item1).sum() + reward_item2
 
+        # Selecting the indices of the maximum of the upper_conf matrix (breaking ties randomly)
+        # and the corresponding matching matrix
         arm_flat = np.argmax(np.random.random(value.shape) * (value == np.amax(value, None, keepdims=True)), None)
         arm = np.unravel_index(arm_flat, value.shape)
 
         return arm, matching[arm[0]][arm[1]]
 
+    # Pulled_arm contains the indices of the two pulled arms (pulled_arm[0] and pulled_arm[1]).
+    # Reward contains the array of conversion rates for the first item (reward[0]), the matrix of conversion rates for
+    # the second item (reward[1]) obtained from the environment.
     def update(self, pulled_arm, reward):
         self.t += 1
 

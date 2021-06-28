@@ -68,7 +68,7 @@ class Simulator:
 
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         n_experiments = 10
-        time_horizon = 365
+        time_horizon = 2000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -113,7 +113,7 @@ class Simulator:
         # Launching the experiments, using both UCB1 and Thompson Sampling to learn the price of item 1
         # This time, the number of customers and the conversion rates for item 2 are not known
         n_experiments = 10
-        time_horizon = 365
+        time_horizon = 2000
         ucb1_rewards_per_experiment = []
         ts_rewards_per_experiment = []
 
@@ -179,7 +179,7 @@ class Simulator:
 
         # Launching the experiments, using UCB1 to learn the promo-customer class matching
         n_experiments = 10
-        time_horizon = 365
+        time_horizon = 2000
         reward_matching_per_exp = []
 
         for e in range(n_experiments):
@@ -238,8 +238,8 @@ class Simulator:
         opt, _, _, _ = self.simulation_step_1(promo_fractions)
 
         # Launching the experiments
-        n_experiments = 10
-        time_horizon = 365
+        n_experiments = 20
+        time_horizon = 2000
 
         reward_ucb_per_exp = []
         reward_ts_per_exp = []
@@ -300,7 +300,7 @@ class Simulator:
         # Parameters for the experiments
         n_phases = len(conversion_rates_item1_NS)
         n_experiments = 10
-        time_horizon = 365 * n_phases
+        time_horizon = 2000 * n_phases
         phases_len = time_horizon / n_phases
         window_size = int(np.sqrt(time_horizon))
 
@@ -373,7 +373,7 @@ class Simulator:
         # Parameters for the experiments
         n_phases = len(conversion_rates_item1_NS)
         n_experiments = 10
-        time_horizon = 365 * n_phases
+        time_horizon = 2000 * n_phases
         phases_len = time_horizon / n_phases
 
         # Objective function (in the end, we extract one optimal value per phase)

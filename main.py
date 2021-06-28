@@ -103,7 +103,7 @@ def main():
                 plot_regret("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
                 plot_reward("STEP 8 - EXP 1", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             elif exp == 2:
-                opt, ucb_rew, time_horizon = Simulator().simulation_step_8(promo_fractions_exp1)
+                opt, ucb_rew, time_horizon = Simulator().simulation_step_8(promo_fractions_exp2)
                 plot_regret("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
                 plot_reward("STEP 8 - EXP 2", ["Change-Detection UCB1"], opt, [ucb_rew], time_horizon)
             break

@@ -127,16 +127,16 @@ def plot_regret(step, learners, opt, rewards_per_exp, time_horizon):
         y = np.cumsum(np.mean(opt - rewards_per_exp[learner], axis=0))
         y_std = np.std(opt - rewards_per_exp[learner], axis=0)
         plt.plot(y, colours[learner])
-        if time_horizon == 365:
-            plt.fill(np.concatenate([x, x[::-1]]),
-                     np.concatenate([uniform_filter1d(y - 30 * y_std, size=30),
-                                     uniform_filter1d((y + 30 * y_std)[::-1], size=30)]),
-                     alpha=.3, fc=colours[learner])
-        elif time_horizon == 5000:
-            plt.fill(np.concatenate([x, x[::-1]]),
-                     np.concatenate([uniform_filter1d(y - 150 * y_std, size=60),
-                                     uniform_filter1d((y + 150 * y_std)[::-1], size=60)]),
-                     alpha=.3, fc=colours[learner])
+        if time_horizon < 1500:
+            factor = 30
+            rolling_window_size = 30
+        else:
+            factor = 150
+            rolling_window_size = 60
+        plt.fill(np.concatenate([x, x[::-1]]),
+                 np.concatenate([uniform_filter1d(y - factor * y_std, size=rolling_window_size),
+                                 uniform_filter1d((y + factor * y_std)[::-1], size=rolling_window_size)]),
+                 alpha=.3, fc=colours[learner])
 
     plt.ylim(bottom=0.)
     plt.legend(learners, title=step)

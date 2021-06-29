@@ -1,5 +1,3 @@
-from numpy.random import normal
-
 from Data import *
 from Environment import *
 from Learners.Learner_Customers import *
@@ -185,7 +183,7 @@ class Simulator:
 
         # Launching the experiments, using the LP to learn the promo-customer class matching
         n_experiments = 10
-        time_horizon = 2000
+        time_horizon = 365
         reward_matching_per_exp = []
 
         for e in range(n_experiments):
@@ -242,7 +240,6 @@ class Simulator:
         conversion_rates_item1 = self.data.conversion_rates_item1
         conversion_rates_item2 = self.data.conversion_rates_item2
         daily_customers = self.data.daily_customers
-
 
         # Launching the experiments, using both UCB1 and TS to learn the prices for the two items and the matching
         n_experiments = 10
@@ -308,7 +305,7 @@ class Simulator:
         # Launching the experiments, using SW-TS to learn the prices of the two items and the matching
         n_phases = len(conversion_rates_item1_NS)
         n_experiments = 10
-        time_horizon = 2000 * n_phases
+        time_horizon = 365 * n_phases
         phases_len = time_horizon / n_phases
         window_size = int(np.sqrt(time_horizon))
         reward_swts_per_exp = []
@@ -379,7 +376,7 @@ class Simulator:
         # Launching the experiments, using CD-UCB1 (CUMSUM) to learn the prices of the two items and the matching
         n_phases = len(conversion_rates_item1_NS)
         n_experiments = 10
-        time_horizon = 2000 * n_phases
+        time_horizon = 365 * n_phases
         phases_len = time_horizon / n_phases
 
         M = int(time_horizon / 3)

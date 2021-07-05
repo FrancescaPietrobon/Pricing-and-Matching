@@ -379,7 +379,7 @@ class Simulator:
         time_horizon = 365 * n_phases
         phases_len = time_horizon / n_phases
 
-        M = int(time_horizon / 3)
+        M = int(time_horizon * 0.75)
         eps = 0.1
         h = np.log(time_horizon) * 2
         alpha = 0.01
